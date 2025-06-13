@@ -6,7 +6,6 @@ import com.luksosilva.dbcomparator.model.enums.SqlPlaceholders;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -94,14 +93,14 @@ public class SqlService {
         return buildSQL(SqlFiles.SD_WITH_CLAUSE, placeholders);
     }
 
-    protected static String buildSDIdentifierColumns(String identifierColumns, String columnName) {
+    protected static String buildSDCoalesceIdentifierColumns(String identifierColumns, String columnName) {
 
         Map<SqlPlaceholders, String> placeholders = Map.of(
                 SqlPlaceholders.IDENTIFIER_COLUMNS, identifierColumns,
                 SqlPlaceholders.COLUMN_NAME, columnName
         );
 
-        return buildSQL(SqlFiles.SD_IDENTIFIER_COLUMNS, placeholders);
+        return buildSQL(SqlFiles.SD_COALESCE_IDENTIFIER_COLUMNS, placeholders);
 
     }
 

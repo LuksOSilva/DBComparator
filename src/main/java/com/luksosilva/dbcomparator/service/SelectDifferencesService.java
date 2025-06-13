@@ -60,7 +60,7 @@ public class SelectDifferencesService {
                     .collect(Collectors.joining(", "));
 
 
-            coalesceIdentifierColumns.add(SqlService.buildSDIdentifierColumns(allIdentifierColumnsWithSource, columnName));
+            coalesceIdentifierColumns.add(SqlService.buildSDCoalesceIdentifierColumns(allIdentifierColumnsWithSource, columnName));
         }
 
 
