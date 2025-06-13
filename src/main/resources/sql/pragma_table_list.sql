@@ -1,0 +1,1 @@
+PRAGMA '{{source_id}}'.TABLE_LIST;

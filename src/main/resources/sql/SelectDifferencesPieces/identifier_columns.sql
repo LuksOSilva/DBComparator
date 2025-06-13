@@ -1,0 +1,1 @@
+COALESCE({{identifier_columns}}) AS "{{column_name}}"

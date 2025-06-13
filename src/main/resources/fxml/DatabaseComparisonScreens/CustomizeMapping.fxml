@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" styleClass="main-container" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.controllers.databaseComparison.CustomizeMappingScreenController">
+
+    <children>
+
+        <Text layoutX="229.0" layoutY="60.0" styleClass="title-text" text="customize o mapeamento das tabelas">
+            <font>
+                <Font size="30.0" />
+            </font>
+        </Text>
+
+        <Button fx:id="nextButton" onAction="#nextStep" layoutX="783.0" layoutY="535.0" mnemonicParsing="false" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="AVANÇAR" />
+        <Button fx:id="previousButton" onAction="#previousStep" layoutX="651.0" layoutY="535.0" mnemonicParsing="false" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary-outline" text="VOLTAR" />
+        <Text fx:id="cancelText" onMouseClicked="#cancelComparison" layoutX="570.0" layoutY="560.0" styleClass="cancel-text" text="CANCELAR" />
+      <TableView fx:id="comparedTablesTableView" layoutX="48.0" layoutY="142.0" prefHeight="340.0" prefWidth="200.0" style="-fx-background-color: #F0F3FA; -fx-pref-height: 365;">
+         <columns>
+            <TableColumn fx:id="tableNameTableColumn" prefWidth="199.0" text="nome da tabela" />
+         </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+      <TableView fx:id="columnsTableView" layoutX="315.0" layoutY="142.0" prefHeight="340.0" prefWidth="200.0" style="-fx-background-color: #F0F3FA; -fx-pref-height: 365; -fx-pref-width: 590;">
+         <columns>
+            <TableColumn fx:id="columnNameTableColumn" prefWidth="187.0" text="campo" />
+            <TableColumn fx:id="primaryKeyTableColumn" prefWidth="158.0" text="chave primária" />
+            <TableColumn fx:id="identifierTableColumn" prefWidth="118.0" text="identificador" />
+            <TableColumn fx:id="comparableTableColumn" prefWidth="127.0" text="comparável" />
+         </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+    </children>
+</AnchorPane>

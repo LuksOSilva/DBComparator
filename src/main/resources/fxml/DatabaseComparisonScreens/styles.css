@@ -1,0 +1,102 @@
+.main-container {
+    -fx-pref-width: 960;
+    -fx-pref-height: 600;
+    -fx-background-color: #F0F3FA;
+}
+
+.content-container {
+    -fx-pref-width: 960;
+    -fx-pref-height: 510;
+    -fx-background-color: #ECEFF8;
+}
+
+.empty-drop-box {
+    -fx-border-color: #B9B9B9;
+    -fx-border-width: 5px;
+    -fx-border-style: dashed;
+    -fx-background-color: transparent;
+    -fx-border-radius: 10px;
+    -fx-cursor: hand;
+}
+
+.empty-drop-box:hover {
+    -fx-background-color: #e1eaf5;
+}
+
+.drop-box {
+    -fx-border-color: #638ECB;
+    -fx-border-width: 2px;
+    -fx-border-style: dashed;
+    -fx-background-color: transparent;
+    -fx-border-radius: 8px;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-padding: 20;
+}
+
+.drop-box:hover {
+    -fx-background-color: #e1eaf5;
+}
+
+
+/* Primary button */
+.btn-primary {
+    -fx-pref-width: 155;
+    -fx-pref-height: 40;
+    -fx-background-color: #638ECB;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5px;
+    -fx-text-fill: #F0F3FA;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #4e7ab2;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #3a6498;
+}
+
+/* Secondary outlined button */
+.btn-secondary-outline {
+    -fx-pref-width: 110;
+    -fx-pref-height: 40;
+    -fx-background-color: transparent;
+    -fx-font-weight: bold;
+    -fx-text-fill: #638ECB;
+    -fx-border-width: 2px;
+    -fx-border-color: #638ECB;
+    -fx-border-radius: 5px;
+}
+
+.btn-secondary-outline:hover {
+    -fx-background-color: #e3e9f4;
+}
+
+.btn-secondary-outline:pressed {
+    -fx-background-color: #ccd7eb;
+}
+
+/* Cancel text */
+.cancel-text {
+    -fx-fill: #638ECB;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.cancel-text:hover {
+    -fx-underline: true;
+}
+
+/* Title text */
+.title-text {
+    -fx-fill: #505050;
+    -fx-font-size: 30px;
+}
+
+
+.checkbox:disabled {
+    -fx-opacity: 0.4;      /* make it more transparent */
+    -fx-background-color: #ddd;  /* light gray background */
+    -fx-border-color: #aaa;      /* gray border */
+}

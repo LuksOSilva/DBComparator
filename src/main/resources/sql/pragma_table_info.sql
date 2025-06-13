@@ -1,0 +1,1 @@
+PRAGMA '{{source_id}}'.TABLE_INFO('{{table_name}}');
