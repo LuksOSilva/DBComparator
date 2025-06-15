@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.service;
 
+import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
@@ -36,10 +37,13 @@ public class ComparisonService {
 
         for (ComparedTable comparedTable : comparison.getComparedTables()) {
 
-            String sql = SelectDifferencesService.buildSelectDifferences(comparedTable);
-            perComparedTableQuery.put(comparedTable, sql);
-        }
 
+            String sql = SelectDifferencesBuilder.buildSelectDifferences(comparedTable);
+
+            perComparedTableQuery.put(comparedTable, sql);
+
+
+        }
 
 
     }

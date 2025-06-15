@@ -4,23 +4,7 @@ SELECT
     {{coalesce_identifier_columns}}
     {{select_comparable_columns}}
 FROM
-    "rca_data"
-    FULL JOIN "sup_data"
-        ON
-        ("rca_data"."codfilial" = "sup_data"."codfilial"
-        AND "rca_data"."config_name" = "sup_data"."config_name"
-        AND "rca_data"."config_type" = "sup_data"."config_type")
-    FULL JOIN "tst_data"
-        ON
-        ("rca_data"."codfilial" = "tst_data"."codfilial"
-        AND "rca_data"."config_name" = "tst_data"."config_name"
-        AND "rca_data"."config_type" = "tst_data"."config_type")
-        OR
-        ("sup_data"."codfilial" = "tst_data"."codfilial"
-        AND "sup_data"."config_name" = "tst_data"."config_name"
-        AND "sup_data"."config_type" = "tst_data"."config_type")
-
-
+    {{from_clause}}
 WHERE
     (COALESCE("rca_data"."config_value", '') <> COALESCE("sup_data"."config_value", '')
     OR COALESCE("rca_data"."inherit", '') <> COALESCE("sup_data"."inherit", '')

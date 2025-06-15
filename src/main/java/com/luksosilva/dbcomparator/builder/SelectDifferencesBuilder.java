@@ -1,15 +1,16 @@
-package com.luksosilva.dbcomparator.service;
+package com.luksosilva.dbcomparator.builder;
 
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.service.SqlService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
-public class SelectDifferencesService {
+public class SelectDifferencesBuilder {
 
     public static String buildSelectDifferences(ComparedTable comparedTable) {
 
@@ -34,6 +35,9 @@ public class SelectDifferencesService {
         List<String> coalesceIdentifierColumns = buildCoalesceIdentifierColumns(comparedSourceList, identifiersComparedColumns);
 
         List<String> selectComparableColumns = buildSelectComparableColumns(comparedSourceList, comparableComparedColumns);
+
+        String fromClause = buildFromClause(comparedSourceList, identifiersComparedColumns);
+
 
         return "";
     }
@@ -86,8 +90,75 @@ public class SelectDifferencesService {
         return selectComparableColumns;
     }
 
+    private static String buildFromClause (List<ComparedSource> comparedSourceList,
+                                           List<ComparedTableColumn> identifiersComparedColumns) {
 
 
+        ComparedSource firstComparedSource = comparedSourceList.getFirst();
+
+        List<String> joinClauseList = new ArrayList<>();
+
+        //skips first compared source on purpose.
+        for (int i = 1; i < comparedSourceList.size(); i++) {
+
+            joinClauseList.add(buildJoinClause(comparedSourceList, i, identifiersComparedColumns));
+
+        }
+
+
+        String joinClause = joinClauseList.isEmpty() ? "" : String.join("\n", joinClauseList);
+
+
+        return SqlService.buildSDFromClause(firstComparedSource.getSourceId(), joinClause);
+    }
+
+    private static String buildJoinClause (List<ComparedSource> comparedSourceList,
+                                           int currentIndex,
+                                           List<ComparedTableColumn> identifiersComparedColumns) {
+
+        ComparedSource currentComparedSource = comparedSourceList.get(currentIndex);
+
+        List<String> onClauseList = new ArrayList<>();
+
+        //loops through all previous compared sources to create all necessary ON clauses.
+        for (int i = 0; i < currentIndex; i++) {
+
+        ComparedSource previousComparedSource = comparedSourceList.get(i);
+
+        onClauseList.add(buildOnClause(currentComparedSource, previousComparedSource, identifiersComparedColumns));
+
+        }
+
+
+        String onClause = onClauseList.isEmpty() ? "" : String.join("\nOR\n", onClauseList);
+
+
+        return SqlService.buildSDJoinClause(currentComparedSource.getSourceId(), onClause);
+    }
+
+    private static String buildOnClause (ComparedSource currentComparedSource,
+                                         ComparedSource previousComparedSource,
+                                         List<ComparedTableColumn> identifiersComparedColumns) {
+
+
+        String currentSourceId = currentComparedSource.getSourceId();
+        String nextSourceId = previousComparedSource.getSourceId();
+
+        String equalsIdentifierColumns = identifiersComparedColumns.stream()
+                .map(comparedTableColumn -> {
+
+                    String columnName = comparedTableColumn.getColumnName();
+
+                    return String.format("\"%s_data\".\"%s\" = \"%s_data\".\"%s\"",
+                            currentSourceId, columnName, nextSourceId, columnName);
+
+                })
+                .collect(Collectors.joining("\nAND "));
+
+
+        return SqlService.buildSDOnClause(equalsIdentifierColumns);
+
+    }
 
 
 
