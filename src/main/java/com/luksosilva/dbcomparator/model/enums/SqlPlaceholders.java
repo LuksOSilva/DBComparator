@@ -10,8 +10,7 @@ public enum SqlPlaceholders {
     IS_IDENTIFIER("{{is_identifier}}"),
 
     //select differences
-    SOURCE_ID_DATA("{{source_id_data}}"),
-    IDENTIFIER_COLUMNS("{{coalesce_identifier_columns}}");
+    IDENTIFIER_COLUMNS("{{identifier_columns}}");
 
 
 

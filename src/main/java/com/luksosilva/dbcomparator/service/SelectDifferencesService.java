@@ -33,7 +33,7 @@ public class SelectDifferencesService {
 
         List<String> coalesceIdentifierColumns = buildCoalesceIdentifierColumns(comparedSourceList, identifiersComparedColumns);
 
-
+        List<String> selectComparableColumns = buildSelectComparableColumns(comparedSourceList, comparableComparedColumns);
 
         return "";
     }
@@ -41,8 +41,7 @@ public class SelectDifferencesService {
     private static List<String> buildWithClause(List<ComparedSource> comparedSourceList, String tableName) {
         List<String> withClause = new ArrayList<>();
         for (ComparedSource comparedSource : comparedSourceList) {
-            String sourceIdData = comparedSource.getSourceId() + "_data";
-            withClause.add(SqlService.buildSDWithClause(sourceIdData, comparedSource.getSourceId(), tableName));
+            withClause.add(SqlService.buildSDWithClause(comparedSource.getSourceId(), tableName));
         }
         return withClause;
     }
@@ -66,6 +65,25 @@ public class SelectDifferencesService {
 
         return coalesceIdentifierColumns;
 
+    }
+
+    private static List<String> buildSelectComparableColumns (List<ComparedSource> comparedSourceList,
+                                                              List<ComparedTableColumn> comparableComparedColumns) {
+
+        List<String> selectComparableColumns = new ArrayList<>();
+
+        for (ComparedSource comparedSource : comparedSourceList) {
+
+            for (ComparedTableColumn comparableComparedColumn : comparableComparedColumns) {
+
+                selectComparableColumns.add(
+                        SqlService.buildSDSelectComparableColumns(comparedSource.getSourceId(),
+                        comparableComparedColumn.getColumnName()));
+
+            }
+        }
+
+        return selectComparableColumns;
     }
 
 

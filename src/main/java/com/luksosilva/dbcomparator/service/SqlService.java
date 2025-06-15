@@ -82,10 +82,9 @@ public class SqlService {
         }
     }
 
-    protected static String buildSDWithClause(String sourceIdData, String sourceId, String tableName) {
+    protected static String buildSDWithClause(String sourceId, String tableName) {
 
         Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.SOURCE_ID_DATA, sourceIdData,
                 SqlPlaceholders.SOURCE_ID, sourceId,
                 SqlPlaceholders.TABLE_NAME, tableName
         );
@@ -102,6 +101,16 @@ public class SqlService {
 
         return buildSQL(SqlFiles.SD_COALESCE_IDENTIFIER_COLUMNS, placeholders);
 
+    }
+
+    protected static String buildSDSelectComparableColumns(String sourceId, String columnName) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.COLUMN_NAME, columnName
+        );
+
+        return buildSQL(SqlFiles.SD_SELECT_COMPARABLE_COLUMNS, placeholders);
     }
 
 

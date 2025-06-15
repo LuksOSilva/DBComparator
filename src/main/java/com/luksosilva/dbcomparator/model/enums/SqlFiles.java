@@ -13,7 +13,8 @@ public enum SqlFiles {
 
     SELECT_DIFFERENCES("select_differences"),
     SD_WITH_CLAUSE("SelectDifferencesPieces\\with_clause"),
-    SD_COALESCE_IDENTIFIER_COLUMNS("SelectDifferencesPieces\\coalesce_identifier_columns");
+    SD_COALESCE_IDENTIFIER_COLUMNS("SelectDifferencesPieces\\coalesce_identifier_columns"),
+    SD_SELECT_COMPARABLE_COLUMNS("SelectDifferencesPieces\\select_comparable_columns");
 
     private final String fileName;
 
@@ -25,9 +26,5 @@ public enum SqlFiles {
         return "\\sql\\" + fileName + ".sql";
     }
 
-
-    public String fileName() {
-        return fileName;
-    }
 
 }
