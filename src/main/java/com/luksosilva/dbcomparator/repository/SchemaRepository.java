@@ -6,7 +6,7 @@ import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
-import com.luksosilva.dbcomparator.service.SqlService;
+import com.luksosilva.dbcomparator.util.SqlFormatter;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
 
 import java.sql.Connection;
@@ -43,7 +43,7 @@ public class SchemaRepository {
 
             try (Statement stmt = connection.createStatement();
                  ResultSet resultSet = stmt.executeQuery(
-                         SqlService.buildSelectMapColumnSettings(listTableNames));
+                         SqlFormatter.buildSelectMapColumnSettings(listTableNames))
             ) {
 
                 Map<ComparedTable, Map<ComparedTableColumn, ComparedTableColumnSettings>> perComparedTableColumnSetting = new HashMap<>();
@@ -93,7 +93,7 @@ public class SchemaRepository {
     public static void saveTableColumnsSettings(ComparedTable comparedTable, ComparedTableColumn comparedTableColumn) {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
-            String sql = SqlService.buildReplaceColumnSettings(
+            String sql = SqlFormatter.buildReplaceColumnSettings(
                     comparedTable.getTableName(),
                     comparedTableColumn.getColumnName(),
                     comparedTableColumn.getColumnSetting().isComparable(),
@@ -119,7 +119,7 @@ public class SchemaRepository {
     private static void loadTableNames(Connection conn, ComparedSource comparedSource) throws Exception {
         try (Statement stmt = conn.createStatement();
              ResultSet resultSet = stmt.executeQuery(
-                     SqlService.buildPragmaTableList(comparedSource.getSourceId()));
+                     SqlFormatter.buildPragmaTableList(comparedSource.getSourceId()))
         ) {
             while (resultSet.next()) {
 
@@ -135,7 +135,7 @@ public class SchemaRepository {
 
             try (Statement stmt = conn.createStatement();
                  ResultSet resultSet = stmt.executeQuery(
-                         SqlService.buildSelectTableRecordCount(comparedSource.getSourceId(), sourceTable.getTableName()));
+                         SqlFormatter.buildSelectTableRecordCount(comparedSource.getSourceId(), sourceTable.getTableName()))
             ) {
                 while (resultSet.next()) {
 
@@ -154,7 +154,7 @@ public class SchemaRepository {
 
             try (Statement stmt = conn.createStatement();
                  ResultSet resultSet = stmt.executeQuery(
-                         SqlService.buildPragmaTableInfo(comparedSource.getSourceId(), sourceTable.getTableName()));
+                         SqlFormatter.buildPragmaTableInfo(comparedSource.getSourceId(), sourceTable.getTableName()))
             ) {
                 while (resultSet.next()) {
 

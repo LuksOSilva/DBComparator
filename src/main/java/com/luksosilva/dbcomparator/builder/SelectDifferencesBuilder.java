@@ -3,7 +3,7 @@ package com.luksosilva.dbcomparator.builder;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.service.SqlService;
+import com.luksosilva.dbcomparator.util.SqlFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class SelectDifferencesBuilder {
                 comparedSourceList.add(comparedSource));
 
 
-        List<String> withClause = buildWithClause(comparedSourceList, tableName);
+        String withClause = buildWithClause(comparedSourceList, tableName);
 
         List<String> coalesceIdentifierColumns = buildCoalesceIdentifierColumns(comparedSourceList, identifiersComparedColumns);
 
@@ -42,12 +42,13 @@ public class SelectDifferencesBuilder {
         return "";
     }
 
-    private static List<String> buildWithClause(List<ComparedSource> comparedSourceList, String tableName) {
-        List<String> withClause = new ArrayList<>();
+    private static String buildWithClause(List<ComparedSource> comparedSourceList, String tableName) {
+        List<String> withClauseList = new ArrayList<>();
         for (ComparedSource comparedSource : comparedSourceList) {
-            withClause.add(SqlService.buildSDWithClause(comparedSource.getSourceId(), tableName));
+            withClauseList.add(SqlFormatter.buildSDWithClause(comparedSource.getSourceId(), tableName));
         }
-        return withClause;
+
+        return String.join(",\n", withClauseList);
     }
 
     private static List<String> buildCoalesceIdentifierColumns(List<ComparedSource> comparedSourceList,
@@ -63,7 +64,7 @@ public class SelectDifferencesBuilder {
                     .collect(Collectors.joining(", "));
 
 
-            coalesceIdentifierColumns.add(SqlService.buildSDCoalesceIdentifierColumns(allIdentifierColumnsWithSource, columnName));
+            coalesceIdentifierColumns.add(SqlFormatter.buildSDCoalesceIdentifierColumns(allIdentifierColumnsWithSource, columnName));
         }
 
 
@@ -81,7 +82,7 @@ public class SelectDifferencesBuilder {
             for (ComparedTableColumn comparableComparedColumn : comparableComparedColumns) {
 
                 selectComparableColumns.add(
-                        SqlService.buildSDSelectComparableColumns(comparedSource.getSourceId(),
+                        SqlFormatter.buildSDSelectComparableColumns(comparedSource.getSourceId(),
                         comparableComparedColumn.getColumnName()));
 
             }
@@ -109,7 +110,7 @@ public class SelectDifferencesBuilder {
         String joinClause = joinClauseList.isEmpty() ? "" : String.join("\n", joinClauseList);
 
 
-        return SqlService.buildSDFromClause(firstComparedSource.getSourceId(), joinClause);
+        return SqlFormatter.buildSDFromClause(firstComparedSource.getSourceId(), joinClause);
     }
 
     private static String buildJoinClause (List<ComparedSource> comparedSourceList,
@@ -133,7 +134,7 @@ public class SelectDifferencesBuilder {
         String onClause = onClauseList.isEmpty() ? "" : String.join("\nOR\n", onClauseList);
 
 
-        return SqlService.buildSDJoinClause(currentComparedSource.getSourceId(), onClause);
+        return SqlFormatter.buildSDJoinClause(currentComparedSource.getSourceId(), onClause);
     }
 
     private static String buildOnClause (ComparedSource currentComparedSource,
@@ -142,7 +143,7 @@ public class SelectDifferencesBuilder {
 
 
         String currentSourceId = currentComparedSource.getSourceId();
-        String nextSourceId = previousComparedSource.getSourceId();
+        String previousSourceId = previousComparedSource.getSourceId();
 
         String equalsIdentifierColumns = identifiersComparedColumns.stream()
                 .map(comparedTableColumn -> {
@@ -150,13 +151,13 @@ public class SelectDifferencesBuilder {
                     String columnName = comparedTableColumn.getColumnName();
 
                     return String.format("\"%s_data\".\"%s\" = \"%s_data\".\"%s\"",
-                            currentSourceId, columnName, nextSourceId, columnName);
+                            currentSourceId, columnName, previousSourceId, columnName);
 
                 })
                 .collect(Collectors.joining("\nAND "));
 
 
-        return SqlService.buildSDOnClause(equalsIdentifierColumns);
+        return SqlFormatter.buildSDOnClause(equalsIdentifierColumns);
 
     }
 

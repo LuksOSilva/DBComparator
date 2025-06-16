@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.service;
+package com.luksosilva.dbcomparator.util;
 
 import com.luksosilva.dbcomparator.model.enums.SqlFiles;
 import com.luksosilva.dbcomparator.model.enums.SqlPlaceholders;
@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SqlService {
+public class SqlFormatter {
 
 
     public static String buildSDWithClause(String sourceId, String tableName) {
@@ -129,7 +129,7 @@ public class SqlService {
     }
 
     public static String loadSQL(SqlFiles sqlFile) {
-        try (InputStream inputStream = SqlService.class.getClassLoader().getResourceAsStream(sqlFile.fullPath())) {
+        try (InputStream inputStream = SqlFormatter.class.getClassLoader().getResourceAsStream(sqlFile.fullPath())) {
             if (inputStream == null) {
                 throw new RuntimeException("SQL file not found: " + sqlFile.fullPath());
             }
