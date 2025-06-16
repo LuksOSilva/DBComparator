@@ -145,7 +145,7 @@ public class SqlFormatter {
                 SqlPlaceholders.DEFAULT_VALUE, defaultValue
         );
 
-        return buildSQL(SqlFiles.SD_COALESCE_IDENTIFIER_COLUMN, placeholders);
+        return buildSQL(SqlFiles.SD_COALESCE_COMPARABLE_COLUMN, placeholders);
 
     }
 

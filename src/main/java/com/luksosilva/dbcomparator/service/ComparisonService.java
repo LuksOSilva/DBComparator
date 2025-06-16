@@ -11,6 +11,7 @@ import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ComparisonService {
 
@@ -44,6 +45,12 @@ public class ComparisonService {
 
 
         }
+        AtomicInteger count = new AtomicInteger();
+        perComparedTableQuery.forEach((comparedTable, s) -> {
+            System.out.println("count: " + count);
+            System.out.println(s);
+            count.getAndIncrement();
+        });
 
 
     }

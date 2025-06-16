@@ -18,6 +18,7 @@ public enum SqlFiles {
     SD_FROM_CLAUSE("SelectDifferencesPieces\\from_clause"),
     SD_JOIN_CLAUSE("SelectDifferencesPieces\\join_clause"),
     SD_ON_CLAUSE("SelectDifferencesPieces\\on_clause"),
+    SD_COALESCE_COMPARABLE_COLUMN("SelectDifferencesPieces\\coalesce_comparable_column"),
     SD_WHERE_CLAUSE("SelectDifferencesPieces\\where_clause");
 
     private final String fileName;

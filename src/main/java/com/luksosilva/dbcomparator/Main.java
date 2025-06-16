@@ -31,7 +31,7 @@ public class Main extends Application {
         List<Source> sourceList = new ArrayList<>();
         sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\sup.s3db")));
         sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\rca.s3db")));
-        //sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\dirceu.s3db")));
+        sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\tst.s3db")));
 
         System.out.println("Starting process sources: " + LocalDateTime.now());
         ComparisonService.processSources(comparison, sourceList);
@@ -56,6 +56,10 @@ public class Main extends Application {
         System.out.println("Starting process tables: " + LocalDateTime.now());
         ComparisonService.processTables(comparison, groupedTables);
         System.out.println("Finished process tables: " + LocalDateTime.now());
+
+        System.out.println("Starting compare: " + LocalDateTime.now());
+        ComparisonService.compare(comparison);
+        System.out.println("Finished compare: " + LocalDateTime.now());
 
 
     }

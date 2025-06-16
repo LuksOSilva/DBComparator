@@ -39,7 +39,8 @@ public class SelectDifferencesBuilder {
 
         String fromClause = buildFromClause(comparedSourceList, identifiersComparedColumns);
 
-        String whereClause = buildWhereClause(comparedSourceList, comparableComparedColumns);
+        String whereClause = comparableComparedColumns.isEmpty() ? "" :
+                buildWhereClause(comparedSourceList, comparableComparedColumns);
 
 
         return SqlFormatter.buildSelectDifferences(withClause, selectClause, fromClause, whereClause);
@@ -83,7 +84,7 @@ public class SelectDifferencesBuilder {
             String columnName = identifierComparedColumn.getColumnName();
 
             String allIdentifierColumnsWithSource = comparedSourceList.stream()
-                    .map(comparedSource -> "\"" + comparedSource.getSourceId() + "\".\"" + columnName + "\"")
+                    .map(comparedSource -> "\"" + comparedSource.getSourceId() + "_data\".\"" + columnName + "\"")
                     .collect(Collectors.joining(", "));
 
 
@@ -246,7 +247,7 @@ public class SelectDifferencesBuilder {
         }
 
 
-        return String.join("\nOR ", coalesceComparableColumns);
+        return coalesceComparableColumns.isEmpty() ? "" : String.join("\nOR ", coalesceComparableColumns);
     }
 
     private static String getDefaultValue(String columnType) {
