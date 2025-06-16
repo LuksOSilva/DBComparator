@@ -2,11 +2,11 @@ package com.luksosilva.dbcomparator.model.source;
 
 public class SourceTableColumn {
 
-    private int sequence;
-    private String columnName;
-    private String type;
-    private boolean notNull;
-    private boolean isPk;
+    private final int sequence;
+    private final String columnName;
+    private final String type;
+    private final boolean notNull;
+    private final boolean isPk;
 
 
     public SourceTableColumn(int sequence, String columnName, String type, boolean notNull, boolean isPk) {
@@ -23,6 +23,10 @@ public class SourceTableColumn {
 
     public boolean isPk() {
         return isPk;
+    }
+
+    public String getType() {
+        return type;
     }
 
     @Override

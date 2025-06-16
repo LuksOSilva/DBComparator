@@ -10,10 +10,16 @@ public enum SqlPlaceholders {
     IS_IDENTIFIER("{{is_identifier}}"),
 
     //select differences
+    WITH_CLAUSE("{{with_clause}}"),
+    SELECT_CLAUSE("{{select_clause}}"),
+    FROM_CLAUSE("{{from_clause}}"),
+    WHERE_CLAUSE("{{where_clause}}"),
     IDENTIFIER_COLUMNS("{{identifier_columns}}"),
     JOIN_CLAUSE("{{join_clause}}"),
     ON_CLAUSE("{{on_clause}}"),
-    EQUALS_IDENTIFIER_COLUMNS("{{equals_identifier_columns}}");
+    EQUALS_IDENTIFIER_COLUMNS("{{equals_identifier_columns}}"),
+    CONDITION_COMPARABLE_COLUMNS("{{condition_comparable_columns}}"),
+    DEFAULT_VALUE("{{default_value}}");
 
 
 

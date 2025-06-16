@@ -38,7 +38,7 @@ public class ComparisonService {
         for (ComparedTable comparedTable : comparison.getComparedTables()) {
 
 
-            String sql = SelectDifferencesBuilder.buildSelectDifferences(comparedTable);
+            String sql = SelectDifferencesBuilder.build(comparedTable);
 
             perComparedTableQuery.put(comparedTable, sql);
 

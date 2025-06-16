@@ -12,67 +12,6 @@ import java.util.stream.Collectors;
 public class SqlFormatter {
 
 
-    public static String buildSDWithClause(String sourceId, String tableName) {
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.SOURCE_ID, sourceId,
-                SqlPlaceholders.TABLE_NAME, tableName
-        );
-
-        return buildSQL(SqlFiles.SD_WITH_CLAUSE, placeholders);
-    }
-
-    public static String buildSDCoalesceIdentifierColumns(String identifierColumns, String columnName) {
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.IDENTIFIER_COLUMNS, identifierColumns,
-                SqlPlaceholders.COLUMN_NAME, columnName
-        );
-
-        return buildSQL(SqlFiles.SD_COALESCE_IDENTIFIER_COLUMNS, placeholders);
-
-    }
-
-    public static String buildSDSelectComparableColumns(String sourceId, String columnName) {
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.SOURCE_ID, sourceId,
-                SqlPlaceholders.COLUMN_NAME, columnName
-        );
-
-        return buildSQL(SqlFiles.SD_SELECT_COMPARABLE_COLUMNS, placeholders);
-    }
-
-    public static String buildSDFromClause(String sourceId, String joinClause) {
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.SOURCE_ID, sourceId,
-                SqlPlaceholders.JOIN_CLAUSE, joinClause
-        );
-
-        return buildSQL(SqlFiles.SD_FROM_CLAUSE, placeholders);
-    }
-    public static String buildSDJoinClause(String sourceId, String onClause) {
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.SOURCE_ID, sourceId,
-                SqlPlaceholders.ON_CLAUSE, onClause
-        );
-
-        return buildSQL(SqlFiles.SD_JOIN_CLAUSE, placeholders);
-
-    }
-    public static String buildSDOnClause(String equalsIdentifierColumns) {
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.EQUALS_IDENTIFIER_COLUMNS, equalsIdentifierColumns
-        );
-
-        return buildSQL(SqlFiles.SD_ON_CLAUSE, placeholders);
-
-    }
-
-
     public static String buildReplaceColumnSettings(String tableName, String columnName, boolean isComparable, boolean isIdentifier) {
 
         //converts boolean to string
@@ -126,6 +65,101 @@ public class SqlFormatter {
         );
 
         return buildSQL(SqlFiles.PRAGMA_TABLE_LIST, placeholders);
+    }
+
+    public static String buildSDWithClause(String sourceId, String tableName) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.TABLE_NAME, tableName
+        );
+
+        return buildSQL(SqlFiles.SD_WITH_CLAUSE, placeholders);
+    }
+
+    public static String buildSDCoalesceIdentifierColumns(String identifierColumns, String columnName) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.IDENTIFIER_COLUMNS, identifierColumns,
+                SqlPlaceholders.COLUMN_NAME, columnName
+        );
+
+        return buildSQL(SqlFiles.SD_COALESCE_IDENTIFIER_COLUMN, placeholders);
+
+    }
+
+    public static String buildSDSelectComparableColumns(String sourceId, String columnName) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.COLUMN_NAME, columnName
+        );
+
+        return buildSQL(SqlFiles.SD_SELECT_COMPARABLE_COLUMNS, placeholders);
+    }
+
+    public static String buildSDFromClause(String sourceId, String joinClause) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.JOIN_CLAUSE, joinClause
+        );
+
+        return buildSQL(SqlFiles.SD_FROM_CLAUSE, placeholders);
+    }
+    public static String buildSDJoinClause(String sourceId, String onClause) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.ON_CLAUSE, onClause
+        );
+
+        return buildSQL(SqlFiles.SD_JOIN_CLAUSE, placeholders);
+
+    }
+    public static String buildSDOnClause(String equalsIdentifierColumns) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.EQUALS_IDENTIFIER_COLUMNS, equalsIdentifierColumns
+        );
+
+        return buildSQL(SqlFiles.SD_ON_CLAUSE, placeholders);
+
+    }
+
+    public static String buildSDWhereClause(String conditionComparableColumns) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.CONDITION_COMPARABLE_COLUMNS, conditionComparableColumns
+        );
+
+        return buildSQL(SqlFiles.SD_WHERE_CLAUSE, placeholders);
+
+    }
+
+    public static String buildSDCoalesceComparableColumn(String sourceId, String columnName, String defaultValue) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.COLUMN_NAME, columnName,
+                SqlPlaceholders.DEFAULT_VALUE, defaultValue
+        );
+
+        return buildSQL(SqlFiles.SD_COALESCE_IDENTIFIER_COLUMN, placeholders);
+
+    }
+
+    public static String buildSelectDifferences(String withClause, String selectClause, String fromClause, String whereClause) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.WITH_CLAUSE, withClause,
+                SqlPlaceholders.SELECT_CLAUSE, selectClause,
+                SqlPlaceholders.FROM_CLAUSE, fromClause,
+                SqlPlaceholders.WHERE_CLAUSE, whereClause
+        );
+
+        return buildSQL(SqlFiles.SELECT_DIFFERENCES, placeholders);
+
     }
 
     public static String loadSQL(SqlFiles sqlFile) {
