@@ -213,7 +213,7 @@ public class SelectDifferencesBuilder {
         }
 
 
-        return whereClauseList.isEmpty() ? "" : "WHERE\n(" + String.join("\n\nOR\n\n", whereClauseList) + ")";
+        return whereClauseList.isEmpty() ? "" : "AND\n(" + String.join("\n\nOR\n\n", whereClauseList) + ")";
     }
 
     private static String buildCoalesceComparableColumn(List<ComparedTableColumn> comparableComparedColumns,

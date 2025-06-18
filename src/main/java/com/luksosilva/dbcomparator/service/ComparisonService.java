@@ -34,23 +34,10 @@ public class ComparisonService {
 
     public static void compare(Comparison comparison) {
 
-        Map<ComparedTable, String> perComparedTableQuery = new HashMap<>();
-
-        for (ComparedTable comparedTable : comparison.getComparedTables()) {
-
-
-            String sql = SelectDifferencesBuilder.build(comparedTable);
-
-            perComparedTableQuery.put(comparedTable, sql);
+        Map<ComparedTable, String> perComparedTableQuery =
+                buildSelectDifferences(comparison.getComparedTables());
 
 
-        }
-        AtomicInteger count = new AtomicInteger();
-        perComparedTableQuery.forEach((comparedTable, s) -> {
-            System.out.println("count: " + count);
-            System.out.println(s);
-            count.getAndIncrement();
-        });
 
 
     }
@@ -100,6 +87,24 @@ public class ComparisonService {
                 comparedTable.getComparedTableColumns().add(comparedTableColumn);
             }
         }
+    }
+
+    private static Map<ComparedTable, String> buildSelectDifferences(List<ComparedTable> comparedTableList) {
+
+        Map<ComparedTable, String> perComparedTableQuery = new HashMap<>();
+
+
+        for (ComparedTable comparedTable : comparedTableList) {
+
+            String sql = SelectDifferencesBuilder.build(comparedTable);
+
+            perComparedTableQuery.put(comparedTable, sql);
+
+
+        }
+
+        return perComparedTableQuery;
+
     }
 
 }
