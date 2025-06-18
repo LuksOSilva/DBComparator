@@ -25,4 +25,12 @@ public class ComparedTableColumnSettings {
     public String toString() {
         return "ColumnSetting{isComparable=" + isComparable + ", isIdentifier=" + isIdentifier + "}";
     }
+
+    public void changeIsComparableTo(boolean isComparable) {
+        this.isComparable =isComparable;
+    }
+    public void changeIsIdentifierTo(boolean isIdentifier) {
+        this.isIdentifier =isIdentifier;
+    }
 }
+

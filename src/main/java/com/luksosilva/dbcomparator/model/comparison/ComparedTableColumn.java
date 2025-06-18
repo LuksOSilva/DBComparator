@@ -2,6 +2,9 @@ package com.luksosilva.dbcomparator.model.comparison;
 
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -9,6 +12,8 @@ public class ComparedTableColumn {
 
     private Map<ComparedSource, SourceTableColumn> perSourceTableColumn;
     private ComparedTableColumnSettings comparedTableColumnSettings;
+
+    List<String> columnFilter = new ArrayList<>();
 
     public ComparedTableColumn(Map<ComparedSource, SourceTableColumn> perSourceTableColumn) {
         this.perSourceTableColumn = perSourceTableColumn;
@@ -31,6 +36,10 @@ public class ComparedTableColumn {
 
     public ComparedTableColumnSettings getColumnSetting() {
         return comparedTableColumnSettings;
+    }
+
+    public List<String> getColumnFilter() {
+        return columnFilter;
     }
 
     @Override

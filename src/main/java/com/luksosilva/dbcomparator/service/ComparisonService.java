@@ -1,10 +1,7 @@
 package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.comparison.*;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
@@ -28,8 +25,33 @@ public class ComparisonService {
         SchemaService.loadColumnsSettings(comparison.getComparedTables(), comparison.getComparedSources());
     }
 
-    public static void saveColumnsSettings(List<ComparedTable> comparedTableList) {
-        SchemaService.saveColumnSettings(comparedTableList);
+    //3
+    public static void processColumnSettings(Comparison comparison,
+                                             Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnColumnSettings,
+                                             boolean saveSettingsAsDefault) {
+
+        perComparedTableColumnColumnSettings.forEach((comparedTableColumn, comparedTableColumnSettings) -> {
+
+            comparedTableColumn.getColumnSetting().changeIsComparableTo(comparedTableColumnSettings.isComparable());
+            comparedTableColumn.getColumnSetting().changeIsIdentifierTo(comparedTableColumnSettings.isIdentifier());
+
+        });
+
+
+        if (saveSettingsAsDefault) {
+            saveColumnsSettings(comparison.getComparedTables());
+        }
+    }
+
+    //4
+    public static void processFilters(Comparison comparison, Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter) {
+
+        perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
+
+            comparedTableColumn.getColumnFilter().addAll(filter);
+
+        });
+
     }
 
     public static void compare(Comparison comparison) {
@@ -42,7 +64,10 @@ public class ComparisonService {
 
     }
 
-    //
+
+
+
+    //privates
 
     private static void setComparedSources(Comparison comparison, List<Source> sourceList) {
         for (int i = 0; i < sourceList.size(); i++){
@@ -105,6 +130,10 @@ public class ComparisonService {
 
         return perComparedTableQuery;
 
+    }
+
+    private static void saveColumnsSettings(List<ComparedTable> comparedTableList) {
+        SchemaService.saveColumnSettings(comparedTableList);
     }
 
 }

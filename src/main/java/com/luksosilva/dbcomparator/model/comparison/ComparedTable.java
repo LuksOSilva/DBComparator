@@ -14,9 +14,6 @@ public class ComparedTable {
 
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
-    private Map<ComparedTableColumn, List<String>> perTableColumnIdentifierFilter = new HashMap<>();
-
-
     public ComparedTable(Map<ComparedSource, SourceTable> perSourceTable) {
         this.perSourceTable = perSourceTable;
     }
@@ -34,10 +31,6 @@ public class ComparedTable {
 
     public Map<ComparedSource, SourceTable> getPerSourceTable() {
         return perSourceTable;
-    }
-
-    public Map<ComparedTableColumn, List<String>> getPerTableColumnIdentifierFilter() {
-        return perTableColumnIdentifierFilter;
     }
 
     @Override
