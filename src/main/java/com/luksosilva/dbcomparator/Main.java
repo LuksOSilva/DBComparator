@@ -1,11 +1,12 @@
 package com.luksosilva.dbcomparator;
 
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
-import com.luksosilva.dbcomparator.repository.ComparisonRepository;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 
 import java.io.File;
@@ -46,16 +47,49 @@ public class Main extends Application {
             for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
                 String tableName = sourceTable.getTableName();
 
-                groupedTables
-                        .computeIfAbsent(tableName, k -> new HashMap<>())
-                        .put(comparedSource, sourceTable);
+                if (tableName.equals("IONV_CLIENTES")) {
+                    groupedTables
+                            .computeIfAbsent(tableName, k -> new HashMap<>())
+                            .put(comparedSource, sourceTable);
+                }
+
             }
 
         }
 
+
         System.out.println("Starting process tables: " + LocalDateTime.now());
         ComparisonService.processTables(comparison, groupedTables);
         System.out.println("Finished process tables: " + LocalDateTime.now());
+
+
+        //GET FILTERS
+
+        Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter = new HashMap<>();
+
+        for (ComparedTable comparedTable : comparison.getComparedTables()) {
+            for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
+
+                if (comparedTableColumn.getColumnName().equals("codcli")) {
+                    List<String> filterValues = new ArrayList<>();
+                    filterValues.add("100");
+                    filterValues.add("200");
+                    perComparedTableColumnFilter.put(comparedTableColumn, filterValues);
+                }
+
+                if (comparedTableColumn.getColumnName().equals("classevenda")) {
+                    List<String> filterValues = new ArrayList<>();
+                    filterValues.add("V");
+                    filterValues.add("F");
+                    perComparedTableColumnFilter.put(comparedTableColumn, filterValues);
+                }
+
+            }
+        }
+
+        System.out.println("Starting process filters: " + LocalDateTime.now());
+        ComparisonService.processFilters(perComparedTableColumnFilter);
+        System.out.println("Finished process filters: " + LocalDateTime.now());
 
         System.out.println("Starting compare: " + LocalDateTime.now());
         ComparisonService.compare(comparison);

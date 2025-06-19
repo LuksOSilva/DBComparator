@@ -88,6 +88,16 @@ public class SqlFormatter {
 
     }
 
+    public static String buildSDCoalesceValues(String coalesceValues) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.COALESCE_VALUES, coalesceValues
+        );
+
+        return buildSQL(SqlFiles.SD_COALESCE_VALUES, placeholders);
+
+    }
+
     public static String buildSDSelectComparableColumns(String sourceId, String columnName) {
 
         Map<SqlPlaceholders, String> placeholders = Map.of(

@@ -19,7 +19,8 @@ public enum SqlPlaceholders {
     ON_CLAUSE("{{on_clause}}"),
     EQUALS_IDENTIFIER_COLUMNS("{{equals_identifier_columns}}"),
     CONDITION_COMPARABLE_COLUMNS("{{coalesce_comparable_columns}}"),
-    DEFAULT_VALUE("{{default_value}}");
+    DEFAULT_VALUE("{{default_value}}"),
+    COALESCE_VALUES("{{coalesce_values}}");
 
 
 

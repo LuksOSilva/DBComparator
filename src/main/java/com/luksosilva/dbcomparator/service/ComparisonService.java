@@ -8,7 +8,7 @@ import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class ComparisonService {
 
@@ -44,7 +44,7 @@ public class ComparisonService {
     }
 
     //4
-    public static void processFilters(Comparison comparison, Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter) {
+    public static void processFilters(Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter) {
 
         perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
 
@@ -59,7 +59,11 @@ public class ComparisonService {
         Map<ComparedTable, String> perComparedTableQuery =
                 buildSelectDifferences(comparison.getComparedTables());
 
+        perComparedTableQuery.forEach((comparedTable, s) -> {
 
+            System.out.println(s);
+
+        });
 
 
     }

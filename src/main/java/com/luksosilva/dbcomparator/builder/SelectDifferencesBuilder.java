@@ -6,6 +6,7 @@ import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,8 +40,7 @@ public class SelectDifferencesBuilder {
 
         String fromClause = buildFromClause(comparedSourceList, identifiersComparedColumns);
 
-        String whereClause = comparableComparedColumns.isEmpty() ? "" :
-                buildWhereClause(comparedSourceList, comparableComparedColumns);
+        String whereClause = buildWhereClause(comparedSourceList, identifiersComparedColumns, comparableComparedColumns);
 
 
         return SqlFormatter.buildSelectDifferences(withClause, selectClause, fromClause, whereClause);
@@ -192,9 +192,75 @@ public class SelectDifferencesBuilder {
     }
 
     private static String buildWhereClause(List<ComparedSource> comparedSourceList,
+                                           List<ComparedTableColumn> identifiersComparedColumns,
                                            List<ComparedTableColumn> comparableComparedColumns) {
 
-        List<String> whereClauseList = new ArrayList<>();
+        String whereComparableColumnIsDifferent = buildWhereComparableColumnIsDifferent(
+                comparedSourceList, comparableComparedColumns);
+
+        String whereColumnIsFiltered = buildWhereColumnIsFiltered(
+                comparedSourceList, identifiersComparedColumns, comparableComparedColumns);
+
+        return whereComparableColumnIsDifferent + "\n" + whereColumnIsFiltered;
+    }
+
+    private static String buildWhereColumnIsFiltered(List<ComparedSource> comparedSourceList,
+                                                     List<ComparedTableColumn> identifiersComparedColumns,
+                                                     List<ComparedTableColumn> comparableComparedColumns) {
+
+        List<String> whereColumnIsFilteredList = new ArrayList<>();
+
+        List<ComparedTableColumn> allComparedTableColumns = new ArrayList<>();
+        allComparedTableColumns.addAll(identifiersComparedColumns);
+        allComparedTableColumns.addAll(comparableComparedColumns);
+
+        List<ComparedTableColumn> allComparedTableColumnsWithFilter = allComparedTableColumns.stream()
+                .filter(comparedTableColumn -> !comparedTableColumn.getColumnFilter().isEmpty())
+                .toList();
+
+        if (allComparedTableColumnsWithFilter.isEmpty()) {
+            return "";
+        }
+
+        for (ComparedTableColumn comparedTableColumnWithFilter : allComparedTableColumnsWithFilter) {
+
+            String sourceColumnInFilter = comparedSourceList.stream()
+                    .map(comparedSource -> {
+
+                        String base = String.format("\"%s_data\".\"%s\" IN ",
+                                comparedSource.getSourceId(), comparedTableColumnWithFilter.getColumnName());
+
+                        String columnTypeInSource = comparedTableColumnWithFilter
+                                .getPerSourceTableColumn().get(comparedSource).getType();
+
+                        if (shouldQuoteValue(columnTypeInSource)) {
+
+                            String quotedFilters = comparedTableColumnWithFilter.getColumnFilter().stream()
+                                    .map(s -> "\"" + s + "\"")
+                                    .collect(Collectors.joining(", "));
+
+                            return base + "(" + quotedFilters + ")";
+
+                        }
+                        return base + "(" + String.join(", ", comparedTableColumnWithFilter.getColumnFilter()) + ")";
+
+                    })
+                    .collect(Collectors.joining("\nOR "));
+
+
+            whereColumnIsFilteredList.add("(" + sourceColumnInFilter + ")");
+
+        }
+
+        return "AND \n" + String.join("\nAND\n", whereColumnIsFilteredList);
+
+
+    }
+
+    private static String buildWhereComparableColumnIsDifferent(List<ComparedSource> comparedSourceList,
+                                                                List<ComparedTableColumn> comparableComparedColumns) {
+
+        List<String> whereComparableColumnIsDifferentList = new ArrayList<>();
 
         // Loop through all sources for the first operand of the comparison.
         for (int i = 0; i < comparedSourceList.size(); i++) {
@@ -207,13 +273,13 @@ public class SelectDifferencesBuilder {
                 String conditionComparableColumns = buildCoalesceComparableColumn(
                         comparableComparedColumns, currentComparedSource, nextComparedSource);
 
-
-                whereClauseList.add(SqlFormatter.buildSDWhereClause(conditionComparableColumns));
+                if (!conditionComparableColumns.isEmpty()){
+                    whereComparableColumnIsDifferentList.add(SqlFormatter.buildSDWhereClause(conditionComparableColumns));
+                }
             }
         }
 
-
-        return whereClauseList.isEmpty() ? "" : "AND\n(" + String.join("\n\nOR\n\n", whereClauseList) + ")";
+        return whereComparableColumnIsDifferentList.isEmpty() ? "" : "AND\n(" + String.join("\n\nOR\n\n", whereComparableColumnIsDifferentList) + ")";
     }
 
     private static String buildCoalesceComparableColumn(List<ComparedTableColumn> comparableComparedColumns,
@@ -251,13 +317,27 @@ public class SelectDifferencesBuilder {
     }
 
     private static String getDefaultValue(String columnType) {
-        return switch (columnType) {
-            case String t when t.contains("NUMERIC") -> "-1";
-            case String t when t.contains("INTEGER") -> "-1";
-            case String t when t.contains("REAL") -> "0.0";
-            case String t when t.contains("DATE") -> "'1970-01-01'";
+
+        String lowerCaseColumnType = columnType.toLowerCase();
+
+        return switch (lowerCaseColumnType) {
+            case String t when t.contains("numeric") -> "-1";
+            case String t when t.contains("integer") -> "-1";
+            case String t when t.contains("real") -> "0.0";
+            case String t when t.contains("date") -> "'1970-01-01'";
             default -> "''";
         };
+    }
+
+    private static boolean shouldQuoteValue(String columnType) {
+
+        String lowerCaseColumnType = columnType.toLowerCase();
+
+        return !(lowerCaseColumnType.contains("numeric") ||
+                 lowerCaseColumnType.contains("integer") ||
+                 lowerCaseColumnType.contains("real") ||
+                 lowerCaseColumnType.contains("bool"));
+
     }
 
 
