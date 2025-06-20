@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 public class SQLiteUtils {
 
@@ -24,6 +25,30 @@ public class SQLiteUtils {
             statement.execute(sql);
         } catch (SQLException e) {
             throw new RuntimeException("Error while trying to run SQL: \n" + sql + "\n", e);
+        }
+    }
+
+    public static void attachSource(Connection conn, String filePath, String sourceId) {
+        try {
+
+            String query =
+                    "ATTACH DATABASE '" + filePath +"' AS " + sourceId;
+            runSql(conn, query);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void detachSource(Connection conn, String sourceId) {
+        try {
+
+            String query =
+                    "DETACH DATABASE " + sourceId;
+            runSql(conn, query);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

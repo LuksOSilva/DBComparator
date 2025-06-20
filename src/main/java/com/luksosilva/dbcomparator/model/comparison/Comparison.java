@@ -3,13 +3,14 @@ package com.luksosilva.dbcomparator.model.comparison;
 import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResult;
 import com.luksosilva.dbcomparator.model.enums.ComparisonStatus;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Comparison {
+public class Comparison implements Serializable {
 
     private String comparisonId;
     private String description;
@@ -34,27 +35,12 @@ public class Comparison {
         return comparedTables;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Comparison {\n");
-        sb.append("  comparisonId='").append(comparisonId).append("',\n");
-        sb.append("  description='").append(description).append("',\n");
-        sb.append("  status=").append(status).append(",\n");
-        sb.append("  createdAt=").append(createdAt).append(",\n");
-
-        sb.append("  comparedSources=[\n");
-        for (ComparedSource cs : comparedSources) {
-            sb.append("    ").append(cs.toString()).append(",\n");
-        }
-        sb.append("  ],\n");
-
-        sb.append("  comparedTables=[\n");
-        for (ComparedTable ct : comparedTables) {
-            sb.append("    ").append(ct.toString()).append(",\n");
-        }
-        sb.append("  ]\n");
-        sb.append("}");
-        return sb.toString();
+    public ComparisonResult getComparisonResult() {
+        return comparisonResult;
     }
+
+    public void setComparisonResult(ComparisonResult comparisonResult) {
+        this.comparisonResult = comparisonResult;
+    }
+
 }

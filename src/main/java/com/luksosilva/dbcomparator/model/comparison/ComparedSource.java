@@ -1,6 +1,7 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luksosilva.dbcomparator.model.source.Source;
 
 public class ComparedSource {
@@ -27,8 +28,5 @@ public class ComparedSource {
         return source;
     }
 
-    @Override
-    public String toString() {
-        return "ComparedSource{sourceId='" + sourceId + "', sequence=" + sequence + ", source=" + source + "}";
-    }
+
 }

@@ -32,7 +32,7 @@ public class Main extends Application {
         List<Source> sourceList = new ArrayList<>();
         sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\sup.s3db")));
         sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\rca.s3db")));
-        sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\tst.s3db")));
+        //sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\tst.s3db")));
 
         System.out.println("Starting process sources: " + LocalDateTime.now());
         ComparisonService.processSources(comparison, sourceList);
@@ -72,17 +72,10 @@ public class Main extends Application {
 
                 if (comparedTableColumn.getColumnName().equals("codcli")) {
                     List<String> filterValues = new ArrayList<>();
-                    filterValues.add("100");
-                    filterValues.add("200");
+                    filterValues.add("1839");
                     perComparedTableColumnFilter.put(comparedTableColumn, filterValues);
                 }
 
-                if (comparedTableColumn.getColumnName().equals("classevenda")) {
-                    List<String> filterValues = new ArrayList<>();
-                    filterValues.add("V");
-                    filterValues.add("F");
-                    perComparedTableColumnFilter.put(comparedTableColumn, filterValues);
-                }
 
             }
         }
