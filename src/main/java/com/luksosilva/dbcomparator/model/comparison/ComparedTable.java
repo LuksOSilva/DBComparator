@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 
 import java.util.ArrayList;
@@ -14,9 +15,13 @@ public class ComparedTable {
 
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
+    private String queryDifferences;
+
+
     public ComparedTable(Map<ComparedSource, SourceTable> perSourceTable) {
         this.perSourceTable = perSourceTable;
     }
+
 
     public String getTableName() {
         return getPerSourceTable().values().stream()
@@ -25,22 +30,26 @@ public class ComparedTable {
                 .orElse(null);
     }
 
+    @JsonIgnore
     public List<ComparedTableColumn> getComparedTableColumns() {
         return comparedTableColumns;
     }
 
+    @JsonIgnore
     public Map<ComparedSource, SourceTable> getPerSourceTable() {
         return perSourceTable;
     }
 
-    @Override
-    public String toString() {
-        String sourceTableDetails = perSourceTable.entrySet().stream()
-                .map(entry -> "{" + entry.getKey().getSourceId() + ": " + entry.getValue().getTableName() + " (Records: " + entry.getValue().getRecordCount() + ")}")
-                .collect(Collectors.joining(", "));
-        String columnsDetails = comparedTableColumns.stream()
-                .map(ComparedTableColumn::toString)
-                .collect(Collectors.joining("\n  ", "\n  ", "")); // Indent for readability
-        return "ComparedTable{perSourceTable=[" + sourceTableDetails + "], columns=[" + columnsDetails + "\n]}";
+    @JsonIgnore
+    public String getQueryDifferences() {
+        return queryDifferences;
     }
+
+    public void setQueryDifferences(String queryDifferences) {
+        this.queryDifferences = queryDifferences;
+    }
+
+
+
+
 }

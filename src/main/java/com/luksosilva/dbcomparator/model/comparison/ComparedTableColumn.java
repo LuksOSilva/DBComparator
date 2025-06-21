@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ public class ComparedTableColumn {
     private Map<ComparedSource, SourceTableColumn> perSourceTableColumn;
     private ComparedTableColumnSettings comparedTableColumnSettings;
 
-    List<String> columnFilter = new ArrayList<>();
+    private List<String> columnFilter = new ArrayList<>();
 
     public ComparedTableColumn(Map<ComparedSource, SourceTableColumn> perSourceTableColumn) {
         this.perSourceTableColumn = perSourceTableColumn;
@@ -23,10 +24,6 @@ public class ComparedTableColumn {
         this.comparedTableColumnSettings = comparedTableColumnSettings;
     }
 
-    public Map<ComparedSource, SourceTableColumn> getPerSourceTableColumn() {
-        return perSourceTableColumn;
-    }
-
     public String getColumnName() {
         return getPerSourceTableColumn().values().stream()
                 .findFirst()
@@ -34,19 +31,24 @@ public class ComparedTableColumn {
                 .orElse(null);
     }
 
+
+    public Map<ComparedSource, SourceTableColumn> getPerSourceTableColumn() {
+        return perSourceTableColumn;
+    }
+
+
+
     public ComparedTableColumnSettings getColumnSetting() {
         return comparedTableColumnSettings;
     }
+
 
     public List<String> getColumnFilter() {
         return columnFilter;
     }
 
-    @Override
-    public String toString() {
-        String sourceColumnDetails = perSourceTableColumn.entrySet().stream()
-                .map(entry -> "{" + entry.getKey().getSourceId() + ": " + entry.getValue().toString() + "}")
-                .collect(Collectors.joining(", "));
-        return "ComparedTableColumn{perSourceTableColumn=[" + sourceColumnDetails + "], columnSettings=" + comparedTableColumnSettings + "}";
-    }
+
+
+
+
 }

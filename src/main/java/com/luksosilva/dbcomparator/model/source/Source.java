@@ -1,5 +1,7 @@
 package com.luksosilva.dbcomparator.model.source;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +20,10 @@ public class Source {
         return path;
     }
 
+    @JsonIgnore
     public List<SourceTable> getSourceTables() {
         return sourceTables;
     }
 
-    @Override
-    public String toString() {
-        return "Source{path='" + path + "', tables=[" + sourceTables.stream().map(SourceTable::toString).collect(Collectors.joining("; ")) + "]}";
-    }
+
 }

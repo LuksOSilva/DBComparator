@@ -1,5 +1,9 @@
 package com.luksosilva.dbcomparator.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
 import com.luksosilva.dbcomparator.model.comparison.*;
 import com.luksosilva.dbcomparator.model.source.Source;
@@ -56,14 +60,21 @@ public class ComparisonService {
 
     public static void compare(Comparison comparison) {
 
-        Map<ComparedTable, String> perComparedTableQuery =
-                buildSelectDifferences(comparison.getComparedTables());
+        buildSelectDifferences(comparison.getComparedTables());
 
-        perComparedTableQuery.forEach((comparedTable, s) -> {
+        comparison.setComparisonResult(ComparisonResultBuilder.build(comparison));
 
-            System.out.println(s);
+        try {
 
-        });
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            String json = mapper.writeValueAsString(comparison);
+
+            System.out.println(json);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
 
     }
@@ -118,21 +129,15 @@ public class ComparisonService {
         }
     }
 
-    private static Map<ComparedTable, String> buildSelectDifferences(List<ComparedTable> comparedTableList) {
-
-        Map<ComparedTable, String> perComparedTableQuery = new HashMap<>();
-
+    private static void buildSelectDifferences(List<ComparedTable> comparedTableList) {
 
         for (ComparedTable comparedTable : comparedTableList) {
 
             String sql = SelectDifferencesBuilder.build(comparedTable);
 
-            perComparedTableQuery.put(comparedTable, sql);
-
+            comparedTable.setQueryDifferences(sql);
 
         }
-
-        return perComparedTableQuery;
 
     }
 
