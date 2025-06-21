@@ -28,7 +28,7 @@ public class Main extends Application {
         //Comparison comparison = new Comparison(ComparisonRepository.getNextComparisonId());
         Comparison comparison = new Comparison("0001");
 
-        //GET SOURCES
+        ////GET SOURCES
         List<Source> sourceList = new ArrayList<>();
         sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\sup.s3db")));
         sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\rca.s3db")));
@@ -39,7 +39,8 @@ public class Main extends Application {
         System.out.println("Finished process sources:: " + LocalDateTime.now());
 
 
-        //GET TABLES
+        ////GET TABLES
+
         Map<String, Map<ComparedSource, SourceTable>> groupedTables = new HashMap<>();
 
         for (ComparedSource comparedSource : comparison.getComparedSources()) {
@@ -53,6 +54,7 @@ public class Main extends Application {
                             .put(comparedSource, sourceTable);
                 }
 
+
             }
 
         }
@@ -63,18 +65,18 @@ public class Main extends Application {
         System.out.println("Finished process tables: " + LocalDateTime.now());
 
 
-        //GET FILTERS
+        ////GET FILTERS
 
         Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter = new HashMap<>();
 
         for (ComparedTable comparedTable : comparison.getComparedTables()) {
             for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
 
-                if (comparedTableColumn.getColumnName().equals("codcli")) {
-                    List<String> filterValues = new ArrayList<>();
-                    filterValues.add("1839");
-                    perComparedTableColumnFilter.put(comparedTableColumn, filterValues);
-                }
+//                if (comparedTableColumn.getColumnName().equals("codcli")) {
+//                    List<String> filterValues = new ArrayList<>();
+//                    filterValues.add("1839");
+//                    perComparedTableColumnFilter.put(comparedTableColumn, filterValues);
+//                }
 
 
             }

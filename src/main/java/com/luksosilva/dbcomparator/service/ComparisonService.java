@@ -68,7 +68,7 @@ public class ComparisonService {
 
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(SerializationFeature.INDENT_OUTPUT);
-            String json = mapper.writeValueAsString(comparison);
+            String json = mapper.writeValueAsString(comparison.getComparisonResult());
 
             System.out.println(json);
 

@@ -3,14 +3,13 @@ package com.luksosilva.dbcomparator.model.comparison;
 import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResult;
 import com.luksosilva.dbcomparator.model.enums.ComparisonStatus;
 
-import java.io.Serializable;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class Comparison implements Serializable {
+
+public class Comparison {
 
     private String comparisonId;
     private String description;
