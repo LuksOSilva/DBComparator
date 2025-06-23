@@ -1,13 +1,18 @@
 package com.luksosilva.dbcomparator.util;
 
+import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SQLiteUtils {
 
@@ -25,6 +30,21 @@ public class SQLiteUtils {
             statement.execute(sql);
         } catch (SQLException e) {
             throw new RuntimeException("Error while trying to run SQL: \n" + sql + "\n", e);
+        }
+    }
+
+    public static String loadSQL(SqlFiles sqlFile) {
+        try (InputStream inputStream = SqlFormatter.class.getClassLoader().getResourceAsStream(sqlFile.fullPath())) {
+            if (inputStream == null) {
+                throw new RuntimeException("SQL file not found: " + sqlFile.fullPath());
+            }
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                return reader.lines().collect(Collectors.joining("\n"));
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load SQL file: " + sqlFile.fullPath(), e);
         }
     }
 

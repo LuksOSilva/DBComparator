@@ -1,0 +1,61 @@
+.main-container {
+    -fx-pref-width: 960;
+    -fx-pref-height: 600;
+    -fx-background-color: #F0F3FA;
+}
+
+/* Title text */
+.title-text {
+    -fx-fill: #505050;
+    -fx-font-size: 30px;
+}
+
+/* Primary button */
+.btn-primary {
+    -fx-pref-width: 155;
+    -fx-pref-height: 40;
+    -fx-background-color: #638ECB;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5px;
+    -fx-text-fill: #F0F3FA;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #4e7ab2;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #3a6498;
+}
+
+/* Secondary outlined button */
+.btn-secondary {
+    -fx-pref-width: 110;
+    -fx-pref-height: 40;
+    -fx-background-color: transparent;
+    -fx-font-weight: bold;
+    -fx-text-fill: #638ECB;
+    -fx-border-width: 2px;
+    -fx-border-color: #638ECB;
+    -fx-border-radius: 5px;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #e3e9f4;
+}
+
+.btn-secondary:pressed {
+    -fx-background-color: #ccd7eb;
+}
+
+
+/* Cancel text */
+.cancel-text {
+    -fx-fill: #638ECB;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.cancel-text:hover {
+    -fx-underline: true;
+}

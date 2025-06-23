@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.util;
 
-import com.luksosilva.dbcomparator.model.enums.SqlFiles;
-import com.luksosilva.dbcomparator.model.enums.SqlPlaceholders;
+import com.luksosilva.dbcomparator.enums.SqlFiles;
+import com.luksosilva.dbcomparator.enums.SqlPlaceholders;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -172,25 +172,11 @@ public class SqlFormatter {
 
     }
 
-    public static String loadSQL(SqlFiles sqlFile) {
-        try (InputStream inputStream = SqlFormatter.class.getClassLoader().getResourceAsStream(sqlFile.fullPath())) {
-            if (inputStream == null) {
-                throw new RuntimeException("SQL file not found: " + sqlFile.fullPath());
-            }
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                return reader.lines().collect(Collectors.joining("\n"));
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("Could not load SQL file: " + sqlFile.fullPath(), e);
-        }
-    }
 
 
 
     private static String buildSQL(SqlFiles sqlFile, Map<SqlPlaceholders, String> placeholders) {
-        String sql = loadSQL(sqlFile);
+        String sql = SQLiteUtils.loadSQL(sqlFile);
 
         for (Map.Entry<SqlPlaceholders, String> entry : placeholders.entrySet()) {
             sql = sql.replace(entry.getKey().getPlaceholder(), entry.getValue());

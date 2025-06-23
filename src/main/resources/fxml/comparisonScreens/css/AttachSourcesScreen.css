@@ -1,0 +1,50 @@
+.empty-drop-box {
+    -fx-border-color: #B9B9B9;
+    -fx-border-width: 5px;
+    -fx-border-style: dashed;
+    -fx-background-color: transparent;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 20px;
+    -fx-cursor: hand;
+}
+
+.empty-drop-box:hover {
+    -fx-border-color: #638ECB;
+    -fx-border-radius: 15px;
+}
+
+.empty-drop-box:hover:pressed {
+    -fx-background-color: #e1eaf5;
+}
+
+.attached-drop-box {
+    -fx-border-color: #638ECB;
+    -fx-border-width: 5px;
+    -fx-border-style: dashed;
+    -fx-background-color: transparent;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 20px;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-padding: 20;
+}
+
+.attached-drop-box:hover {
+    -fx-background-color: #e1eaf5;
+    -fx-border-radius: 15px;
+}
+
+/* --- Styles for sourceIdLabel (like "baseA" in your image) --- */
+.source-id-label {
+    -fx-font-size: 1em; /* Slightly larger than default, adjust as needed */
+    -fx-font-weight: bold; /* Makes the text bold */
+    -fx-text-fill: #638ECB; /* Darker text color */
+}
+
+/* --- Styles for sourcePathLabel (like "C:\Users\...\baseA.s3db" in your image) --- */
+.source-path-label {
+    -fx-font-size: 0.85em; /* Smaller font size to make it "clearer" and less prominent */
+    -fx-text-fill: #888888; /* A light gray color for a "very clear" look */
+    /* You can also adjust opacity if you want it even fainter: */
+    /* -fx-opacity: 0.7; */
+}

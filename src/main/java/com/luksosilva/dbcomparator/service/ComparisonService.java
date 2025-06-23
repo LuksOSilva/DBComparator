@@ -64,17 +64,17 @@ public class ComparisonService {
 
         comparison.setComparisonResult(ComparisonResultBuilder.build(comparison));
 
-        try {
-
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.enable(SerializationFeature.INDENT_OUTPUT);
-            String json = mapper.writeValueAsString(comparison.getComparisonResult());
-
-            System.out.println(json);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//
+//            ObjectMapper mapper = new ObjectMapper();
+//            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+//            String json = mapper.writeValueAsString(comparison.getComparisonResult());
+//
+//            System.out.println(json);
+//
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
 
 
     }

@@ -6,7 +6,7 @@ import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.comparison.result.*;
 import com.luksosilva.dbcomparator.repository.ComparisonRepository;
-import com.luksosilva.dbcomparator.util.util;
+import com.luksosilva.dbcomparator.util.FileUtils;
 
 import java.util.*;
 
@@ -34,7 +34,7 @@ public class ComparisonResultBuilder {
         Map<String, String> sourcesInfo = new HashMap<>();
         for (ComparedSource comparedSource : comparedTable.getPerSourceTable().keySet()) {
 
-            sourcesInfo.put(comparedSource.getSourceId(), util.getCanonicalPath(comparedSource.getSource().getPath()));
+            sourcesInfo.put(comparedSource.getSourceId(), FileUtils.getCanonicalPath(comparedSource.getSource().getPath()));
         }
 
         List<Map<String, Object>> rowDataList = ComparisonRepository.executeQueryDifferences(sourcesInfo, comparedTable.getQueryDifferences());

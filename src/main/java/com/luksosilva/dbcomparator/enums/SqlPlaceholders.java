@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.model.enums;
+package com.luksosilva.dbcomparator.enums;
 
 public enum SqlPlaceholders {
 

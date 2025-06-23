@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<AnchorPane prefHeight="400.0" prefWidth="600.0" styleClass="main-container" stylesheets="@css/Main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.AttachSourcesScreenController">
+
+    <children>
+
+        <!-- Title text -->
+        <Text layoutX="229.0" layoutY="60.0" styleClass="title-text" text="selecione os bancos para comparação">
+            <font>
+                <Font size="30.0" />
+            </font>
+        </Text>
+
+        <!-- Left drop box -->
+        <Pane fx:id="attachSourceA" layoutX="60.0" layoutY="110.0" onMouseClicked="#attachSource" prefHeight="380.0" prefWidth="400.0" styleClass="empty-drop-box" stylesheets="@css/AttachSourcesScreen.css" AnchorPane.leftAnchor="65.0">
+            <children>
+                <VBox alignment="CENTER" layoutX="0.0" layoutY="250.0" prefHeight="100.0" prefWidth="400.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                    <children>
+                        <Label fx:id="sourceIdLabelA"  text="sourceId" styleClass="source-id-label" textAlignment="CENTER" visible="false" />
+                        <Label fx:id="sourcePathLabelA" text="sourcePath" styleClass="source-path-label" textAlignment="CENTER" visible="false" />
+                    </children>
+                </VBox>
+            </children>
+        </Pane>
+
+        <!-- Right drop box -->
+        <Pane fx:id="attachSourceB" layoutX="498.0" layoutY="110.0" onMouseClicked="#attachSource" prefHeight="380.0" prefWidth="400.0" styleClass="empty-drop-box" stylesheets="@css/AttachSourcesScreen.css" AnchorPane.rightAnchor="65.0">
+            <children>
+                <VBox alignment="CENTER" layoutX="0.0" layoutY="250.0" prefHeight="100.0" prefWidth="400.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                    <children>
+                        <Label fx:id="sourceIdLabelB" text="sourceId" styleClass="source-id-label" textAlignment="CENTER" visible="false" />
+                        <Label fx:id="sourcePathLabelB" text="sourcePath" styleClass="source-path-label" textAlignment="CENTER" visible="false" />
+                    </children>
+                </VBox>
+            </children>
+        </Pane>
+
+
+        <Button fx:id="nextButton" layoutX="783.0" layoutY="535.0" mnemonicParsing="false" onAction="#nextStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="AVANÇAR" />
+        <Button fx:id="previousButton" layoutX="651.0" layoutY="535.0" mnemonicParsing="false" onAction="#previousStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="VOLTAR" />
+        <Text fx:id="cancelText" layoutX="570.0" layoutY="560.0" onMouseClicked="#cancelComparison" styleClass="cancel-text" text="CANCELAR" />
+    </children>
+</AnchorPane>

@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.repository;
 
 import com.luksosilva.dbcomparator.exception.ComparisonException;
-import com.luksosilva.dbcomparator.model.enums.SqlFiles;
+import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
 
@@ -21,7 +21,7 @@ public class ComparisonRepository {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection();
              Statement stmt = connection.createStatement();
              ResultSet resultSet = stmt.executeQuery(
-                     SqlFormatter.loadSQL(SqlFiles.SELECT_NEXT_COMPARISON_ID))
+                     SQLiteUtils.loadSQL(SqlFiles.SELECT_NEXT_COMPARISON_ID))
         ) {
             if (resultSet.next()) {
                 return resultSet.getString("NEXT_COMPARISON_ID");

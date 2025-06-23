@@ -4,7 +4,7 @@ import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.model.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.service.ComparisonService;
@@ -22,7 +22,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
     public static void main(String[] args) {
 
-        //Application.launch(args);
+        Application.launch(args);
 
 
         //Comparison comparison = new Comparison(ComparisonRepository.getNextComparisonId());
@@ -95,7 +95,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FxmlUtils.loadGUI(FxmlFiles.MAIN_SCREEN);
+        Parent root = FxmlUtils.loadGUI(FxmlFiles.HOME_SCREEN);
         stage.setTitle("hi");
         stage.setScene(new Scene(root, 300, 275));
         stage.show();

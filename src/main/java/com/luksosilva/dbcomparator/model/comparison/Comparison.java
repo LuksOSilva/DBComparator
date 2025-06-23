@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
 import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResult;
-import com.luksosilva.dbcomparator.model.enums.ComparisonStatus;
+import com.luksosilva.dbcomparator.enums.ComparisonStatus;
 
 
 import java.time.LocalDateTime;
