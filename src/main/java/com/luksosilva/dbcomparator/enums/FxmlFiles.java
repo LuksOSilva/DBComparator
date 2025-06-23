@@ -4,7 +4,9 @@ package com.luksosilva.dbcomparator.enums;
 public enum FxmlFiles {
 
     HOME_SCREEN("HomeScreen"),
-    ATTACH_SOURCES_SCREEN("comparisonScreens/AttachSourcesScreen");
+    LOADING_SCREEN("comparisonScreens/LoadingScreen"),
+    ATTACH_SOURCES_SCREEN("comparisonScreens/AttachSourcesScreen"),
+    SELECT_TABLES_SCREEN("comparisonScreens/SelectTablesScreen");
 
     private final String fileName;
 

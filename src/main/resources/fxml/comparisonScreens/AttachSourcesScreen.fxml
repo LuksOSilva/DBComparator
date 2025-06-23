@@ -44,8 +44,8 @@
         </Pane>
 
 
-        <Button fx:id="nextButton" layoutX="783.0" layoutY="535.0" mnemonicParsing="false" onAction="#nextStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="AVANÇAR" />
-        <Button fx:id="previousButton" layoutX="651.0" layoutY="535.0" mnemonicParsing="false" onAction="#previousStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="VOLTAR" />
-        <Text fx:id="cancelText" layoutX="570.0" layoutY="560.0" onMouseClicked="#cancelComparison" styleClass="cancel-text" text="CANCELAR" />
+        <Button fx:id="nextStepBtn" layoutX="783.0" layoutY="535.0" mnemonicParsing="false" onMouseClicked="#nextStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="AVANÇAR" />
+        <Button fx:id="previousStepBtn" layoutX="651.0" layoutY="535.0" mnemonicParsing="false" onMouseClicked="#previousStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="VOLTAR" />
+        <Text fx:id="cancelBtn" layoutX="570.0" layoutY="560.0" onMouseClicked="#cancelComparison" styleClass="cancel-text" text="CANCELAR" />
     </children>
 </AnchorPane>

@@ -22,6 +22,8 @@ public class Comparison {
 
     private ComparisonResult comparisonResult;
 
+    public Comparison() {}
+
     public Comparison(String comparisonId) {
         this.comparisonId = comparisonId;
     }

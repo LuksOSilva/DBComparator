@@ -1,6 +1,7 @@
 package com.luksosilva.dbcomparator.controller;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.util.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import javafx.event.ActionEvent;
@@ -39,7 +40,7 @@ public class HomeScreenController {
         Parent root = screenData.node;
         AttachSourcesScreenController controller = screenData.controller;
 
-        // controller.initData(someConfigurationObject);
+        controller.setComparison(new Comparison());
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         Scene scene = new Scene(root);

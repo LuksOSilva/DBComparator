@@ -30,7 +30,9 @@
 }
 
 .attached-drop-box:hover {
-    -fx-background-color: #e1eaf5;
+    /*-fx-background-color: #e1eaf5;*/
+    -fx-background-color: rgba(247, 183, 187, 0.25);
+    -fx-border-color: #C94D4D;
     -fx-border-radius: 15px;
 }
 
