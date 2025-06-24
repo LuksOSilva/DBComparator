@@ -18,10 +18,9 @@
 .titled-pane > .title {
     -fx-background-color: #F9F9F9; /* header background */
     -fx-background-radius: 5px;
-    -fx-border-radius: 5px;
-    -fx-padding: 15px 15px;
-    -fx-padding-left: 300px;
-    -fx-background-insets: 0 0 5px 0; /* Creates a 5px transparent border at the bottom */
+    -fx-border-radius: 0px;
+    -fx-padding: 10px 10px;
+    -fx-background-insets: 0px 4px 4px 0px; /* Creates a 5px transparent border at the bottom */
 
 }
 
@@ -33,15 +32,17 @@
 
 /* Styling the header when hovered */
 .titled-pane > .title:hover {
-    -fx-background-color: #D5DEEF;
+    -fx-background-color: #e9eef7;
     -fx-cursor: hand;
 }
 
 /* Styling the header when expanded */
 .titled-pane:expanded > .title {
-    -fx-background-color: #8AAEE0;
-    -fx-background-insets: 0, 0 0 1 0; /* Removes bottom radius when expanded, makes it look continuous with content */
-    -fx-border-radius: 5px 5px 0 0; /* Rounded only at top when expanded */
+    -fx-background-color: #D5DEEF;
+    -fx-background-insets: 0px 4px 0px 0px;
+    -fx-border-radius: 10px 10px 0 0; /* Rounded only at top when expanded */
+
+
 }
 
 /* Styling the content area of a TitledPane */
@@ -49,6 +50,7 @@
     -fx-background-color: #ffffff; /* White background for content */
     -fx-border-color: #dddddd;
     -fx-border-width: 1px 0 0 0; /* Only a top border for separation */
+    -fx-background-insets: 0px 4px 4px 0px;
     -fx-padding: 10px;
 }
 
@@ -276,4 +278,102 @@
 
 .check-box:disabled .mark {
     -fx-background-color: #aaaaaa;
+}
+
+
+.table-header-container {
+    -fx-background-color: #D5DEEF;      /* Light gray background like a table header */
+    -fx-border-color: #e0e0e0;          /* Light gray bottom border */
+    -fx-border-width: 0px;        /* Only bottom border */
+    -fx-padding: 7px 10px 7px 20px;              /* Internal spacing (top/right/bottom/left) */
+    -fx-spacing: 10px;                  /* Space between children inside (if you put children directly inside VBox) */
+    -fx-background-radius: 5px;
+}
+
+
+.table-header-container ComboBox,
+.table-header-container TextField,
+.table-header-container CheckBox {
+    -fx-font-size: 12px;
+}
+
+/* TextField - Modern and clean */
+.table-header-container TextField {
+    -fx-background-color: white;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-padding: 4px 8px;
+    -fx-prompt-text-fill: #999999; /* Placeholder text color */
+    -fx-font-size: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2, 0, 0, 1); /* Soft shadow */
+}
+
+/* ComboBox - Fully white with light border and shadow */
+.table-header-container ComboBox {
+    -fx-background-color: white;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-padding: 0px;
+    -fx-font-size: 12px;
+}
+
+/* ComboBox Popup (dropdown list) */
+.table-header-container ComboBox .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #333333;
+    -fx-font-size: 12px;
+}
+
+/* ComboBox hovered and focused border effect */
+.table-header-container ComboBox:hover,
+.table-header-container TextField:hover {
+    -fx-border-color: #999999;
+    -fx-cursor: hand;
+}
+
+.table-header-container ComboBox:focused,
+.table-header-container TextField:focused {
+    -fx-border-color: #5b9bd5;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(91,155,213,0.2), 2, 0, 0, 1);
+}
+
+/* Optional: Styling the arrow of the ComboBox to be cleaner */
+.table-header-container ComboBox .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.table-header-container ComboBox .arrow {
+    -fx-background-color: #666666;
+}
+
+.table-header-container CheckBox .box {
+    -fx-background-color: #f0f0f0; /* Light gray background */
+    -fx-border-color: #cccccc; /* Light gray border */
+    -fx-border-width: 1px;
+    -fx-background-radius: 4px; /* Slightly rounded corners */
+    -fx-border-radius: 4px;
+    -fx-padding: 4px; /* Padding inside the box */
+    -fx-effect: null; /* Remove any default shadows or effects */
+}
+
+.table-header-container CheckBox .box:hover {
+    -fx-cursor: hand;
+}
+
+/* Indeterminate state for the Select All checkbox */
+.check-box:indeterminate .box {
+    -fx-background-color: #849FC4; /* Same blue as selected or outro tom se quiser diferenciar */
+    -fx-border-color: #849FC4;
+}
+
+/* The mark (the dash) for indeterminate state */
+.check-box:indeterminate .mark {
+    -fx-background-color: white;
+    -fx-shape: "M2,8 L10,8 L10,10 L2,10 Z"; /* Horizontal dash */
+    -fx-padding: 5.5px;
 }

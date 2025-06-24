@@ -7,13 +7,15 @@ import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
-import javafx.beans.InvalidationListener;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -21,18 +23,29 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.util.*;
 
 public class SelectTablesScreenController {
 
+
+
     private Comparison comparison;
     private Map<String, Map<ComparedSource, SourceTable>> groupedTables;
     private List<String> selectedTableNames = new ArrayList<>();
+
+    private ObservableList<TitledPane> allTablePanes = FXCollections.observableArrayList();
+    private FilteredList<TitledPane> filteredTablePanes;
+
+
+
 
     private class TableSourceStats {
         SimpleStringProperty sourceName;
@@ -73,7 +86,24 @@ public class SelectTablesScreenController {
     }
 
     @FXML
+    private CheckBox selectAllCheckBox;
+    @FXML
+    private ComboBox<String> filterTypeComboBox;
+    @FXML
+    private TextField searchTextField;
+    @FXML
+    public ToggleButton filterToggleButton;
+    @FXML
+    public HBox filtersHBox;
+    @FXML
+    public CheckBox showDiffRecordCountOnlyCheckBox;
+    @FXML
+    public CheckBox showInAllSourcesOnlyCheckBox;
+    @FXML
+    public CheckBox showSelectedOnlyCheckBox;
+    @FXML
     public Accordion tablesAccordion;
+
     @FXML
     public Button nextStepBtn;
     @FXML
@@ -85,80 +115,227 @@ public class SelectTablesScreenController {
         this.comparison = comparison;
     }
 
+    @FXML
+    public void onFilterButtonClicked(MouseEvent mouseEvent) {
+        toggleFilters(filterToggleButton.isSelected());
+    }
+
+
+
+
     public void init() {
         groupedTables = getGroupedTables();
-        populateAccordion();
+        prepareAccordionInfo();
+        setupFilterControls();
     }
 
-    private void populateAccordion() {
+    private void prepareAccordionInfo() {
         if (comparison == null || groupedTables.isEmpty()) {
-            tablesAccordion.getPanes().clear();
-            tablesAccordion.getPanes().add(new TitledPane("No Tables Found", new Label("No table metadata available for comparison.")));
+            displayNoTablesMessage();
             return;
         }
-        tablesAccordion.getPanes().clear();
 
-        tablesAccordion.getPanes().addAll(buildHeaders(groupedTables));
+        tablesAccordion.getPanes().clear(); // Clears Accordion
+        allTablePanes.clear();             // Clears master list
+
+        filterToggleButton.setSelected(false); //hides filters
+
+        // Populate allTablePanes (your master list) with all TitledPanes
+        allTablePanes.addAll(buildAllTableTitledPanes());
+
+        // Initialize FilteredList based on allTablePanes
+        filteredTablePanes = new FilteredList<>(allTablePanes, pane -> true);
+
+        // Set the Accordion's panes to the filtered list. This is done ONCE.
+        tablesAccordion.getPanes().setAll(filteredTablePanes);
     }
 
-    /// helper methods
+    private void setupFilterControls() {
+        filterTypeComboBox.setItems(FXCollections.observableArrayList("tabela", "coluna"));
+        filterTypeComboBox.setValue("tabela");
 
-    private List<TitledPane> buildHeaders(Map<String, Map<ComparedSource, SourceTable>> groupedTablesForListing) {
+        selectAllCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (selectAllCheckBox.isIndeterminate()) return;
 
+            for (TitledPane pane : tablesAccordion.getPanes()) {
+                Node graphicNode = pane.getGraphic();
+                if (graphicNode instanceof HBox hBox) {
+                    for (Node node : hBox.getChildren()) {
+                        if (node instanceof CheckBox cb) {
+                            cb.setSelected(newVal);
+                        }
+                    }
+                }
+            }
+        });
+
+        searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showInAllSourcesOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showDiffRecordCountOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showSelectedOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+
+        applyFilter(); // Apply initial filter (which is "show all" by default)
+    }
+
+    private void applyFilter() {
+        String filterText = searchTextField.getText().toLowerCase().trim();
+        String filterType = filterTypeComboBox.getValue();
+
+        filteredTablePanes.setPredicate(pane -> {
+            String tableName = pane.getText().toLowerCase();
+
+            // Filter by text
+            if (!filterText.isEmpty()) {
+                if ("tabela".equalsIgnoreCase(filterType)) {
+                    if (!tableName.contains(filterText)) return false;
+                } else if ("coluna".equalsIgnoreCase(filterType)) {
+                    Map<ComparedSource, SourceTable> sourceTableMap = groupedTables.get(pane.getText());
+                    if (sourceTableMap == null) return false;
+
+                    boolean columnMatch = sourceTableMap.values().stream()
+                            .flatMap(st -> st.getSourceTableColumns().stream())
+                            .anyMatch(col -> col.getColumnName().toLowerCase().contains(filterText));
+
+                    if (!columnMatch) return false;
+                }
+            }
+
+            // show only selected filter
+            if (showSelectedOnlyCheckBox.isSelected()) {
+                if (!selectedTableNames.contains(pane.getText())) return false;
+            }
+
+            // show only different record count filter
+            if (showDiffRecordCountOnlyCheckBox.isSelected()) {
+                Map<ComparedSource, SourceTable> perSource = groupedTables.get(pane.getText());
+                if (perSource == null) return false;
+
+                Set<Integer> rowCounts = new HashSet<>();
+                for (SourceTable st : perSource.values()) {
+                    rowCounts.add(st.getRecordCount());
+                }
+                if (rowCounts.size() <= 1) return false;  // Só exibe se tiver diferenças
+            }
+
+            // show only available in all sources filter
+            if (showInAllSourcesOnlyCheckBox.isSelected()) {
+                int totalSources = comparison.getComparedSources().size();
+                Map<ComparedSource, SourceTable> perSource = groupedTables.get(pane.getText());
+                if (perSource == null || perSource.size() < totalSources) return false;
+            }
+
+            return true;
+        });
+
+        // Atualiza os panes
+        tablesAccordion.getPanes().setAll(filteredTablePanes);
+        updateSelectAllCheckBoxState();
+
+        // Faz um fade-in suave no accordion
+        fadeInAccordion();
+    }
+
+    public void toggleFilters(boolean show) {
+        if (show) {
+            // Show with animation
+            filtersHBox.setVisible(true);
+            filtersHBox.setManaged(true);
+            filtersHBox.setOpacity(0.0);
+            filtersHBox.setTranslateY(-10);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), filtersHBox);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+
+            TranslateTransition slideDown = new TranslateTransition(Duration.millis(200), filtersHBox);
+            slideDown.setFromY(-10);
+            slideDown.setToY(0);
+
+            new ParallelTransition(fadeIn, slideDown).play();
+        } else {
+            // Hide with animation
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(200), filtersHBox);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+
+            TranslateTransition slideUp = new TranslateTransition(Duration.millis(200), filtersHBox);
+            slideUp.setFromY(0);
+            slideUp.setToY(-10);
+
+            ParallelTransition hideTransition = new ParallelTransition(fadeOut, slideUp);
+            hideTransition.setOnFinished(event -> {
+                filtersHBox.setVisible(false);
+                filtersHBox.setManaged(false);
+            });
+
+            hideTransition.play();
+        }
+    }
+
+
+    // --- Helper Methods ---
+    private void fadeInAccordion() {
+        tablesAccordion.setOpacity(0);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(250), tablesAccordion);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
+
+    private void displayNoTablesMessage() {
+        tablesAccordion.getPanes().clear();
+        tablesAccordion.getPanes().add(new TitledPane("No Tables Found", new Label("No table metadata available for comparison.")));
+    }
+
+
+    private List<TitledPane> buildAllTableTitledPanes() {
         List<TitledPane> titledPaneList = new ArrayList<>();
 
-        // Get sorted table names.
         List<String> tableNames = groupedTables.keySet().stream()
                 .sorted(Comparator.naturalOrder())
                 .toList();
 
         for (String tableName : tableNames) {
-
             TitledPane tablePane = new TitledPane();
             tablePane.setText(tableName);
 
-            VBox dummyContent = new VBox(new Label("Click to load data for " + tableName + "..."));
-            dummyContent.setAlignment(Pos.CENTER);
-            dummyContent.setPadding(new Insets(10));
-            tablePane.setContent(dummyContent);
-
             tablePane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
-                if (isNowExpanded) {
-                    if (tablePane.getContent() instanceof VBox) {
-                        TableView<TableSourceStats> tableView = buildTableMetadata(tablePane.getText());
-
-                        VBox contentContainer = new VBox(tableView);
-
-                        tablePane.setContent(contentContainer);
-                    }
+                if (isNowExpanded && tablePane.getUserData() == null) {
+                    TableView<TableSourceStats> tableView = buildTableMetadata(tablePane.getText());
+                    VBox contentContainer = new VBox(tableView);
+                    tablePane.setContent(contentContainer);
+                    tablePane.setUserData(true);
                 }
             });
 
-
-
             HBox graphicBox = new HBox();
+            graphicBox.setAlignment(Pos.CENTER_RIGHT);
+            graphicBox.setMaxWidth(Double.MAX_VALUE);
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
 
             CheckBox selectCheckBox = new CheckBox();
             selectCheckBox.setSelected(selectedTableNames.contains(tableName));
             selectCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal) selectedTableNames.add(tableName);
                 else selectedTableNames.remove(tableName);
+                updateSelectAllCheckBoxState();
             });
 
-            graphicBox.getChildren().add(selectCheckBox);
+            graphicBox.getChildren().addAll(spacer, selectCheckBox);
             tablePane.setGraphic(graphicBox);
 
-
             titledPaneList.add(tablePane);
-
         }
         return titledPaneList;
     }
 
-    private TableView<TableSourceStats> buildTableMetadata(String tableName) {
 
-        final double TABLE_ROW_HEIGHT = 27.0; // Typical default row height
-        final double TABLE_HEADER_HEIGHT = 30.0; // Typical header height
+    private TableView<TableSourceStats> buildTableMetadata(String tableName) {
+        final double TABLE_ROW_HEIGHT = 28.0;
+        final double TABLE_HEADER_HEIGHT = 30.0;
 
         Map<ComparedSource, SourceTable> perSourceTable = groupedTables.get(tableName);
 
@@ -166,7 +343,6 @@ public class SelectTablesScreenController {
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableView.setPlaceholder(new Label("No data for this table from attached sources."));
 
-        // Create Columns for the TableView
         TableColumn<TableSourceStats, String> sourceColumn = new TableColumn<>("Fonte");
         sourceColumn.setCellValueFactory(cellData -> cellData.getValue().sourceNameProperty());
 
@@ -180,48 +356,76 @@ public class SelectTablesScreenController {
 
         ObservableList<TableSourceStats> tableStats = FXCollections.observableArrayList();
 
-        // Iterate through the inner map to get data for each source for this table.
-        for (Map.Entry<ComparedSource, SourceTable> entry : perSourceTable.entrySet()) {
-            ComparedSource comparedSource = entry.getKey();
-            SourceTable sourceTable = entry.getValue();
+        if (perSourceTable != null) {
+            for (Map.Entry<ComparedSource, SourceTable> entry : perSourceTable.entrySet()) {
+                ComparedSource comparedSource = entry.getKey();
+                SourceTable sourceTable = entry.getValue();
 
-            String sourceName = comparedSource.getSourceId();
-            int rowCount = sourceTable.getRecordCount();
-            int columnCount = sourceTable.getSourceTableColumns().size();
+                String sourceName = comparedSource.getSourceId();
+                int rowCount = sourceTable.getRecordCount();
+                int columnCount = sourceTable.getSourceTableColumns().size();
 
-            tableStats.add(new TableSourceStats(sourceName, rowCount, columnCount));
+                tableStats.add(new TableSourceStats(sourceName, rowCount, columnCount));
+            }
         }
-
         tableView.setItems(tableStats);
 
         double calculatedPrefHeight = (tableStats.size() * TABLE_ROW_HEIGHT) + TABLE_HEADER_HEIGHT;
         tableView.setPrefHeight(Math.max(calculatedPrefHeight, TABLE_HEADER_HEIGHT));
 
-        //tablePane.setContent(tableView);
         return tableView;
     }
 
     private Map<String, Map<ComparedSource, SourceTable>> getGroupedTables () {
-
         Map<String, Map<ComparedSource, SourceTable>> groupedTables = new HashMap<>();
 
-        for (ComparedSource comparedSource : comparison.getComparedSources()) {
+        if (comparison != null && comparison.getComparedSources() != null) {
+            for (ComparedSource comparedSource : comparison.getComparedSources()) {
+                if (comparedSource.getSource() != null && comparedSource.getSource().getSourceTables() != null) {
+                    for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
+                        String tableName = sourceTable.getTableName();
 
-            for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
-                String tableName = sourceTable.getTableName();
-
-                groupedTables
-                        .computeIfAbsent(tableName, k -> new HashMap<>())
-                        .put(comparedSource, sourceTable);
-
-
+                        groupedTables
+                                .computeIfAbsent(tableName, k -> new HashMap<>())
+                                .put(comparedSource, sourceTable);
+                    }
+                }
             }
-
         }
         return groupedTables;
     }
 
-    /// steps
+    private void updateSelectAllCheckBoxState() {
+        boolean allSelected = true;
+        boolean noneSelected = true;
+
+        for (TitledPane pane : filteredTablePanes) { // Só os visíveis!
+            Node graphicNode = pane.getGraphic();
+            if (graphicNode instanceof HBox hBox) {
+                for (Node node : hBox.getChildren()) {
+                    if (node instanceof CheckBox cb) {
+                        if (cb.isSelected()) {
+                            noneSelected = false;
+                        } else {
+                            allSelected = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (allSelected) {
+            selectAllCheckBox.setSelected(true);
+            selectAllCheckBox.setIndeterminate(false);
+        } else if (noneSelected) {
+            selectAllCheckBox.setSelected(false);
+            selectAllCheckBox.setIndeterminate(false);
+        } else {
+            selectAllCheckBox.setIndeterminate(true);
+        }
+    }
+
+    // --- Navigation Steps ---
 
     public void nextStep(MouseEvent mouseEvent) {
     }
@@ -230,9 +434,8 @@ public class SelectTablesScreenController {
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
-
         boolean confirmCancel = DialogUtils.askConfirmation("Cancelar comparação",
-                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");;
+                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");
         if (!confirmCancel) {
             return;
         }
@@ -253,6 +456,4 @@ public class SelectTablesScreenController {
             e.printStackTrace();
         }
     }
-
-
 }
