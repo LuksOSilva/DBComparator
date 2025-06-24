@@ -1,0 +1,279 @@
+/* Styling the Accordion container itself */
+.accordion {
+    -fx-background-color: #F0F3FA;
+    -fx-border-color: transparent;
+     -fx-border-width: 0px;             /* Explicitly set border width to 0 */
+     -fx-border-radius: 0px;            /* Remove any rounding that might imply a boundary */
+     -fx-spacing: 0px;                  /* Keep spacing between headers controlled by TitledPane insets */
+     -fx-effect: none;                  /* Ensure no shadow effect is mimicking a border */
+}
+
+/* Styling all TitledPanes */
+.titled-pane {
+    -fx-font-family: "Arial";
+    -fx-font-size: 14px;
+}
+
+/* Styling the header area of a TitledPane */
+.titled-pane > .title {
+    -fx-background-color: #F9F9F9; /* header background */
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-padding: 15px 15px;
+    -fx-padding-left: 300px;
+    -fx-background-insets: 0 0 5px 0; /* Creates a 5px transparent border at the bottom */
+
+}
+
+/* Styling the text inside the TitledPane header */
+.titled-pane > .title > .text {
+    -fx-fill: black;
+    -fx-font-weight: bold;
+}
+
+/* Styling the header when hovered */
+.titled-pane > .title:hover {
+    -fx-background-color: #D5DEEF;
+    -fx-cursor: hand;
+}
+
+/* Styling the header when expanded */
+.titled-pane:expanded > .title {
+    -fx-background-color: #8AAEE0;
+    -fx-background-insets: 0, 0 0 1 0; /* Removes bottom radius when expanded, makes it look continuous with content */
+    -fx-border-radius: 5px 5px 0 0; /* Rounded only at top when expanded */
+}
+
+/* Styling the content area of a TitledPane */
+.titled-pane > .content {
+    -fx-background-color: #ffffff; /* White background for content */
+    -fx-border-color: #dddddd;
+    -fx-border-width: 1px 0 0 0; /* Only a top border for separation */
+    -fx-padding: 10px;
+}
+
+/* Styling the arrow button */
+.titled-pane > .title > .arrow-button {
+    -fx-background-color: transparent; /* Make background transparent */
+    -fx-padding: 0;
+}
+
+/* Styling the arrow glyph (the actual triangle) */
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: transparent; /* transparent arrow */
+    -fx-shape: "M 0.0 0.0 L 4.0 4.0 L 8.0 0.0 z"; /* Custom arrow shape (down triangle) */
+    -fx-rotate: 0;
+}
+
+
+/* Rotate arrow when expanded */
+.titled-pane:expanded > .title > .arrow-button > .arrow {
+    -fx-rotate: 180; /* Point down when expanded */
+}
+
+/* Styling the entire TableView */
+.table-view {
+    -fx-background-color: transparent; /* Use parent background */
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+}
+
+/* Styling the column headers background */
+.table-view .column-header-background {
+    -fx-background-color: #f2f2f2; /* Light grey header background */
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1px 0; /* Only bottom border */
+}
+
+/* Styling individual column headers */
+.table-view .column-header {
+    -fx-background-color: transparent; /* Ensures it's the same as header background */
+    -fx-padding: 8px 5px;
+}
+
+/* Styling the text inside column headers */
+.table-view .column-header .label {
+    -fx-text-fill: #333333; /* Dark grey text */
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT; /* Align header text to left */
+}
+
+/* Styling table cells */
+.table-view .table-cell {
+    -fx-alignment: CENTER_LEFT; /* Align cell content to left */
+    -fx-padding: 5px;
+    -fx-border-color: transparent; /* No cell borders by default */
+    -fx-border-width: 0 0 0 0;
+}
+
+/* Striped rows effect (alternating row colors) */
+.table-view .table-row-cell:odd {
+    -fx-background-color: #fdfdfd; /* Very light grey */
+}
+
+.table-view .table-row-cell:even {
+    -fx-background-color: #ffffff; /* White */
+}
+
+/* Styling a hovered row */
+.table-view .table-row-cell:hover {
+    -fx-background-color: #e6f7ff; /* Light blue on hover */
+    -fx-cursor: hand;
+}
+
+/* Styling a selected row */
+.table-view .table-row-cell:selected {
+    -fx-background-color: #b3d9ff; /* Medium blue when selected */
+    -fx-text-fill: black; /* Ensure text is readable on selected background */
+}
+
+/* No visible vertical lines between cells */
+.table-view .table-cell:vertical-lines {
+    -fx-border-color: transparent;
+}
+
+/* Styling the scrollbars within the TableView if its content overflows */
+.table-view .scroll-bar {
+    -fx-opacity: 0.8; /* Make scrollbar slightly transparent */
+}
+.table-view .scroll-bar:vertical .thumb,
+.table-view .scroll-bar:horizontal .thumb {
+    -fx-background-color: #888888; /* Darker grey thumb */
+    -fx-background-radius: 5px;
+}
+.table-view .scroll-bar:vertical .track,
+.table-view .scroll-bar:horizontal .track {
+    -fx-background-color: #f0f0f0; /* Lighter grey track */
+}
+
+.scroll-pane {
+    -fx-background-color: transparent; /* Keep background transparent */
+    -fx-border-color: transparent;     /* Make its border color transparent */
+    -fx-border-width: 0px;             /* Explicitly set border width to 0 */
+    -fx-effect: none;                  /* Ensure no shadow effect is mimicking a border */
+}
+
+/* Also ensure its internal viewport (where content sits) is transparent */
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* --- 1. Overall Scroll Bar Properties --- */
+/* Target the specific ScrollPane if you only want to affect this one */
+#scrollPane .scroll-bar:vertical {
+    -fx-pref-width: 8px; /* Make the vertical scroll bar thinner */
+    -fx-background-color: transparent; /* Makes the background of the scroll bar area transparent */
+}
+
+#scrollPane .scroll-bar:horizontal {
+    -fx-pref-height: 8px; /* Make the horizontal scroll bar thinner */
+    -fx-background-color: transparent;
+}
+
+/* --- 2. Style the Scroll Bar Track (the path the thumb moves on) --- */
+#scrollPane .scroll-bar .track {
+    -fx-background-color: #f0f0f0; /* A very light grey for the track */
+    -fx-background-radius: 5px;    /* Slightly rounded corners for the track */
+    -fx-border-color: transparent; /* No border on the track */
+    -fx-border-width: 0;
+}
+
+/* --- 3. Style the Scroll Bar Thumb (the movable indicator) --- */
+#scrollPane .scroll-bar .thumb {
+    -fx-background-color: #bbbbbb; /* A medium grey for the thumb */
+    -fx-background-radius: 5px;    /* Rounded corners for the thumb */
+    /* Add a small inset to make the thumb appear slightly narrower than the track */
+    -fx-background-insets: 0 1px 0 1px;
+}
+
+/* --- 4. Style the Thumb on Hover --- */
+#scrollPane .scroll-bar .thumb:hover {
+    -fx-background-color: #999999; /* Darker grey when hovered */
+}
+
+/* --- 5. Hide Increment/Decrement Buttons and Arrows (Common in Modern UIs) --- */
+#scrollPane .scroll-bar .increment-button,
+#scrollPane .scroll-bar .decrement-button {
+    -fx-background-color: transparent; /* Make buttons transparent */
+    -fx-padding: 0;                    /* Remove any padding */
+    -fx-pref-width: 0;                 /* Hide buttons by setting width/height to 0 */
+    -fx-pref-height: 0;
+}
+
+#scrollPane .scroll-bar .increment-arrow,
+#scrollPane .scroll-bar .decrement-arrow {
+    -fx-shape: " "; /* Set the shape to empty to hide the arrows */
+    -fx-padding: 0;
+}
+
+/* Target the viewport of your specific ScrollPane (using its fx:id) */
+#scrollPane .viewport {
+    -fx-background-color: transparent; /* Keep this transparent from previous steps */
+    -fx-padding: 0 10px 0 0; /* top right bottom left */
+    /* This adds 10 pixels of padding on the RIGHT side of the content,
+       creating space between the Accordion and the vertical scrollbar. */
+}
+
+
+/* Base CheckBox Styling */
+.check-box {
+
+}
+
+/* Styling the CheckBox's Box (the square outline) */
+.check-box .box {
+    -fx-background-color: #f0f0f0; /* Light gray background */
+    -fx-border-color: #cccccc; /* Light gray border */
+    -fx-border-width: 1px;
+    -fx-background-radius: 4px; /* Slightly rounded corners */
+    -fx-border-radius: 4px;
+    -fx-padding: 3px; /* Padding inside the box */
+    -fx-effect: null; /* Remove any default shadows or effects */
+}
+
+/* Hover state for the Box */
+.check-box:hover .box {
+    -fx-border-color: #999999; /* Slightly darker border on hover */
+    -fx-background-color: #e0e0e0; /* Slightly darker background on hover */
+}
+
+/* Focused state for the Box (when navigating with keyboard) */
+.check-box:focused .box {
+    -fx-border-color: #5b9bd5; /* A subtle blue focus indicator */
+    -fx-background-color: #e6f2fa; /* Light blue background */
+    -fx-effect: null;
+}
+
+/* Styling the Checkmark (the check symbol itself) */
+.check-box .mark {
+    -fx-background-color: transparent; /* Default transparent */
+    -fx-shape: "M4.59,18.06 L0,13.47 L1.62,11.85 L4.59,14.83 L12.38,7.04 L14,8.66 L4.59,18.06 Z";
+}
+
+/* Styling the Box when the CheckBox is SELECTED */
+.check-box:selected .box {
+    -fx-background-color: #849FC4; /* A pleasant blue for selected state */
+    -fx-border-color: #849FC4; /* Match border color */
+}
+
+/* Styling the Mark when the CheckBox is SELECTED */
+.check-box:selected .mark {
+    -fx-background-color: white; /* White checkmark when selected */
+}
+
+/* Disabled state */
+.check-box:disabled {
+    -fx-opacity: 0.6; /* Slightly fade out when disabled */
+}
+
+.check-box:disabled .box {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #e0e0e0;
+}
+
+.check-box:disabled .mark {
+    -fx-background-color: #aaaaaa;
+}

@@ -31,8 +31,5 @@ public class SourceTable {
         return recordCount;
     }
 
-    @Override
-    public String toString() {
-        return "SourceTable{name='" + tableName + "', recordCount=" + recordCount + ", columns=" + sourceTableColumns.stream().map(SourceTableColumn::toString).collect(Collectors.joining(", ")) + "}";
-    }
+
 }

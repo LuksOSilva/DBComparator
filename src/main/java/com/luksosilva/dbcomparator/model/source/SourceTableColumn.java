@@ -29,9 +29,5 @@ public class SourceTableColumn {
         return type;
     }
 
-    @Override
-    public String toString() {
-        return "SourceTableColumn{sequence=" + sequence + ", name='" + columnName + "', pk=" + isPk + ", notNull=" + notNull + "}";
-    }
 
 }

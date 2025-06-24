@@ -48,11 +48,9 @@ public class Main extends Application {
             for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
                 String tableName = sourceTable.getTableName();
 
-                if (tableName.equals("IONV_CLIENTES")) {
-                    groupedTables
-                            .computeIfAbsent(tableName, k -> new HashMap<>())
-                            .put(comparedSource, sourceTable);
-                }
+                groupedTables
+                        .computeIfAbsent(tableName, k -> new HashMap<>())
+                        .put(comparedSource, sourceTable);
 
 
             }

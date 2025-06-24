@@ -30,6 +30,8 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -180,7 +182,7 @@ public class AttachSourcesScreenController {
                 SelectTablesScreenController controller = screenData.controller;
 
                 controller.setComparison(comparison);
-                System.out.println("testado!");
+                controller.init();
 
                 return nextScreenRoot;
             }
@@ -189,9 +191,13 @@ public class AttachSourcesScreenController {
 
         processSourcesTask.setOnSucceeded(event -> {
             try {
+
                 Parent nextScreenRoot = processSourcesTask.getValue();
+
                 Scene nextScreenScene = new Scene(nextScreenRoot);
+
                 currentStage.setScene(nextScreenScene);
+
             } catch (Exception e) {
                 DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
                 e.printStackTrace();
