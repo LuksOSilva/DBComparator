@@ -4,6 +4,7 @@ import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
+import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
@@ -15,6 +16,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -32,6 +34,7 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SelectTablesScreenController {
 
@@ -43,9 +46,6 @@ public class SelectTablesScreenController {
 
     private ObservableList<TitledPane> allTablePanes = FXCollections.observableArrayList();
     private FilteredList<TitledPane> filteredTablePanes;
-
-
-
 
     private class TableSourceStats {
         SimpleStringProperty sourceName;
@@ -59,30 +59,19 @@ public class SelectTablesScreenController {
         }
 
         // Getters for properties
-        public String getSourceName() {
-            return sourceName.get();
-        }
-
         public SimpleStringProperty sourceNameProperty() {
             return sourceName;
         }
-
-        public int getRowCount() {
-            return rowCount.get();
-        }
-
         public SimpleIntegerProperty rowCountProperty() {
             return rowCount;
         }
-
-        public int getColumnCount() {
-            return columnCount.get();
-        }
-
         public SimpleIntegerProperty columnCountProperty() {
             return columnCount;
         }
+    }
 
+    public void setComparison(Comparison comparison) {
+        this.comparison = comparison;
     }
 
     @FXML
@@ -111,9 +100,6 @@ public class SelectTablesScreenController {
     @FXML
     public Text cancelBtn;
 
-    public void setComparison(Comparison comparison) {
-        this.comparison = comparison;
-    }
 
     @FXML
     public void onFilterButtonClicked(MouseEvent mouseEvent) {
@@ -428,6 +414,99 @@ public class SelectTablesScreenController {
     // --- Navigation Steps ---
 
     public void nextStep(MouseEvent mouseEvent) {
+        if (selectedTableNames.isEmpty()) {
+            DialogUtils.showWarning("Nenhuma tabela selecionada.", "Selecione ao menos uma tabela para prosseguir com a comparação.");
+            return;
+        }
+
+        Stage currentStage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+
+        try {
+            FxLoadResult<Parent, LoadingScreenController> screenData =
+                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
+
+            Parent root = screenData.node;
+            LoadingScreenController controller = screenData.controller;
+
+            controller.setMessage("Processando tabelas, aguarde...");
+
+            Scene scene = new Scene(root);
+            currentStage.setScene(scene);
+            currentStage.show();
+
+        } catch (IOException e) {
+            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
+
+
+        Task<Parent> processTablesTask = new Task<>() {
+            @Override
+            protected Parent call() throws Exception {
+
+                Map<String, Map<ComparedSource, SourceTable>> selectedGroupedTables =
+                        groupedTables.entrySet().stream()
+                                .filter(entry -> selectedTableNames.contains(entry.getKey()))
+                                .collect(Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        Map.Entry::getValue
+                                ));
+
+                ComparisonService.processTables(comparison, selectedGroupedTables);
+
+                FxLoadResult<Parent, ColumnSettingsScreenController> screenData =
+                        FxmlUtils.loadScreen(FxmlFiles.COLUMN_SETTINGS_SCREEN);
+
+                Parent nextScreenRoot = screenData.node;
+                ColumnSettingsScreenController controller = screenData.controller;
+
+                controller.setComparison(comparison);
+                controller.init();
+
+                return nextScreenRoot;
+            }
+        };
+
+
+        processTablesTask.setOnSucceeded(event -> {
+            try {
+
+                Parent nextScreenRoot = processTablesTask.getValue();
+
+                Scene nextScreenScene = new Scene(nextScreenRoot);
+
+                currentStage.setScene(nextScreenScene);
+
+            } catch (Exception e) {
+                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
+
+        processTablesTask.setOnFailed(event -> {
+            DialogUtils.showError("Erro de Processamento", "Ocorreu um erro durante o processamento: " + processTablesTask.getException().getMessage());
+            processTablesTask.getException().printStackTrace();
+
+            try {
+                FxLoadResult<Parent, SelectTablesScreenController> screenData =
+                        FxmlUtils.loadScreen(FxmlFiles.SELECT_TABLES_SCREEN);
+
+                Parent root = screenData.node;
+
+                Scene currentScreenScene = new Scene(root);
+                currentStage.setScene(currentScreenScene);
+
+            } catch (IOException e) {
+                DialogUtils.showError("Erro de Recuperação", "Não foi possível recarregar a tela anterior: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
+
+        new Thread(processTablesTask).start();
+
     }
 
     public void previousStep(MouseEvent mouseEvent) {

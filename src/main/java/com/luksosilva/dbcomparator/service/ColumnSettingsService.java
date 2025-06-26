@@ -6,6 +6,7 @@ import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,16 +17,16 @@ public class ColumnSettingsService {
     public static ComparedTableColumnSettings getColumnSettings
             (ComparedTable comparedTable,
              ComparedTableColumn comparedTableColumn,
-             List<ComparedSource> comparedSourceList,
              Optional<Map<ComparedTable, Map<ComparedTableColumn, ComparedTableColumnSettings>>> optionalPerComparedTableColumnSetting) {
 
+
+        List<ComparedSource> comparedSourceList = new ArrayList<>();
+        comparedTable.getPerSourceTable().forEach((comparedSource, sourceTable) ->
+                comparedSourceList.add(comparedSource));
 
         boolean existsInAllSources = getExistsInAllSources(comparedTableColumn, comparedSourceList);
         //1. If column doesn't exist in all sources, it is neither identifier nor comparable.
         if (!existsInAllSources) {
-            System.out.printf
-                    ("Não foi possível carregar dados da coluna %s, da tabela %s pois ela não existe em todas as fontes de dados"
-                    , comparedTableColumn.getColumnName(), comparedTable.getTableName());
             return new ComparedTableColumnSettings(false, false);
         }
 
@@ -35,6 +36,7 @@ public class ColumnSettingsService {
 
         boolean isPkInAnySource = getIsPkInAnySource(comparedTableColumn);
         boolean isPkInAllSources = getIsPkInAllSources(comparedTableColumn);
+
 
 
         return optionalPerComparedTableColumnSetting
@@ -63,6 +65,7 @@ public class ColumnSettingsService {
             isIdentifier = isPkInAnySource;
             isComparable = !isPkInAnySource;
         }
+
 
         return new ComparedTableColumnSettings(isComparable, isIdentifier);
     }

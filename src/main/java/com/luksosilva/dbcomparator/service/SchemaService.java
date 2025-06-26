@@ -19,18 +19,19 @@ public class SchemaService {
         }
     }
 
-    public static void loadColumnsSettings(List<ComparedTable> comparedTableList, List<ComparedSource> comparedSourceList) {
+    public static void loadColumnsSettings(List<ComparedTable> comparedTableList,
+                                           boolean loadFromDb) {
 
         Optional<Map<ComparedTable, Map<ComparedTableColumn, ComparedTableColumnSettings>>> optionalPerComparedTableColumnSetting =
-                SchemaRepository.loadTableColumnsSettingsFromDb(comparedTableList);
+                loadFromDb ? SchemaRepository.loadTableColumnsSettingsFromDb(comparedTableList)
+                        : Optional.empty();
 
         for (ComparedTable comparedTable : comparedTableList) {
 
             for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
 
                 comparedTableColumn.setColumnSetting(ColumnSettingsService.getColumnSettings
-                        (comparedTable, comparedTableColumn,
-                         comparedSourceList, optionalPerComparedTableColumnSetting));
+                        (comparedTable, comparedTableColumn, optionalPerComparedTableColumnSetting));
 
             }
         }

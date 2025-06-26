@@ -38,8 +38,8 @@ public class SchemaRepository {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
             String listTableNames = comparedTableList.stream()
-                    .map(ComparedTable -> "'" + ComparedTable.getTableName() + "'")
-                    .collect(Collectors.joining(","));
+                    .map(ComparedTable -> "\"" + ComparedTable.getTableName() + "\"")
+                    .collect(Collectors.joining(", "));
 
             try (Statement stmt = connection.createStatement();
                  ResultSet resultSet = stmt.executeQuery(

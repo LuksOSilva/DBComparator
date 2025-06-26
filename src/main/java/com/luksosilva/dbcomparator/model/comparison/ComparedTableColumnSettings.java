@@ -1,5 +1,8 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
+
+import javafx.beans.property.SimpleBooleanProperty;
+
 public class ComparedTableColumnSettings {
 
     private Boolean isComparable;
@@ -21,16 +24,13 @@ public class ComparedTableColumnSettings {
         return isIdentifier;
     }
 
-    @Override
-    public String toString() {
-        return "ColumnSetting{isComparable=" + isComparable + ", isIdentifier=" + isIdentifier + "}";
-    }
-
     public void changeIsComparableTo(boolean isComparable) {
         this.isComparable =isComparable;
     }
     public void changeIsIdentifierTo(boolean isIdentifier) {
         this.isIdentifier =isIdentifier;
     }
+
+
 }
 

@@ -12,6 +12,7 @@ import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class ComparisonService {
@@ -26,15 +27,15 @@ public class ComparisonService {
     public static void processTables(Comparison comparison, Map<String, Map<ComparedSource, SourceTable>> groupedTables) {
         setComparedTables(comparison, groupedTables);
         setComparedTableColumns(comparison.getComparedTables());
-        SchemaService.loadColumnsSettings(comparison.getComparedTables(), comparison.getComparedSources());
+        setTableColumnsSettings(comparison.getComparedTables(), true); //TODO: create config to set 'loadFromDb'
     }
 
     //3
     public static void processColumnSettings(Comparison comparison,
-                                             Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnColumnSettings,
+                                             Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings,
                                              boolean saveSettingsAsDefault) {
 
-        perComparedTableColumnColumnSettings.forEach((comparedTableColumn, comparedTableColumnSettings) -> {
+        perComparedTableColumnSettings.forEach((comparedTableColumn, comparedTableColumnSettings) -> {
 
             comparedTableColumn.getColumnSetting().changeIsComparableTo(comparedTableColumnSettings.isComparable());
             comparedTableColumn.getColumnSetting().changeIsIdentifierTo(comparedTableColumnSettings.isIdentifier());
@@ -43,11 +44,21 @@ public class ComparisonService {
 
 
         if (saveSettingsAsDefault) {
-            saveColumnsSettings(comparison.getComparedTables());
+            Set<ComparedTableColumn> updatedColumns = perComparedTableColumnSettings.keySet();
+
+            List<ComparedTable> tablesToSave = comparison.getComparedTables().stream()
+                    .filter(comparedTable ->
+                            comparedTable.getComparedTableColumns().stream()
+                                    .anyMatch(updatedColumns::contains)
+                    )
+                    .toList();
+
+            SchemaService.saveColumnSettings(tablesToSave);
+
         }
     }
 
-    //4
+    //5
     public static void processFilters(Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter) {
 
         perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
@@ -58,6 +69,7 @@ public class ComparisonService {
 
     }
 
+    //6
     public static void compare(Comparison comparison) {
 
         buildSelectDifferences(comparison.getComparedTables());
@@ -80,9 +92,13 @@ public class ComparisonService {
     }
 
 
+    /// HELPERS
 
+    public static void setTableColumnsSettings(List<ComparedTable> comparedTableList, boolean loadFromDb) {
+        SchemaService.loadColumnsSettings(comparedTableList, loadFromDb);
+    }
 
-    //privates
+    /// privates
 
     private static void setComparedSources(Comparison comparison, List<Source> sourceList) {
         for (int i = 0; i < sourceList.size(); i++){
@@ -139,10 +155,6 @@ public class ComparisonService {
 
         }
 
-    }
-
-    private static void saveColumnsSettings(List<ComparedTable> comparedTableList) {
-        SchemaService.saveColumnSettings(comparedTableList);
     }
 
 }
