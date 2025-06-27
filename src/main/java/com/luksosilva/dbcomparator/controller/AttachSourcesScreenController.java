@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AttachSourcesScreenController {
 
@@ -206,9 +207,15 @@ public class AttachSourcesScreenController {
             @Override
             protected Parent call() throws Exception {
 
+                comparison.getComparedSources()
+                        .removeIf(comparedSource -> !perPaneSource.containsValue(comparedSource.getSource()));
 
-                comparison.getComparedSources().clear();
-                ComparisonService.processSources(comparison, perPaneSource.values().stream().toList());
+                List<Source> notProcessedSources = perPaneSource.values().stream()
+                        .filter(source -> comparison.getComparedSources().stream()
+                                .noneMatch(comparedSource -> comparedSource.getSource().equals(source)))
+                        .toList();
+
+                ComparisonService.processSources(comparison, notProcessedSources);
 
 
 

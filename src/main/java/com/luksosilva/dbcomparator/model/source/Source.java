@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Source {
@@ -31,12 +32,21 @@ public class Source {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         Source other = (Source) obj;
-        return path != null && path.equals(other.path);
+
+        if (this.path == null || other.path == null) return false;
+
+        return path.equals(other.path)
+                && path.length() == other.path.length()
+                && path.lastModified() == other.path.lastModified();
     }
 
     @Override
     public int hashCode() {
-        return path != null ? path.hashCode() : 0;
+        return Objects.hash(
+                path != null ? path.getAbsolutePath() : null,
+                path != null ? path.length() : 0,
+                path != null ? path.lastModified() : 0
+        );
     }
 
 
