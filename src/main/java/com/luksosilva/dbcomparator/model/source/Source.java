@@ -25,5 +25,19 @@ public class Source {
         return sourceTables;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        Source other = (Source) obj;
+        return path != null && path.equals(other.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return path != null ? path.hashCode() : 0;
+    }
+
 
 }

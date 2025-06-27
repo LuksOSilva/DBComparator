@@ -40,6 +40,7 @@ public class ComparisonService {
             comparedTableColumn.getColumnSetting().changeIsComparableTo(comparedTableColumnSettings.isComparable());
             comparedTableColumn.getColumnSetting().changeIsIdentifierTo(comparedTableColumnSettings.isIdentifier());
 
+            System.out.println("coluna alterada: " + comparedTableColumn.getColumnName());
         });
 
 

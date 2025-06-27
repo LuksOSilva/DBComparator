@@ -1,6 +1,7 @@
 package com.luksosilva.dbcomparator.controller;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.service.ComparisonService;
@@ -8,6 +9,7 @@ import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.FileUtils;
 import com.luksosilva.dbcomparator.util.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.css.StyleClass;
 import javafx.event.ActionEvent;
@@ -32,17 +34,19 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Time;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class AttachSourcesScreenController {
 
-    private static final String EMPTY_DROP_BOX_CLASS = "empty-drop-box";
-    private static final String ATTACHED_DROP_BOX_CLASS = "attached-drop-box";
+    private Stage currentStage;
+
+    private Scene nextScene;
 
     private Comparison comparison;
+    private final Map<Pane, Source> perPaneSource = new LinkedHashMap<>();
+
+    private static final String EMPTY_DROP_BOX_CLASS = "empty-drop-box";
+    private static final String ATTACHED_DROP_BOX_CLASS = "attached-drop-box";
 
     public Comparison getComparison() {
         return comparison;
@@ -52,8 +56,7 @@ public class AttachSourcesScreenController {
         this.comparison = comparison;
     }
 
-    private final Map<Pane, Source> perPaneSource = new LinkedHashMap<>();
-
+    public void setNextScene(Scene nextScene) {this.nextScene = nextScene; }
 
     @FXML
     public Button nextStepBtn;
@@ -80,8 +83,8 @@ public class AttachSourcesScreenController {
     public Tooltip detachPaneToolTip;
 
 
-
     public void initialize() {
+
         attachPaneToolTip = new Tooltip("Adicionar banco de dados");
         detachPaneToolTip = new Tooltip("Remover banco de dados");
 
@@ -90,7 +93,29 @@ public class AttachSourcesScreenController {
 
         Tooltip.install(attachSourceA, attachPaneToolTip);
         Tooltip.install(attachSourceB, attachPaneToolTip);
+
     }
+
+    public boolean needToProcess() {
+
+        List<ComparedSource> comparedSources = comparison.getComparedSources();
+        List<Source> currentSources = new ArrayList<>(perPaneSource.values());
+
+        if (comparedSources.size() != currentSources.size()) {
+            return true;
+        }
+
+        for (Source source : currentSources) {
+            boolean found = comparedSources.stream()
+                    .anyMatch(cs -> cs.getSource().equals(source));
+            if (!found) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
 
     public void attachSource(MouseEvent mouseEvent) {
@@ -141,13 +166,21 @@ public class AttachSourcesScreenController {
     }
 
 
+
     public void nextStep(MouseEvent mouseEvent) {
         if (perPaneSource.isEmpty()) {
             DialogUtils.showWarning("Fontes Faltantes", "Você deve anexar ao menos uma fonte para prosseguir.");
             return;
         }
 
-        Stage currentStage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+        currentStage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+        Scene currentScene = currentStage.getScene();
+        currentScene.setUserData(AttachSourcesScreenController.this);
+
+        if (!needToProcess() && nextScene != null) {
+            currentStage.setScene(nextScene);
+            return;
+        }
 
         try {
             FxLoadResult<Parent, LoadingScreenController> screenData =
@@ -173,7 +206,11 @@ public class AttachSourcesScreenController {
             @Override
             protected Parent call() throws Exception {
 
+
+                comparison.getComparedSources().clear();
                 ComparisonService.processSources(comparison, perPaneSource.values().stream().toList());
+
+
 
                 FxLoadResult<Parent, SelectTablesScreenController> screenData =
                         FxmlUtils.loadScreen(FxmlFiles.SELECT_TABLES_SCREEN);
@@ -181,6 +218,8 @@ public class AttachSourcesScreenController {
                 Parent nextScreenRoot = screenData.node;
                 SelectTablesScreenController controller = screenData.controller;
 
+                controller.setCurrentStage(currentStage);
+                controller.setPreviousScene(currentScene);
                 controller.setComparison(comparison);
                 controller.init();
 

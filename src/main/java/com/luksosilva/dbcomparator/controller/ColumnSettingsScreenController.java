@@ -11,6 +11,7 @@ import com.luksosilva.dbcomparator.util.FxmlUtils;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -38,6 +39,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ColumnSettingsScreenController {
+
+    private Scene previousScene;
+    private Stage currentStage;
+    private Scene nextScene;
 
     private class ComparedTableColumnViewModel {
         ComparedTableColumn comparedTableColumn;
@@ -109,7 +114,10 @@ public class ColumnSettingsScreenController {
         this.comparison = comparison;
     }
 
+    public void setPreviousScene(Scene previousScene) { this.previousScene = previousScene; }
+    public void setCurrentStage(Stage currentStage) { this.currentStage = currentStage; }
 
+    public void setNextScene(Scene nextScene) { this.nextScene = nextScene; }
 
     @FXML
     private ComboBox<String> filterTypeComboBox;
@@ -141,7 +149,13 @@ public class ColumnSettingsScreenController {
         setupViewModels();
         constructAccordion();
         setupFilterControls();
+
     }
+
+    public boolean needToProcess() {
+        return !getTableNamesWithAlteredColumns().isEmpty();
+    }
+
 
 
     /// User-called Methods
@@ -248,6 +262,7 @@ public class ColumnSettingsScreenController {
     private void saveSettingsForAllAlteredTables(boolean saveAsDefault) {
 
         List<String> tableNames = getTableNamesWithAlteredColumns();
+        if (tableNames.isEmpty()) return;
 
         for (String tableName : tableNames) {
             saveSettingsForTable(tableName, saveAsDefault);
@@ -284,12 +299,16 @@ public class ColumnSettingsScreenController {
                 perTableComparedColumnViewModel.get(comparedTable.getTableName());
         if (comparedTableColumnViewModelList.isEmpty()) return;
 
-        Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings = new HashMap<>();
-        for (ComparedTableColumnViewModel comparedTableColumnViewModel : comparedTableColumnViewModelList) {
-            perComparedTableColumnSettings.put
-                    (comparedTableColumnViewModel.comparedTableColumn,
-                    comparedTableColumnViewModel.getViewModelColumnSetting());
-        }
+
+        Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings =
+                comparedTableColumnViewModelList.stream()
+                        .filter(ComparedTableColumnViewModel::isAltered)
+                        .collect(Collectors.toMap(
+                                vm -> vm.comparedTableColumn,
+                                ComparedTableColumnViewModel::getViewModelColumnSetting
+                        ));
+
+
 
         //saves default
         ComparisonService.processColumnSettings(comparison, perComparedTableColumnSettings, saveAsDefault);
@@ -552,7 +571,14 @@ public class ColumnSettingsScreenController {
 
     public void nextStep(MouseEvent mouseEvent) {
 
-        Stage currentStage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+        Scene currentScene = currentStage.getScene();
+        currentScene.setUserData(ColumnSettingsScreenController.this);
+
+
+        if (!needToProcess() && nextScene != null) {
+            currentStage.setScene(nextScene);
+            return;
+        }
 
         try {
             FxLoadResult<Parent, LoadingScreenController> screenData =
@@ -583,13 +609,14 @@ public class ColumnSettingsScreenController {
                 saveSettingsForAllAlteredTables(saveAsDefault);
 
 
-
                 FxLoadResult<Parent, SetFiltersScreenController> screenData =
                         FxmlUtils.loadScreen(FxmlFiles.SET_FILTERS_SCREEN);
 
                 Parent nextScreenRoot = screenData.node;
                 SetFiltersScreenController controller = screenData.controller;
 
+                controller.setCurrentStage(currentStage);
+                controller.setPreviousScene(currentScene);
                 controller.setComparison(comparison);
                 controller.init();
 
@@ -638,7 +665,13 @@ public class ColumnSettingsScreenController {
 
     }
 
-    public void previousStep(ActionEvent event) {
+    public void previousStep(MouseEvent mouseEvent) {
+
+        SelectTablesScreenController selectTablesScreenController = (SelectTablesScreenController) previousScene.getUserData();
+        selectTablesScreenController.setNextScene(currentStage.getScene());
+
+        currentStage.setScene(previousScene);
+
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {

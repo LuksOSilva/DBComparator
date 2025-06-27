@@ -2,7 +2,9 @@ package com.luksosilva.dbcomparator.controller;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
@@ -11,6 +13,7 @@ import com.luksosilva.dbcomparator.util.FxmlUtils;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -38,6 +41,9 @@ import java.util.stream.Collectors;
 
 public class SelectTablesScreenController {
 
+    private Scene previousScene;
+    private Stage currentStage;
+    private Scene nextScene;
 
 
     private Comparison comparison;
@@ -73,6 +79,10 @@ public class SelectTablesScreenController {
     public void setComparison(Comparison comparison) {
         this.comparison = comparison;
     }
+
+    public void setPreviousScene(Scene previousScene) { this.previousScene = previousScene; }
+    public void setCurrentStage(Stage currentStage) { this.currentStage = currentStage; }
+    public void setNextScene(Scene nextScene) {this.nextScene = nextScene; }
 
     @FXML
     private CheckBox selectAllCheckBox;
@@ -113,13 +123,36 @@ public class SelectTablesScreenController {
         groupedTables = getGroupedTables();
         prepareAccordionInfo();
         setupFilterControls();
+
     }
+
+    public boolean needToProcess() {
+        List<ComparedTable> comparedTables = comparison.getComparedTables();
+        List<String> currentTables = selectedTableNames;
+
+        if (comparedTables.size() != currentTables.size()) {
+            return true;
+        }
+
+
+        for (String tableName : currentTables) {
+            boolean found = comparedTables.stream()
+                    .anyMatch(cs -> cs.getTableName().equals(tableName));
+            if (!found) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private void prepareAccordionInfo() {
         if (comparison == null || groupedTables.isEmpty()) {
             displayNoTablesMessage();
             return;
         }
+
 
         tablesAccordion.getPanes().clear(); // Clears Accordion
         allTablePanes.clear();             // Clears master list
@@ -419,7 +452,13 @@ public class SelectTablesScreenController {
             return;
         }
 
-        Stage currentStage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+        Scene currentScene = currentStage.getScene();
+        currentScene.setUserData(SelectTablesScreenController.this);
+
+        if (!needToProcess() && nextScene != null) {
+            currentStage.setScene(nextScene);
+            return;
+        }
 
         try {
             FxLoadResult<Parent, LoadingScreenController> screenData =
@@ -445,6 +484,8 @@ public class SelectTablesScreenController {
             @Override
             protected Parent call() throws Exception {
 
+
+                comparison.getComparedTables().clear();
                 Map<String, Map<ComparedSource, SourceTable>> selectedGroupedTables =
                         groupedTables.entrySet().stream()
                                 .filter(entry -> selectedTableNames.contains(entry.getKey()))
@@ -452,8 +493,8 @@ public class SelectTablesScreenController {
                                         Map.Entry::getKey,
                                         Map.Entry::getValue
                                 ));
-
                 ComparisonService.processTables(comparison, selectedGroupedTables);
+
 
                 FxLoadResult<Parent, ColumnSettingsScreenController> screenData =
                         FxmlUtils.loadScreen(FxmlFiles.COLUMN_SETTINGS_SCREEN);
@@ -461,6 +502,8 @@ public class SelectTablesScreenController {
                 Parent nextScreenRoot = screenData.node;
                 ColumnSettingsScreenController controller = screenData.controller;
 
+                controller.setCurrentStage(currentStage);
+                controller.setPreviousScene(currentScene);
                 controller.setComparison(comparison);
                 controller.init();
 
@@ -510,6 +553,13 @@ public class SelectTablesScreenController {
     }
 
     public void previousStep(MouseEvent mouseEvent) {
+
+
+        AttachSourcesScreenController attachSourcesScreenController = (AttachSourcesScreenController) previousScene.getUserData();
+        attachSourcesScreenController.setNextScene(currentStage.getScene());
+
+        currentStage.setScene(previousScene);
+
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
