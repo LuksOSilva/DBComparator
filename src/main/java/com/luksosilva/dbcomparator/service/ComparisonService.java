@@ -98,6 +98,7 @@ public class ComparisonService {
         SchemaService.loadColumnsSettings(comparedTableList, loadFromDb);
     }
 
+
     /// privates
 
     private static void setComparedSources(Comparison comparison, List<Source> sourceList) {

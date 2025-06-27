@@ -138,6 +138,7 @@ public class ColumnSettingsScreenController {
 
 
     public void init() {
+        setupViewModels();
         constructAccordion();
         setupFilterControls();
     }
@@ -148,7 +149,18 @@ public class ColumnSettingsScreenController {
     public void onFilterButtonClicked(MouseEvent mouseEvent) {
         toggleFilters(filterToggleButton.isSelected());
     }
-
+    public void onSaveSettingsForAllAlteredTablesButtonClicked(ActionEvent event) {
+        boolean saveAsDefault = true;
+        saveSettingsForAllAlteredTables(saveAsDefault);
+    }
+    public void onResetSettingsToDefaultForAllTablesButtonClicked(ActionEvent event) {
+        boolean loadFromDb = true;
+        resetSettingsForAllTables(loadFromDb);
+    }
+    public void onResetSettingsToOriginalForAllTablesButtonClicked(ActionEvent event) {
+        boolean loadFromDb = false;
+        resetSettingsForAllTables(loadFromDb);
+    }
     public void onSaveSettingsForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
@@ -163,7 +175,6 @@ public class ColumnSettingsScreenController {
 
         resetSettingsForTable(tableName, loadFromDb);
     }
-
     public void onResetSettingsToOriginalForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
@@ -225,6 +236,24 @@ public class ColumnSettingsScreenController {
         }
     }
 
+    private void resetSettingsForAllTables(boolean loadFromDb) {
+
+        List<String> tableNames = allTablePanes.stream().map(Labeled::getText).toList();
+
+        for (String tableName : tableNames) {
+            resetSettingsForTable(tableName, loadFromDb);
+        }
+    }
+
+    private void saveSettingsForAllAlteredTables(boolean saveAsDefault) {
+
+        List<String> tableNames = getTableNamesWithAlteredColumns();
+
+        for (String tableName : tableNames) {
+            saveSettingsForTable(tableName, saveAsDefault);
+        }
+    }
+
     private void resetSettingsForTable(String tableName, boolean loadFromDb) {
         ComparedTable comparedTable = comparison.getComparedTables().stream()
                 .filter(ct -> ct.getTableName().equals(tableName))
@@ -238,7 +267,6 @@ public class ColumnSettingsScreenController {
 
         List<ComparedTable> comparedTableList = new ArrayList<>();
         comparedTableList.add(comparedTable);
-
         ComparisonService.setTableColumnsSettings(comparedTableList, loadFromDb);
 
 
@@ -270,16 +298,27 @@ public class ColumnSettingsScreenController {
         comparedTableColumnViewModelList.forEach(ComparedTableColumnViewModel::setDefault);
     }
 
-    public List<ComparedTableColumnViewModel> getAlteredColumnSettings() {
-        return perTableComparedColumnViewModel.values()
-                .stream()          // Stream<List<ComparedTableColumnViewModel>>
-                .flatMap(List::stream) // Flattens to Stream<ComparedTableColumnViewModel>
-                .filter(ComparedTableColumnViewModel::isAltered) // Filter for altered columns
-                .toList(); // Collect into a List
+    public List<String> getTableNamesWithAlteredColumns() {
+        return perTableComparedColumnViewModel.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(ComparedTableColumnViewModel::isAltered))
+                .map(Map.Entry::getKey)
+                .toList();
     }
 
 
+
     /// Constructor Methods
+
+    private  void setupViewModels() {
+        for (ComparedTable comparedTable : comparison.getComparedTables()) {
+            List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = comparedTable.getComparedTableColumns().stream()
+                    .map(ComparedTableColumnViewModel::new)
+                    .toList();
+
+            perTableComparedColumnViewModel.put(comparedTable.getTableName(), comparedTableColumnViewModelList);
+        }
+    }
 
     private void setupFilterControls() {
         filterTypeComboBox.setItems(FXCollections.observableArrayList("tabela", "coluna"));
@@ -396,6 +435,7 @@ public class ColumnSettingsScreenController {
                 }
             });
 
+            //perTableComparedColumnViewModel.put(tableName, new ArrayList<>()); //inserts placeholder for every table.
 
             titledPaneList.add(tablePane);
         }
@@ -422,15 +462,13 @@ public class ColumnSettingsScreenController {
         final double TABLE_ROW_HEIGHT = 28.0;
         final double TABLE_HEADER_HEIGHT = 30.0;
 
-        ComparedTable comparedTable = comparison.getComparedTables().stream()
-                .filter(ct -> ct.getTableName().equals(tableName))
-                .findFirst()
-                .orElse(null);
-        if (comparedTable == null) return null;
+//        ComparedTable comparedTable = comparison.getComparedTables().stream()
+//                .filter(ct -> ct.getTableName().equals(tableName))
+//                .findFirst()
+//                .orElse(null);
+//        if (comparedTable == null) return null;
 
-        List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = comparedTable.getComparedTableColumns().stream()
-                .map(comparedTableColumn -> new ComparedTableColumnViewModel(comparedTableColumn))
-                .collect(Collectors.toList());
+        List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = perTableComparedColumnViewModel.get(tableName);
 
         TableView<ComparedTableColumnViewModel> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -474,7 +512,7 @@ public class ColumnSettingsScreenController {
         isComparableColumn.setEditable(true);
 
 
-        perTableComparedColumnViewModel.put(tableName, comparedTableColumnViewModelList);
+        //perTableComparedColumnViewModel.put(tableName, comparedTableColumnViewModelList); //replaces the placeholder
 
 
 
@@ -484,26 +522,26 @@ public class ColumnSettingsScreenController {
     private HBox constructTitledPaneContentButtonBox(String tableName) {
         // Create the buttons
         Button resetToOriginal = new Button("Alterar para padrão do sistema");
-        Button saveAsDefaultBtn = new Button("Salvar como padrão");
         Button resetToDefaultBtn = new Button("Alterar para padrão");
+        Button saveAsDefaultBtn = new Button("Salvar como padrão");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         // Put them in an HBox
-        HBox buttonBox = new HBox(10, resetToOriginal, spacer, saveAsDefaultBtn, resetToDefaultBtn);
+        HBox buttonBox = new HBox(10, resetToOriginal, spacer, resetToDefaultBtn, saveAsDefaultBtn);
         buttonBox.setAlignment(Pos.CENTER_RIGHT); // Right-aligned
         buttonBox.setPadding(new Insets(10, 0, 0, 0)); // Top padding
 
         // Add logic for the buttons
         resetToOriginal.setOnAction(this::onResetSettingsToOriginalForTableButtonClicked);
-        saveAsDefaultBtn.setOnAction(this::onSaveSettingsForTableButtonClicked);
         resetToDefaultBtn.setOnAction(this::onResetSettingsToDefaultForTableButtonClicked);
+        saveAsDefaultBtn.setOnAction(this::onSaveSettingsForTableButtonClicked);
 
         // Add user data
         resetToOriginal.setUserData(tableName);
-        saveAsDefaultBtn.setUserData(tableName);
         resetToDefaultBtn.setUserData(tableName);
+        saveAsDefaultBtn.setUserData(tableName);
 
         return buttonBox;
     }
@@ -540,22 +578,10 @@ public class ColumnSettingsScreenController {
             @Override
             protected Parent call() throws Exception {
 
+
                 boolean saveAsDefault = false;
+                saveSettingsForAllAlteredTables(saveAsDefault);
 
-                for (String tableName : perTableComparedColumnViewModel.keySet()) {
-                    saveSettingsForTable(tableName, saveAsDefault);
-                }
-
-//                List<ComparedTableColumnViewModel> alteredColumns = getAlteredColumnSettings();
-//
-//                Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings = new HashMap<>();
-//                for (ComparedTableColumnViewModel comparedTableColumnViewModel : alteredColumns) {
-//                    perComparedTableColumnSettings.put
-//                            (comparedTableColumnViewModel.comparedTableColumn,
-//                                    comparedTableColumnViewModel.getViewModelColumnSetting());
-//                }
-//
-//                ComparisonService.processColumnSettings(comparison, perComparedTableColumnSettings, false);
 
 
                 FxLoadResult<Parent, SetFiltersScreenController> screenData =

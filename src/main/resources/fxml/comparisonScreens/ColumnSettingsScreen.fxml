@@ -39,6 +39,9 @@
                     <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                             <children>
+                        <Button mnemonicParsing="false" text="Padrão do sistema" onAction="#onResetSettingsToOriginalForAllTablesButtonClicked"/>
+                        <Button mnemonicParsing="false" text="Padrão" onAction="#onResetSettingsToDefaultForAllTablesButtonClicked"/>
+                        <Button mnemonicParsing="false" text="Salvar Alterados" onAction="#onSaveSettingsForAllAlteredTablesButtonClicked"/>
 
                                 <Pane HBox.hgrow="ALWAYS" />
 
