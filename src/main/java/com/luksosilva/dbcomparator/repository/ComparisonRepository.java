@@ -1,6 +1,5 @@
 package com.luksosilva.dbcomparator.repository;
 
-import com.luksosilva.dbcomparator.exception.ComparisonException;
 import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
@@ -16,7 +15,7 @@ import java.util.Map;
 
 public class ComparisonRepository {
 
-    public static String getNextComparisonId() {
+    public static String getNextComparisonId()  {
 
         try (Connection connection = SQLiteUtils.getDataSource().getConnection();
              Statement stmt = connection.createStatement();
@@ -27,7 +26,7 @@ public class ComparisonRepository {
                 return resultSet.getString("NEXT_COMPARISON_ID");
             }
         } catch (Exception e) {
-            throw new ComparisonException("Failed to retrieve next comparison ID: ", e);
+            System.out.println("Failed to retrieve next comparison ID: " + e);
         }
         // default
         return "0001";

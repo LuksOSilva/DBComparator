@@ -1,6 +1,6 @@
 package com.luksosilva.dbcomparator.builder;
 
-import com.luksosilva.dbcomparator.exception.ComparisonException;
+
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
@@ -91,9 +91,6 @@ public class SelectDifferencesBuilder {
             coalesceIdentifierColumns.add(SqlFormatter.buildSDCoalesceIdentifierColumns(allIdentifierColumnsWithSource, columnName));
         }
 
-        if (coalesceIdentifierColumns.isEmpty()) {
-            throw new ComparisonException("Todas as tabelas comparadas devem ter ao menos uma coluna identificadora");
-        }
 
         return String.join(",\n", coalesceIdentifierColumns);
 

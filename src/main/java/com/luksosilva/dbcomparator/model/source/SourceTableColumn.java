@@ -1,5 +1,7 @@
 package com.luksosilva.dbcomparator.model.source;
 
+import java.util.Objects;
+
 public class SourceTableColumn {
 
     private final int sequence;
@@ -27,6 +29,22 @@ public class SourceTableColumn {
 
     public String getType() {
         return type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SourceTableColumn that)) return false;
+        return sequence == that.sequence &&
+                notNull == that.notNull &&
+                isPk == that.isPk &&
+                Objects.equals(columnName, that.columnName) &&
+                Objects.equals(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sequence, columnName, type, notNull, isPk);
     }
 
 }

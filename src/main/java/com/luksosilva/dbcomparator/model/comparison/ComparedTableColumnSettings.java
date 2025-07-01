@@ -5,22 +5,23 @@ import javafx.beans.property.SimpleBooleanProperty;
 
 public class ComparedTableColumnSettings {
 
-    private Boolean isComparable;
-    private Boolean isIdentifier;
+    private boolean isComparable;
+    private boolean isIdentifier;
 
 
     public ComparedTableColumnSettings() {}
 
-    public ComparedTableColumnSettings(Boolean isComparable, Boolean isIdentifier) {
+    public ComparedTableColumnSettings(boolean isComparable, boolean isIdentifier) {
         this.isComparable = isComparable;
         this.isIdentifier = isIdentifier;
     }
 
-    public Boolean isComparable() {
+
+    public boolean isComparable() {
         return isComparable;
     }
 
-    public Boolean isIdentifier() {
+    public boolean isIdentifier() {
         return isIdentifier;
     }
 
@@ -31,6 +32,22 @@ public class ComparedTableColumnSettings {
         this.isIdentifier =isIdentifier;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ComparedTableColumnSettings that = (ComparedTableColumnSettings) o;
+
+        return isComparable == that.isComparable && isIdentifier == that.isIdentifier;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (isComparable ? 1 : 0);
+        result = 31 * result + (isIdentifier ? 1 : 0);
+        return result;
+    }
 
 }
 

@@ -46,6 +46,9 @@ public class ColumnSettingsService {
                 ));
     }
 
+
+    //
+
     private static ComparedTableColumnSettings getDefaultColumnSettings(boolean tableHasPrimaryKey, boolean isPkInAnySource, boolean isPkInAllSources) {
         boolean isIdentifier;
         boolean isComparable;

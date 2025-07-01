@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.controller;
+package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

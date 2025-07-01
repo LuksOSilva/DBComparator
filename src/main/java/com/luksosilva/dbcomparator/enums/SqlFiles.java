@@ -9,6 +9,7 @@ public enum SqlFiles {
     PRAGMA_TABLE_INFO("pragma_table_info"),
     SELECT_MAP_COLUMN_SETTINGS("select_map_column_settings"),
     REPLACE_COLUMN_SETTINGS("replace_column_settings"),
+    SELECT_VALIDATE_IDENTIFIERS("select_validate_identifiers"),
 
 
     SELECT_DIFFERENCES("select_differences"),

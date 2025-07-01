@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.controller;
+package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
@@ -7,15 +7,10 @@ import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.FileUtils;
-import com.luksosilva.dbcomparator.util.FxLoadResult;
+import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.css.StyleClass;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -32,10 +27,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Time;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class AttachSourcesScreenController {
 

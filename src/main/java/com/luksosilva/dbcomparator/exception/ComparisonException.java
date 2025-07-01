@@ -1,12 +1,18 @@
-package com.luksosilva.dbcomparator.exception;
-
-public class ComparisonException extends RuntimeException {
-
-    public ComparisonException(String message) {
-        super(message);
-    }
-
-    public ComparisonException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+//package com.luksosilva.dbcomparator.exception;
+//
+//import com.luksosilva.dbcomparator.util.wrapper.ColumnSettingsValidationResult;
+//
+//import java.util.List;
+//
+//public class ComparisonException extends Exception {
+//
+//    private final List<ColumnSettingsValidationResult> validationResults;
+//
+//    public ComparisonException(List<ColumnSettingsValidationResult> results) {
+//        this.validationResults = results;
+//    }
+//
+//    public List<ColumnSettingsValidationResult> getValidationResults() {
+//        return validationResults;
+//    }
+//}

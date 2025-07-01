@@ -1,10 +1,8 @@
 package com.luksosilva.dbcomparator.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
+import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import com.luksosilva.dbcomparator.model.comparison.*;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
@@ -12,7 +10,6 @@ import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 public class ComparisonService {
@@ -27,11 +24,70 @@ public class ComparisonService {
     public static void processTables(Comparison comparison, Map<String, Map<ComparedSource, SourceTable>> groupedTables) {
         setComparedTables(comparison, groupedTables);
         setComparedTableColumns(comparison.getComparedTables());
-        setTableColumnsSettings(comparison.getComparedTables(), true); //TODO: create config to set 'loadFromDb'
+
+
+        //gets only tables with at least one column without column setting.
+        List<ComparedTable> comparedTablesWithoutColumnSettings = comparison.getComparedTables().stream()
+                .filter(comparedTable -> comparedTable.getComparedTableColumns()
+                        .stream().anyMatch(comparedTableColumn -> !comparedTableColumn.hasColumnSetting())).toList();
+
+        //removes any column setting in the tables gathered.
+        comparedTablesWithoutColumnSettings.forEach(comparedTable -> {
+            comparedTable.getComparedTableColumns().forEach(ComparedTableColumn::removeColumnSetting);
+        });
+
+
+        setTableColumnsSettings(comparedTablesWithoutColumnSettings, true); //TODO: create config to set default 'loadFromDb'
     }
 
     //3
-    public static void processColumnSettings(Comparison comparison,
+    public static void validateColumnSettings(ComparedTable comparedTable,
+                                                                        Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings) {
+
+        //checks if table was validated before.
+        if (comparedTable.isColumnSettingsValid()) {
+
+            for (Map.Entry<ComparedTableColumn, ComparedTableColumnSettings> entry : perComparedTableColumnSettings.entrySet()) {
+                ComparedTableColumn comparedTableColumn = entry.getKey();
+                ComparedTableColumnSettings newcomparedTableColumnSettings = entry.getValue();
+                ComparedTableColumnSettings currentComparedTableColumnSettings = comparedTableColumn.getColumnSetting();
+
+                //checks if anything changed when compared to the last validation.
+                if (!currentComparedTableColumnSettings.equals(newcomparedTableColumnSettings)){
+                    comparedTable.clearColumnSettingValidation();
+                    break;
+                }
+            }
+            //if nothing changed
+            if (comparedTable.isColumnSettingsValid()) {
+                comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.VALID);
+                return;
+            }
+        }
+
+
+        boolean hasIdentifier = perComparedTableColumnSettings.values().stream()
+                .anyMatch(ComparedTableColumnSettings::isIdentifier);
+
+        if (!hasIdentifier) {
+            comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.NO_IDENTIFIER);
+            return;
+        }
+
+
+        List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
+
+        if (!invalidInSources.isEmpty()) {
+            comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
+            return;
+        }
+
+
+        comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.VALID);
+    }
+
+    //4
+    public static void processColumnSettings(ComparedTable comparedTable,
                                              Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings,
                                              boolean saveSettingsAsDefault) {
 
@@ -40,24 +96,18 @@ public class ComparisonService {
             comparedTableColumn.getColumnSetting().changeIsComparableTo(comparedTableColumnSettings.isComparable());
             comparedTableColumn.getColumnSetting().changeIsIdentifierTo(comparedTableColumnSettings.isIdentifier());
 
-            System.out.println("coluna alterada: " + comparedTableColumn.getColumnName());
         });
 
 
         if (saveSettingsAsDefault) {
-            Set<ComparedTableColumn> updatedColumns = perComparedTableColumnSettings.keySet();
 
-            List<ComparedTable> tablesToSave = comparison.getComparedTables().stream()
-                    .filter(comparedTable ->
-                            comparedTable.getComparedTableColumns().stream()
-                                    .anyMatch(updatedColumns::contains)
-                    )
-                    .toList();
+            List<ComparedTable> tablesToSave = new ArrayList<>();
+            tablesToSave.add(comparedTable);
 
             SchemaService.saveColumnSettings(tablesToSave);
-
         }
     }
+
 
     //5
     public static void processFilters(Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter) {
@@ -124,6 +174,9 @@ public class ComparisonService {
 
     private static void setComparedTableColumns(List<ComparedTable> comparedTableList) {
         for (ComparedTable comparedTable : comparedTableList) {
+
+            if (!comparedTable.getComparedTableColumns().isEmpty()) continue;
+
 
             Map<String, Map<ComparedSource, SourceTableColumn>> groupedColumns = new HashMap<>();
 

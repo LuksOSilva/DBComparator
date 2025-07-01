@@ -110,6 +110,35 @@ public class SchemaRepository {
         }
     }
 
+    public static List<String> selectValidateIdentifiers(String sourceId, String filePath, String tableName, List<String> identifierColumns) {
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            List<String> results = new ArrayList<>();
+
+            String sql = SqlFormatter.buildSelectValidateIdentifiers(sourceId, tableName, identifierColumns);
+
+            SQLiteUtils.attachSource(connection, filePath, sourceId);
+
+            try (Statement stmt = connection.createStatement();
+                 ResultSet resultSet = stmt.executeQuery(sql)
+            ) {
+
+                while (resultSet.next()) {
+
+                    results.add(resultSet.getString("source_id"));
+
+                }
+
+            }
+
+            SQLiteUtils.detachSource(connection, sourceId);
+
+            return results;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 

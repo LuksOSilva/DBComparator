@@ -6,10 +6,26 @@ import com.luksosilva.dbcomparator.enums.SqlPlaceholders;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SqlFormatter {
+
+    public static String buildSelectValidateIdentifiers(String sourceId, String tableName, List<String> identifierColumns) {
+
+        String quotedIdentifierColumns = identifierColumns.stream()
+                .map(s -> "\"" + s + "\"")
+                .collect(Collectors.joining(", "));
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.TABLE_NAME, tableName,
+                SqlPlaceholders.IDENTIFIER_COLUMNS, quotedIdentifierColumns
+        );
+
+        return buildSQL(SqlFiles.SELECT_VALIDATE_IDENTIFIERS, placeholders);
+    }
 
 
     public static String buildReplaceColumnSettings(String tableName, String columnName, boolean isComparable, boolean isIdentifier) {

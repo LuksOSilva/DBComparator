@@ -1,6 +1,4 @@
-package com.luksosilva.dbcomparator.util;
-
-import javafx.scene.Parent;
+package com.luksosilva.dbcomparator.util.wrapper;
 
 public class FxLoadResult<T, U> {
     public final T node;

@@ -2,6 +2,7 @@ package com.luksosilva.dbcomparator.model.source;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SourceTable {
@@ -31,5 +32,12 @@ public class SourceTable {
         return recordCount;
     }
 
+    public boolean equalSchema(SourceTable that) {
+        return Objects.equals(this.getTableName(), that.getTableName())
+                && Objects.equals(this.getSourceTableColumns(), that.getSourceTableColumns());
+    }
+    public boolean equalRecordCount(SourceTable that) {
+        return recordCount == that.recordCount;
+    }
 
 }

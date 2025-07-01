@@ -1,12 +1,11 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
+import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ComparedTable {
@@ -15,7 +14,11 @@ public class ComparedTable {
 
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
+    private ColumnSettingsValidationResultType columnSettingsValidationResult;
+
     private String queryDifferences;
+
+
 
 
     public ComparedTable(Map<ComparedSource, SourceTable> perSourceTable) {
@@ -50,6 +53,44 @@ public class ComparedTable {
     }
 
 
+    public boolean hasSchemaDifference() {
+
+        Collection<SourceTable> sourceTables = perSourceTable.values();
+        if (sourceTables.isEmpty()) {
+            return false;
+        }
+        SourceTable first = sourceTables.iterator().next();
+        return !sourceTables.stream()
+                .allMatch(first::equalSchema);
+    }
+
+    public boolean hasRecordCountDifference() {
+
+        Collection<SourceTable> sourceTables = perSourceTable.values();
+        if (sourceTables.isEmpty()) {
+            return false;
+        }
+        SourceTable first = sourceTables.iterator().next();
+        return !sourceTables.stream()
+                .allMatch(first::equalRecordCount);
+    }
+
+
+    public ColumnSettingsValidationResultType getColumnSettingsValidationResultType() {
+        return columnSettingsValidationResult;
+    }
+
+    public void setColumnSettingsValidationResultType(ColumnSettingsValidationResultType columnSettingsValidationResult) {
+        this.columnSettingsValidationResult = columnSettingsValidationResult;
+    }
+
+    public void clearColumnSettingValidation() {
+        columnSettingsValidationResult = null;
+    }
+
+    public boolean isColumnSettingsValid() {
+        return columnSettingsValidationResult == ColumnSettingsValidationResultType.VALID;
+    }
 
 
 }

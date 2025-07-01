@@ -1,13 +1,14 @@
 package com.luksosilva.dbcomparator.util;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.Objects;
 
 public class FxmlUtils {
 
@@ -19,7 +20,7 @@ public class FxmlUtils {
         return new FxLoadResult<>(root, controller);
     }
 
-    public static <T extends Parent, U> FxLoadResult<Stage, U> createNewStage(FxmlFiles fxmlFile, String title) throws IOException {
+    public static <T extends Parent, U> FxLoadResult<Stage, U> createNewStage(Stage owner, FxmlFiles fxmlFile, String title) throws IOException {
         FXMLLoader loader = new FXMLLoader(FxmlUtils.class.getResource(fxmlFile.getPath()));
 
         Parent root = loader.load();
@@ -28,6 +29,9 @@ public class FxmlUtils {
         Stage newStage = new Stage();
         newStage.setTitle(title);
         newStage.setScene(new Scene(root));
+
+        newStage.initModality(Modality.APPLICATION_MODAL);
+        newStage.initOwner(owner);
 
         return new FxLoadResult<>(newStage, controller);
     }

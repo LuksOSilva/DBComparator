@@ -1,8 +1,8 @@
-package com.luksosilva.dbcomparator.controller;
+package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.util.FxLoadResult;
+import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -49,19 +49,19 @@ public class HomeScreenController {
 
     }
 
-    private void createNewScreen(ActionEvent event, String screenName) throws IOException {
-
-        FxLoadResult<Stage, AttachSourcesScreenController> newWindowData =
-                FxmlUtils.createNewStage(FxmlFiles.ATTACH_SOURCES_SCREEN, screenName);
-
-        Stage newStage = newWindowData.node;
-        AttachSourcesScreenController controller = newWindowData.controller;
-
-        // controller.initData(someConfigurationObject);
-
-        newStage.show();
-
-    }
+//    private void createNewScreen(ActionEvent event, String screenName) throws IOException {
+//
+//        FxLoadResult<Stage, AttachSourcesScreenController> newWindowData =
+//                FxmlUtils.createNewStage(FxmlFiles.ATTACH_SOURCES_SCREEN, screenName);
+//
+//        Stage newStage = newWindowData.node;
+//        AttachSourcesScreenController controller = newWindowData.controller;
+//
+//        // controller.initData(someConfigurationObject);
+//
+//        newStage.show();
+//
+//    }
 
 
 

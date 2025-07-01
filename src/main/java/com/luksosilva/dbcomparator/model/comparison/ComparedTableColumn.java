@@ -47,7 +47,13 @@ public class ComparedTableColumn {
         return columnFilter;
     }
 
+    public boolean hasColumnSetting() {
+        return comparedTableColumnSettings != null;
+    }
 
+    public void removeColumnSetting() {
+        comparedTableColumnSettings = null;
+    }
 
 
 

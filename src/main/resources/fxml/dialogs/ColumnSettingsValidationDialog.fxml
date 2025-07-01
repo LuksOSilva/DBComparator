@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.luksosilva.dbcomparator.controller.dialogs.ColumnSettingsValidationDialogController"
+            prefWidth="400" prefHeight="350" stylesheets="@css/styles.css">
+
+    <VBox spacing="10" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+
+        <Label text="Validação de Configurações" styleClass="dialog-title"/>
+
+        <ScrollPane fitToWidth="true" prefHeight="250">
+            <VBox fx:id="messageContainer" spacing="8" />
+        </ScrollPane>
+
+        <HBox alignment="CENTER_RIGHT">
+            <Button text="OK" onAction="#onOkClicked" maxWidth="80" styleClass="dialog-button"/>
+        </HBox>
+    </VBox>
+</AnchorPane>

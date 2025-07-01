@@ -1,17 +1,16 @@
-package com.luksosilva.dbcomparator.controller;
+package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.model.comparison.*;
-import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
-import com.luksosilva.dbcomparator.util.FxLoadResult;
+import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -23,6 +22,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -57,7 +57,6 @@ public class ColumnSettingsScreenController {
             this.comparedTableColumn = comparedTableColumn;
 
             setProperties();
-
             setDefault();
 
             // Radio button-like behavior: selecting one disables the other
@@ -74,6 +73,9 @@ public class ColumnSettingsScreenController {
             return (identifierProperty.get() != defaultIdentifierProperty.get())
                     || (comparableProperty.get() != defaultComparableProperty.get());
         }
+        public boolean existsInAllSources() {
+            return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getComparedSources().size();
+        }
 
         public ComparedTableColumnSettings getViewModelColumnSetting() {
             return new ComparedTableColumnSettings(comparableProperty.get(), identifierProperty.get());
@@ -83,21 +85,19 @@ public class ColumnSettingsScreenController {
             Map<ComparedSource, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
 
             long pkCount = map.values().stream().filter(SourceTableColumn::isPk).count();
-            int totalSources = map.size();
+            int totalSources = comparison.getComparedSources().size();
 
             if (pkCount == 0) return "";
             if (pkCount == totalSources) return "Y";
 
             return pkCount + "/" + totalSources;
         }
+
         public void setProperties() {
             this.identifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
             this.comparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
         }
-        public void resetToDefault() {
-            identifierProperty.set(defaultIdentifierProperty.get());
-            comparableProperty.set(defaultComparableProperty.get());
-        }
+
         public void setDefault() {
             this.defaultIdentifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
             this.defaultComparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
@@ -128,11 +128,11 @@ public class ColumnSettingsScreenController {
     @FXML
     public HBox filtersHBox;
     @FXML
-    public CheckBox showDiffRecordCountOnlyCheckBox;
+    public CheckBox showOnlySchemaDiffersCheckBox;
     @FXML
-    public CheckBox showInAllSourcesOnlyCheckBox;
+    public CheckBox showOnlyInvalidColumnSettingsCheckBox;
     @FXML
-    public CheckBox showSelectedOnlyCheckBox;
+    public CheckBox showOnlyAlteredCheckBox;
     @FXML
     public Accordion tablesAccordion;
 
@@ -165,14 +165,21 @@ public class ColumnSettingsScreenController {
     }
     public void onSaveSettingsForAllAlteredTablesButtonClicked(ActionEvent event) {
         boolean saveAsDefault = true;
-        saveSettingsForAllAlteredTables(saveAsDefault);
+
+        saveSettingsForAllAlteredTables(getTableNamesWithAlteredColumns(), saveAsDefault);
+
+        if (hasAnyInvalidColumnSettings()){
+            showErrorInvalidSettings();
+        }
     }
     public void onResetSettingsToDefaultForAllTablesButtonClicked(ActionEvent event) {
         boolean loadFromDb = true;
+
         resetSettingsForAllTables(loadFromDb);
     }
     public void onResetSettingsToOriginalForAllTablesButtonClicked(ActionEvent event) {
         boolean loadFromDb = false;
+
         resetSettingsForAllTables(loadFromDb);
     }
     public void onSaveSettingsForTableButtonClicked(ActionEvent event) {
@@ -181,6 +188,10 @@ public class ColumnSettingsScreenController {
         boolean saveAsDefault = true;
 
         saveSettingsForTable(tableName, saveAsDefault);
+
+        if (hasAnyInvalidColumnSettings()){
+            showErrorInvalidSettings(tableName);
+        }
     }
     public void onResetSettingsToDefaultForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
@@ -259,21 +270,16 @@ public class ColumnSettingsScreenController {
         }
     }
 
-    private void saveSettingsForAllAlteredTables(boolean saveAsDefault) {
-
-        List<String> tableNames = getTableNamesWithAlteredColumns();
-        if (tableNames.isEmpty()) return;
+    private void saveSettingsForAllAlteredTables(List<String> tableNames, boolean saveAsDefault) {
 
         for (String tableName : tableNames) {
+
             saveSettingsForTable(tableName, saveAsDefault);
         }
     }
 
     private void resetSettingsForTable(String tableName, boolean loadFromDb) {
-        ComparedTable comparedTable = comparison.getComparedTables().stream()
-                .filter(ct -> ct.getTableName().equals(tableName))
-                .findFirst()
-                .orElse(null);
+        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
         if (comparedTable == null) return;
 
         List<ComparedTableColumnViewModel> comparedTableColumnViewModelList =
@@ -289,35 +295,67 @@ public class ColumnSettingsScreenController {
     }
 
     private void saveSettingsForTable(String tableName, boolean saveAsDefault) {
-        ComparedTable comparedTable = comparison.getComparedTables().stream()
-                .filter(ct -> ct.getTableName().equals(tableName))
-                .findFirst()
-                .orElse(null);
+        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
         if (comparedTable == null) return;
 
         List<ComparedTableColumnViewModel> comparedTableColumnViewModelList =
                 perTableComparedColumnViewModel.get(comparedTable.getTableName());
         if (comparedTableColumnViewModelList.isEmpty()) return;
 
-
         Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings =
                 comparedTableColumnViewModelList.stream()
-                        .filter(ComparedTableColumnViewModel::isAltered)
                         .collect(Collectors.toMap(
                                 vm -> vm.comparedTableColumn,
                                 ComparedTableColumnViewModel::getViewModelColumnSetting
                         ));
 
-
+        //validate column setting
+        ComparisonService.validateColumnSettings(comparedTable, perComparedTableColumnSettings);
+        if (!comparedTable.isColumnSettingsValid()) return;
 
         //saves default
-        ComparisonService.processColumnSettings(comparison, perComparedTableColumnSettings, saveAsDefault);
+        ComparisonService.processColumnSettings(comparedTable, perComparedTableColumnSettings, saveAsDefault);
 
         //updates default values
         comparedTableColumnViewModelList.forEach(ComparedTableColumnViewModel::setDefault);
     }
 
-    public List<String> getTableNamesWithAlteredColumns() {
+    private boolean hasAnyInvalidColumnSettings() {
+        return comparison.getComparedTables().stream().anyMatch(comparedTable -> !comparedTable.isColumnSettingsValid());
+    }
+    private boolean hasInvalidColumnSettings(ComparedTable comparedTable) {
+        return !comparedTable.isColumnSettingsValid();
+    }
+
+    private void showErrorInvalidSettings() {
+        if (!hasAnyInvalidColumnSettings()) return;
+
+        List<ComparedTable> tablesWithInvalidSettings = comparison.getComparedTables().stream()
+                .filter(comparedTable -> !comparedTable.isColumnSettingsValid()).toList();
+
+        DialogUtils.showInvalidColumnSettingsDialog(currentStage, tablesWithInvalidSettings);
+
+    }
+    private void showErrorInvalidSettings(String tableName) {
+        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+        if (comparedTable == null) return;
+        if (!hasInvalidColumnSettings(comparedTable)) return;
+
+        List<ComparedTable> comparedTableToList = new ArrayList<>();
+        comparedTableToList.add(comparedTable);
+
+        DialogUtils.showInvalidColumnSettingsDialog(currentStage, comparedTableToList);
+
+    }
+
+    private ComparedTable getComparedTableFromTableName(String tableName) {
+        return comparison.getComparedTables().stream()
+                .filter(ct -> ct.getTableName().equals(tableName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private List<String> getTableNamesWithAlteredColumns() {
         return perTableComparedColumnViewModel.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(ComparedTableColumnViewModel::isAltered))
@@ -325,7 +363,9 @@ public class ColumnSettingsScreenController {
                 .toList();
     }
 
-
+    private void changeCursorTo(Cursor cursor) {
+        currentStage.getScene().setCursor(cursor);
+    }
 
     /// Constructor Methods
 
@@ -346,9 +386,9 @@ public class ColumnSettingsScreenController {
 
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        showInAllSourcesOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        showDiffRecordCountOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        showSelectedOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showOnlyInvalidColumnSettingsCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showOnlySchemaDiffersCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showOnlyAlteredCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
 
         applyFilter();
     }
@@ -380,29 +420,23 @@ public class ColumnSettingsScreenController {
                 }
             }
 
-//            // show only selected filter
-//            if (showSelectedOnlyCheckBox.isSelected()) {
-//                if (!selectedTableNames.contains(pane.getText())) return false;
-//            }
-//
-//            // show only different record count filter
-//            if (showDiffRecordCountOnlyCheckBox.isSelected()) {
-//                Map<ComparedSource, SourceTable> perSource = groupedTables.get(pane.getText());
-//                if (perSource == null) return false;
-//
-//                Set<Integer> rowCounts = new HashSet<>();
-//                for (SourceTable st : perSource.values()) {
-//                    rowCounts.add(st.getRecordCount());
-//                }
-//                if (rowCounts.size() <= 1) return false;  // Só exibe se tiver diferenças
-//            }
-//
-//            // show only available in all sources filter
-//            if (showInAllSourcesOnlyCheckBox.isSelected()) {
-//                int totalSources = comparison.getComparedSources().size();
-//                Map<ComparedSource, SourceTable> perSource = groupedTables.get(pane.getText());
-//                if (perSource == null || perSource.size() < totalSources) return false;
-//            }
+            //show only altered filter
+            if (showOnlyAlteredCheckBox.isSelected()) {
+                if (!getTableNamesWithAlteredColumns().contains(pane.getText())) return false;
+            }
+
+            //show only if schema differs filter
+            if (showOnlySchemaDiffersCheckBox.isSelected()) {
+                ComparedTable comparedTable = getComparedTableFromTableName(pane.getText());
+                if (!comparedTable.hasSchemaDifference()) return false;
+            }
+
+            //show only invalid column settings
+            if (showOnlyInvalidColumnSettingsCheckBox.isSelected()) {
+                ComparedTable comparedTable = getComparedTableFromTableName(pane.getText());
+                if (comparedTable.isColumnSettingsValid()) return false;
+            }
+
 
             return true;
         });
@@ -454,8 +488,6 @@ public class ColumnSettingsScreenController {
                 }
             });
 
-            //perTableComparedColumnViewModel.put(tableName, new ArrayList<>()); //inserts placeholder for every table.
-
             titledPaneList.add(tablePane);
         }
         return titledPaneList;
@@ -463,7 +495,6 @@ public class ColumnSettingsScreenController {
 
     private void constructTitledPaneContent(TitledPane titledPane) {
 
-        //TableView<ComparedTableColumn> tableView = constructTitledPaneContentTableView(titledPane.getText());
         TableView<ComparedTableColumnViewModel> tableView = constructTitledPaneContentTableView(titledPane.getText());
         HBox buttonBox = constructTitledPaneContentButtonBox(titledPane.getText());
 
@@ -481,15 +512,27 @@ public class ColumnSettingsScreenController {
         final double TABLE_ROW_HEIGHT = 28.0;
         final double TABLE_HEADER_HEIGHT = 30.0;
 
-//        ComparedTable comparedTable = comparison.getComparedTables().stream()
-//                .filter(ct -> ct.getTableName().equals(tableName))
-//                .findFirst()
-//                .orElse(null);
-//        if (comparedTable == null) return null;
-
         List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = perTableComparedColumnViewModel.get(tableName);
 
         TableView<ComparedTableColumnViewModel> tableView = new TableView<>();
+        tableView.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(ComparedTableColumnViewModel item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setStyle("");
+                    setTooltip(null);
+                } else if (!item.existsInAllSources()) {
+                    setStyle("-fx-background-color: #f0f0f0; -fx-opacity: 0.6;");
+                    setTooltip(new Tooltip("Esta coluna não existe em todas as fontes."));
+                    getTooltip().setShowDelay(Duration.millis(200));
+                } else {
+                    setStyle(""); // Reset style
+                    setTooltip(null);
+                }
+            }
+        });
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableView.setPlaceholder(new Label("No data for this table from attached sources."));
 
@@ -508,11 +551,33 @@ public class ColumnSettingsScreenController {
 
         TableColumn<ComparedTableColumnViewModel, Boolean> isIdentifierColumn = new TableColumn<>("Identificador");
         isIdentifierColumn.setCellValueFactory(cellData -> cellData.getValue().identifierProperty);
-        isIdentifierColumn.setCellFactory(tc -> new CheckBoxTableCell<>());
+        isIdentifierColumn.setCellFactory(col -> new CheckBoxTableCell<>() {
+            @Override
+            public void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (!empty) {
+                    ComparedTableColumnViewModel viewModel = getTableView().getItems().get(getIndex());
+                    setDisable(!viewModel.existsInAllSources());
+                }
+            }
+        });
+
 
         TableColumn<ComparedTableColumnViewModel, Boolean> isComparableColumn = new TableColumn<>("Comparável");
         isComparableColumn.setCellValueFactory(cellData -> cellData.getValue().comparableProperty);
-        isComparableColumn.setCellFactory(tc -> new CheckBoxTableCell<>());
+        isComparableColumn.setCellFactory(col -> new CheckBoxTableCell<>() {
+            @Override
+            public void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (!empty) {
+                    ComparedTableColumnViewModel viewModel = getTableView().getItems().get(getIndex());
+                    setDisable(!viewModel.existsInAllSources());
+                }
+            }
+        });
+
 
         tableView.getColumns().addAll(rowIndexColumn, columnNameColumn, pkColumn, isIdentifierColumn, isComparableColumn);
 
@@ -529,10 +594,6 @@ public class ColumnSettingsScreenController {
         tableView.setEditable(true);
         isIdentifierColumn.setEditable(true);
         isComparableColumn.setEditable(true);
-
-
-        //perTableComparedColumnViewModel.put(tableName, comparedTableColumnViewModelList); //replaces the placeholder
-
 
 
         return tableView;
@@ -587,7 +648,7 @@ public class ColumnSettingsScreenController {
             Parent root = screenData.node;
             LoadingScreenController controller = screenData.controller;
 
-            controller.setMessage("Processando customizações, aguarde...");
+            controller.setMessage("Validando configurações, aguarde...");
 
             Scene scene = new Scene(root);
             currentStage.setScene(scene);
@@ -606,8 +667,14 @@ public class ColumnSettingsScreenController {
 
 
                 boolean saveAsDefault = false;
-                saveSettingsForAllAlteredTables(saveAsDefault);
 
+                saveSettingsForAllAlteredTables(perTableComparedColumnViewModel.keySet().stream().toList(), saveAsDefault);
+
+                if (hasAnyInvalidColumnSettings()) {
+                    throw new ColumnSettingsException(
+                            comparison.getComparedTables().stream()
+                                    .filter(comparedTable -> !comparedTable.isColumnSettingsValid()).toList());
+                }
 
                 FxLoadResult<Parent, SetFiltersScreenController> screenData =
                         FxmlUtils.loadScreen(FxmlFiles.SET_FILTERS_SCREEN);
@@ -642,22 +709,18 @@ public class ColumnSettingsScreenController {
 
 
         processColumnSettingsTask.setOnFailed(event -> {
-            DialogUtils.showError("Erro de Processamento", "Ocorreu um erro durante o processamento: " + processColumnSettingsTask.getException().getMessage());
-            processColumnSettingsTask.getException().printStackTrace();
+            currentStage.setScene(currentScene);
 
-            try {
-                FxLoadResult<Parent, ColumnSettingsScreenController> screenData =
-                        FxmlUtils.loadScreen(FxmlFiles.COLUMN_SETTINGS_SCREEN);
+            Throwable exception = processColumnSettingsTask.getException();
 
-                Parent root = screenData.node;
-
-                Scene currentScreenScene = new Scene(root);
-                currentStage.setScene(currentScreenScene);
-
-            } catch (IOException e) {
-                DialogUtils.showError("Erro de Recuperação", "Não foi possível recarregar a tela anterior: " + e.getMessage());
-                e.printStackTrace();
+            if (exception instanceof ColumnSettingsException) {
+                showErrorInvalidSettings();
+                return;
             }
+
+            DialogUtils.showError("Erro de Processamento",
+                    "Ocorreu um erro inesperado: " + exception.getMessage());
+            exception.printStackTrace();
         });
 
 

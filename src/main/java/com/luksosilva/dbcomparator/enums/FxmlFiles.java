@@ -4,11 +4,16 @@ package com.luksosilva.dbcomparator.enums;
 public enum FxmlFiles {
 
     HOME_SCREEN("HomeScreen"),
+
+    /// COMPARISON
     LOADING_SCREEN("comparisonScreens/LoadingScreen"),
     ATTACH_SOURCES_SCREEN("comparisonScreens/AttachSourcesScreen"),
     SELECT_TABLES_SCREEN("comparisonScreens/SelectTablesScreen"),
     COLUMN_SETTINGS_SCREEN("comparisonScreens/ColumnSettingsScreen"),
-    SET_FILTERS_SCREEN("comparisonScreens/SetFiltersScreen");
+    SET_FILTERS_SCREEN("comparisonScreens/SetFiltersScreen"),
+
+    /// DIALOGS
+    COLUMN_SETTINGS_VALIDATION_DIALOG("dialogs/ColumnSettingsValidationDialog");
 
     private final String fileName;
 

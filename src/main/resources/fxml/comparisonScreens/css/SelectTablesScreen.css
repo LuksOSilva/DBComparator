@@ -377,3 +377,7 @@
     -fx-shape: "M2,8 L10,8 L10,10 L2,10 Z"; /* Horizontal dash */
     -fx-padding: 5.5px;
 }
+
+.check-box:disabled > .box > .mark {
+    -fx-opacity: 0; /* hide the checkmark only if selected AND disabled */
+}

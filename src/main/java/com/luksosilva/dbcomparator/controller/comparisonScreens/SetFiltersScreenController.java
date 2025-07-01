@@ -1,9 +1,9 @@
-package com.luksosilva.dbcomparator.controller;
+package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.util.DialogUtils;
-import com.luksosilva.dbcomparator.util.FxLoadResult;
+import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import javafx.scene.Node;
 import javafx.scene.Parent;

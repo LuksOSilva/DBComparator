@@ -1,19 +1,17 @@
-package com.luksosilva.dbcomparator.controller;
+package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
-import com.luksosilva.dbcomparator.util.FxLoadResult;
+import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -234,7 +232,7 @@ public class SelectTablesScreenController {
                 for (SourceTable st : perSource.values()) {
                     rowCounts.add(st.getRecordCount());
                 }
-                if (rowCounts.size() <= 1) return false;  // Só exibe se tiver diferenças
+                if (rowCounts.size() <= 1) return false;
             }
 
             // show only available in all sources filter
@@ -485,15 +483,22 @@ public class SelectTablesScreenController {
             protected Parent call() throws Exception {
 
 
-                comparison.getComparedTables().clear();
-                Map<String, Map<ComparedSource, SourceTable>> selectedGroupedTables =
+
+                comparison.getComparedTables()
+                        .removeIf(comparedTable -> !selectedTableNames.contains(comparedTable.getTableName()));
+
+                Map<String, Map<ComparedSource, SourceTable>> notProcessedSelectedGroupedTables =
                         groupedTables.entrySet().stream()
+                                .filter(groupedTable -> comparison.getComparedTables().stream()
+                                        .noneMatch(comparedTable -> comparedTable.getTableName().equals(groupedTable.getKey())))
                                 .filter(entry -> selectedTableNames.contains(entry.getKey()))
                                 .collect(Collectors.toMap(
                                         Map.Entry::getKey,
                                         Map.Entry::getValue
                                 ));
-                ComparisonService.processTables(comparison, selectedGroupedTables);
+
+
+                ComparisonService.processTables(comparison, notProcessedSelectedGroupedTables);
 
 
                 FxLoadResult<Parent, ColumnSettingsScreenController> screenData =
