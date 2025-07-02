@@ -164,6 +164,12 @@ public class ColumnSettingsScreenController {
         toggleFilters(filterToggleButton.isSelected());
     }
     public void onSaveSettingsForAllAlteredTablesButtonClicked(ActionEvent event) {
+        boolean confirm = DialogUtils.askConfirmation("Salvar Alterados?",
+                "Todas as tabelas que foram alteradas serão salvas. Salvamentos prévios serão perdidos.");
+        if (!confirm) {
+            return;
+        }
+
         boolean saveAsDefault = true;
 
         saveSettingsForAllAlteredTables(getTableNamesWithAlteredColumns(), saveAsDefault);
@@ -173,11 +179,23 @@ public class ColumnSettingsScreenController {
         }
     }
     public void onResetSettingsToDefaultForAllTablesButtonClicked(ActionEvent event) {
+        boolean confirm = DialogUtils.askConfirmation("Alterar todas para padrão?",
+                "As configurações de todas as tabelas serão alteradas para o padrão. Configurações não salvas serão perdidas.");
+        if (!confirm) {
+            return;
+        }
+
         boolean loadFromDb = true;
 
         resetSettingsForAllTables(loadFromDb);
     }
     public void onResetSettingsToOriginalForAllTablesButtonClicked(ActionEvent event) {
+        boolean confirm = DialogUtils.askConfirmation("Alterar todas para padrão do sistema?",
+                "As configurações de todas as tabelas serão alteradas para o padrão do sistema. Configurações não salvas serão perdidas.");
+        if (!confirm) {
+            return;
+        }
+
         boolean loadFromDb = false;
 
         resetSettingsForAllTables(loadFromDb);
@@ -185,17 +203,32 @@ public class ColumnSettingsScreenController {
     public void onSaveSettingsForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
+
+        boolean confirm = DialogUtils.askConfirmation("Salvar Configurações?",
+                "As configurações da tabela " + tableName + " serão salvas. Se houver um salvamento prévio, será perdido.");
+        if (!confirm) {
+            return;
+        }
+
+
         boolean saveAsDefault = true;
 
         saveSettingsForTable(tableName, saveAsDefault);
 
-        if (hasAnyInvalidColumnSettings()){
+        if (hasInvalidColumnSettings(tableName)){
             showErrorInvalidSettings(tableName);
         }
     }
     public void onResetSettingsToDefaultForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
+
+        boolean confirm = DialogUtils.askConfirmation("Alterar para padrão?",
+                "As configurações da tabela "+ tableName +" serão alteradas para o padrão. Alterações não salvas serão perdidas.");
+        if (!confirm) {
+            return;
+        }
+
         boolean loadFromDb = true;
 
         resetSettingsForTable(tableName, loadFromDb);
@@ -203,6 +236,13 @@ public class ColumnSettingsScreenController {
     public void onResetSettingsToOriginalForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
+
+        boolean confirm = DialogUtils.askConfirmation("Alterar para padrão?",
+                "As configurações da tabela "+ tableName +" serão alteradas para o padrão do sistema. Alterações não salvas serão perdidas.");
+        if (!confirm) {
+            return;
+        }
+
         boolean loadFromDb = false;
 
         resetSettingsForTable(tableName, loadFromDb);
@@ -311,7 +351,7 @@ public class ColumnSettingsScreenController {
 
         //validate column setting
         ComparisonService.validateColumnSettings(comparedTable, perComparedTableColumnSettings);
-        if (!comparedTable.isColumnSettingsValid()) return;
+        if (comparedTable.isColumnSettingsInvalid()) return;
 
         //saves default
         ComparisonService.processColumnSettings(comparedTable, perComparedTableColumnSettings, saveAsDefault);
@@ -321,17 +361,21 @@ public class ColumnSettingsScreenController {
     }
 
     private boolean hasAnyInvalidColumnSettings() {
-        return comparison.getComparedTables().stream().anyMatch(comparedTable -> !comparedTable.isColumnSettingsValid());
+        return comparison.getComparedTables().stream().anyMatch(ComparedTable::isColumnSettingsInvalid);
     }
     private boolean hasInvalidColumnSettings(ComparedTable comparedTable) {
-        return !comparedTable.isColumnSettingsValid();
+        return comparedTable.isColumnSettingsInvalid();
+    }
+    private boolean hasInvalidColumnSettings(String tableName) {
+        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+        return comparedTable.isColumnSettingsInvalid();
     }
 
     private void showErrorInvalidSettings() {
         if (!hasAnyInvalidColumnSettings()) return;
 
         List<ComparedTable> tablesWithInvalidSettings = comparison.getComparedTables().stream()
-                .filter(comparedTable -> !comparedTable.isColumnSettingsValid()).toList();
+                .filter(ComparedTable::isColumnSettingsInvalid).toList();
 
         DialogUtils.showInvalidColumnSettingsDialog(currentStage, tablesWithInvalidSettings);
 
@@ -673,7 +717,7 @@ public class ColumnSettingsScreenController {
                 if (hasAnyInvalidColumnSettings()) {
                     throw new ColumnSettingsException(
                             comparison.getComparedTables().stream()
-                                    .filter(comparedTable -> !comparedTable.isColumnSettingsValid()).toList());
+                                    .filter(ComparedTable::isColumnSettingsInvalid).toList());
                 }
 
                 FxLoadResult<Parent, SetFiltersScreenController> screenData =

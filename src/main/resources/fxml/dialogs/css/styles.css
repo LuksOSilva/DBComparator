@@ -37,3 +37,11 @@
 .scroll-pane .viewport {
     -fx-background-color: transparent;
 }
+
+.dialog-root {
+    -fx-background-color: white;
+    -fx-padding: 20;
+    -fx-border-color: #dcdcdc;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}

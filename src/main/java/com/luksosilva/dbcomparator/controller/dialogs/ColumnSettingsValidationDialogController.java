@@ -21,7 +21,7 @@ public class ColumnSettingsValidationDialogController {
             if (type == ColumnSettingsValidationResultType.VALID) continue;
 
             List<String> tableNames = invalidTables.stream()
-                    .filter(table -> table.getColumnSettingsValidationResultType() == type)
+                    .filter(table -> table.getColumnSettingsValidationResult() == type)
                     .map(ComparedTable::getTableName)
                     .toList();
 

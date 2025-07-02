@@ -34,10 +34,11 @@ public class DialogUtils {
         alert.showAndWait();
     }
 
-    public static boolean askConfirmation(String title, String headerText) {
+    public static boolean askConfirmation(String headerText, String contentText) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle(title);
+        alert.setTitle("Confirmar");
         alert.setHeaderText(headerText);
+        alert.setContentText(contentText);
 
         ButtonType buttonTypeYes = new ButtonType("Sim");
         ButtonType buttonTypeNo = new ButtonType("Não");
@@ -49,15 +50,17 @@ public class DialogUtils {
         return result.isPresent() && result.get() == buttonTypeYes;
     }
 
+
+
     public static void showInvalidColumnSettingsDialog(Stage ownerStage, List<ComparedTable> invalidTables) {
         try {
-            FxLoadResult<Stage, ColumnSettingsValidationDialogController> result =
+            FxLoadResult<Stage, ColumnSettingsValidationDialogController> loadResult =
                     FxmlUtils.createNewStage(ownerStage, FxmlFiles.COLUMN_SETTINGS_VALIDATION_DIALOG, "Validação de Configurações");
 
-            result.controller.initializeDialog(invalidTables);
-            result.controller.setStage(result.node);
-            result.node.setResizable(false);
-            result.node.showAndWait();
+            loadResult.controller.initializeDialog(invalidTables);
+            loadResult.controller.setStage(loadResult.node);
+            loadResult.node.setResizable(false);
+            loadResult.node.showAndWait();
 
         } catch (IOException e) {
             e.printStackTrace();

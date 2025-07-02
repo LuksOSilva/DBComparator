@@ -3,10 +3,8 @@ package com.luksosilva.dbcomparator.model.comparison;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
-import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ComparedTable {
 
@@ -76,11 +74,11 @@ public class ComparedTable {
     }
 
 
-    public ColumnSettingsValidationResultType getColumnSettingsValidationResultType() {
+    public ColumnSettingsValidationResultType getColumnSettingsValidationResult() {
         return columnSettingsValidationResult;
     }
 
-    public void setColumnSettingsValidationResultType(ColumnSettingsValidationResultType columnSettingsValidationResult) {
+    public void setColumnSettingsValidationResult(ColumnSettingsValidationResultType columnSettingsValidationResult) {
         this.columnSettingsValidationResult = columnSettingsValidationResult;
     }
 
@@ -89,7 +87,15 @@ public class ComparedTable {
     }
 
     public boolean isColumnSettingsValid() {
+        if (columnSettingsValidationResult == null) return false;
+
         return columnSettingsValidationResult == ColumnSettingsValidationResultType.VALID;
+    }
+
+    public boolean isColumnSettingsInvalid() {
+        if (columnSettingsValidationResult == null) return false;
+
+        return columnSettingsValidationResult != ColumnSettingsValidationResultType.VALID;
     }
 
 

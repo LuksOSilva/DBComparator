@@ -58,9 +58,8 @@ public class ComparisonService {
                     break;
                 }
             }
-            //if nothing changed
+            //no changes since last validation.
             if (comparedTable.isColumnSettingsValid()) {
-                comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.VALID);
                 return;
             }
         }
@@ -70,7 +69,7 @@ public class ComparisonService {
                 .anyMatch(ComparedTableColumnSettings::isIdentifier);
 
         if (!hasIdentifier) {
-            comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.NO_IDENTIFIER);
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
             return;
         }
 
@@ -78,12 +77,12 @@ public class ComparisonService {
         List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
 
         if (!invalidInSources.isEmpty()) {
-            comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
             return;
         }
 
 
-        comparedTable.setColumnSettingsValidationResultType(ColumnSettingsValidationResultType.VALID);
+        comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.VALID);
     }
 
     //4

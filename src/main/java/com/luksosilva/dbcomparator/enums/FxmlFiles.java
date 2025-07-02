@@ -13,7 +13,8 @@ public enum FxmlFiles {
     SET_FILTERS_SCREEN("comparisonScreens/SetFiltersScreen"),
 
     /// DIALOGS
-    COLUMN_SETTINGS_VALIDATION_DIALOG("dialogs/ColumnSettingsValidationDialog");
+    COLUMN_SETTINGS_VALIDATION_DIALOG("dialogs/ColumnSettingsValidationDialog"),
+    CONFIRMATION_DIALOG("dialogs/ConfirmationDialog");
 
     private final String fileName;
 
