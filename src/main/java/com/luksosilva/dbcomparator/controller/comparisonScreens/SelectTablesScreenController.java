@@ -95,7 +95,7 @@ public class SelectTablesScreenController {
     @FXML
     public CheckBox showDiffRecordCountOnlyCheckBox;
     @FXML
-    public CheckBox showInAllSourcesOnlyCheckBox;
+    public CheckBox showOnlySchemaDiffersCheckBox;
     @FXML
     public CheckBox showSelectedOnlyCheckBox;
     @FXML
@@ -188,7 +188,7 @@ public class SelectTablesScreenController {
 
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        showInAllSourcesOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showOnlySchemaDiffersCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         showDiffRecordCountOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         showSelectedOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
 
@@ -235,13 +235,27 @@ public class SelectTablesScreenController {
                 if (rowCounts.size() <= 1) return false;
             }
 
-            // show only available in all sources filter
-            if (showInAllSourcesOnlyCheckBox.isSelected()) {
+            // show only different schema
+            if (showOnlySchemaDiffersCheckBox.isSelected()) {
                 int totalSources = comparison.getComparedSources().size();
                 Map<ComparedSource, SourceTable> perSource = groupedTables.get(pane.getText());
-                if (perSource == null || perSource.size() < totalSources) return false;
-            }
+                if (perSource == null) return false;
 
+                // only checks for schema difference if table exists in all sources.
+                // this makes it so that the filter 'show only when schema differs' also shows tables that don't exist in all sources.
+                if (totalSources == perSource.size()) {
+                    Collection<SourceTable> sourceTables = perSource.values();
+                    if (sourceTables.isEmpty()) return false;
+
+                    SourceTable first = sourceTables.iterator().next();
+                    boolean allMatch = sourceTables.stream().allMatch(first::equalSchema);
+
+                    if (allMatch) {
+                        return false;
+                    }
+                }
+
+            }
             return true;
         });
 
@@ -320,7 +334,7 @@ public class SelectTablesScreenController {
 
             tablePane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
                 if (isNowExpanded && tablePane.getUserData() == null) {
-                    TableView<TableSourceStats> tableView = buildTableMetadata(tablePane.getText());
+                    TableView<TableSourceStats> tableView = buildTableMetadata(tableName);
                     VBox contentContainer = new VBox(tableView);
                     tablePane.setContent(contentContainer);
                     tablePane.setUserData(true);
@@ -334,12 +348,18 @@ public class SelectTablesScreenController {
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
             CheckBox selectCheckBox = new CheckBox();
+            selectCheckBox.setDisable(groupedTables.get(tableName).size() != comparison.getComparedSources().size());
             selectCheckBox.setSelected(selectedTableNames.contains(tableName));
             selectCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                if (selectCheckBox.isDisable()) return;
                 if (newVal) selectedTableNames.add(tableName);
                 else selectedTableNames.remove(tableName);
                 updateSelectAllCheckBoxState();
             });
+            if (selectCheckBox.isDisable()) {
+                Tooltip tooltip = new Tooltip("Esta tabela não está presente em todas as fontes.");
+                Tooltip.install(selectCheckBox, tooltip);
+            }
 
             graphicBox.getChildren().addAll(spacer, selectCheckBox);
             tablePane.setGraphic(graphicBox);
