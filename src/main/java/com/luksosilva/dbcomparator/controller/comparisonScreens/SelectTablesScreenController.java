@@ -18,7 +18,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -143,6 +145,16 @@ public class SelectTablesScreenController {
 
         return false;
     }
+
+    public void onCompareSchemasButtonClicked(ActionEvent actionEvent) {
+        Button clickedButton = (Button) actionEvent.getSource();
+        String tableName = (String) clickedButton.getUserData();
+
+        System.out.println(tableName);
+    }
+
+
+
 
 
     private void prepareAccordionInfo() {
@@ -335,7 +347,8 @@ public class SelectTablesScreenController {
             tablePane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
                 if (isNowExpanded && tablePane.getUserData() == null) {
                     TableView<TableSourceStats> tableView = buildTableMetadata(tableName);
-                    VBox contentContainer = new VBox(tableView);
+                    HBox buttonBox = buildButtonBox(tableName);
+                    VBox contentContainer = new VBox(tableView, buttonBox);
                     tablePane.setContent(contentContainer);
                     tablePane.setUserData(true);
                 }
@@ -347,8 +360,13 @@ public class SelectTablesScreenController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
+            boolean tableExistsInAllSources = groupedTables.get(tableName).size() == comparison.getComparedSources().size();
+            boolean tableHasRecordsInAllSources = groupedTables.get(tableName).values().stream().noneMatch(sourceTable -> sourceTable.getRecordCount() == 0);
+
+
+
             CheckBox selectCheckBox = new CheckBox();
-            selectCheckBox.setDisable(groupedTables.get(tableName).size() != comparison.getComparedSources().size());
+            selectCheckBox.setDisable(!tableExistsInAllSources || !tableHasRecordsInAllSources);
             selectCheckBox.setSelected(selectedTableNames.contains(tableName));
             selectCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
                 if (selectCheckBox.isDisable()) return;
@@ -356,9 +374,14 @@ public class SelectTablesScreenController {
                 else selectedTableNames.remove(tableName);
                 updateSelectAllCheckBoxState();
             });
-            if (selectCheckBox.isDisable()) {
+            if (!tableExistsInAllSources) {
                 Tooltip tooltip = new Tooltip("Esta tabela não está presente em todas as fontes.");
-                Tooltip.install(selectCheckBox, tooltip);
+                tooltip.setShowDelay(Duration.millis(200));
+                Tooltip.install(tablePane, tooltip);
+            } else if (!tableHasRecordsInAllSources) {
+                Tooltip tooltip = new Tooltip("Esta tabela não possui registro em todas as fontes");
+                tooltip.setShowDelay(Duration.millis(200));
+                Tooltip.install(tablePane, tooltip);
             }
 
             graphicBox.getChildren().addAll(spacer, selectCheckBox);
@@ -412,6 +435,29 @@ public class SelectTablesScreenController {
 
         return tableView;
     }
+
+    private HBox buildButtonBox(String tableName) {
+        // Create the button
+        Button compareSchemas = new Button("Comparar Schemas");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Put them in an HBox
+        HBox buttonBox = new HBox(10, spacer, compareSchemas);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT); // Right-aligned
+        buttonBox.setPadding(new Insets(10, 0, 0, 0)); // Top padding
+
+        // Add logic for the buttons
+        compareSchemas.setOnAction(this::onCompareSchemasButtonClicked);
+
+        // Add user data
+        compareSchemas.setUserData(tableName);
+
+        return buttonBox;
+    }
+
+
 
     private Map<String, Map<ComparedSource, SourceTable>> getGroupedTables () {
         Map<String, Map<ComparedSource, SourceTable>> groupedTables = new HashMap<>();

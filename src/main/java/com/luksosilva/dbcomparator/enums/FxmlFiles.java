@@ -7,6 +7,7 @@ public enum FxmlFiles {
 
     /// COMPARISON
     LOADING_SCREEN("comparisonScreens/LoadingScreen"),
+    COMPARE_SCHEMAS_SCREEN("comparisonScreens/CompareSchemasScreen"),
     ATTACH_SOURCES_SCREEN("comparisonScreens/AttachSourcesScreen"),
     SELECT_TABLES_SCREEN("comparisonScreens/SelectTablesScreen"),
     COLUMN_SETTINGS_SCREEN("comparisonScreens/ColumnSettingsScreen"),
