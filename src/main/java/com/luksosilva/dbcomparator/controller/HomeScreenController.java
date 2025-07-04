@@ -1,5 +1,6 @@
-package com.luksosilva.dbcomparator.controller.comparisonScreens;
+package com.luksosilva.dbcomparator.controller;
 
+import com.luksosilva.dbcomparator.controller.comparisonScreens.AttachSourcesScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
@@ -14,9 +15,8 @@ import java.io.IOException;
 
 public class HomeScreenController {
 
-    private Stage stage;
-    private Scene scene;
-    private Parent root;
+    private Stage currentStage;
+
 
 
     public void newComparisonBtnClick(ActionEvent event) {
@@ -34,18 +34,23 @@ public class HomeScreenController {
 
     private void openAttachSourcesScreen(ActionEvent event) throws IOException {
 
+        Scene currentScene = ((Node) event.getSource()).getScene();
+        currentStage = (Stage) currentScene.getWindow();
+
+
+
         FxLoadResult<Parent, AttachSourcesScreenController> screenData =
                 FxmlUtils.loadScreen(FxmlFiles.ATTACH_SOURCES_SCREEN);
 
         Parent root = screenData.node;
         AttachSourcesScreenController controller = screenData.controller;
 
+        controller.setCurrentStage(currentStage);
         controller.setComparison(new Comparison());
 
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
+        currentStage.setScene(scene);
+        currentStage.show();
 
     }
 

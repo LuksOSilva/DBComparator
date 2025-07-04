@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.comparisonScreens.HomeScreenController">
+<AnchorPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.HomeScreenController">
    <children>
       <Button fx:id="newComparisonBtn" layoutX="29.0" layoutY="75.0" mnemonicParsing="false" onAction="#newComparisonBtnClick" prefHeight="31.0" prefWidth="121.0" text="Nova Comparação" />
    </children>

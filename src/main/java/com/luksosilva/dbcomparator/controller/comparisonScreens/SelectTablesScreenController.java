@@ -511,6 +511,8 @@ public class SelectTablesScreenController {
     // --- Navigation Steps ---
 
     public void nextStep(MouseEvent mouseEvent) {
+
+
         if (selectedTableNames.isEmpty()) {
             DialogUtils.showWarning("Nenhuma tabela selecionada.", "Selecione ao menos uma tabela para prosseguir com a comparação.");
             return;
@@ -533,7 +535,7 @@ public class SelectTablesScreenController {
 
             controller.setMessage("Processando tabelas, aguarde...");
 
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             currentStage.setScene(scene);
             currentStage.show();
 
@@ -588,7 +590,7 @@ public class SelectTablesScreenController {
 
                 Parent nextScreenRoot = processTablesTask.getValue();
 
-                Scene nextScreenScene = new Scene(nextScreenRoot);
+                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
 
                 currentStage.setScene(nextScreenScene);
 
@@ -625,11 +627,16 @@ public class SelectTablesScreenController {
 
     public void previousStep(MouseEvent mouseEvent) {
 
+        double width = currentStage.getWidth();
+        double height = currentStage.getHeight();
 
         AttachSourcesScreenController attachSourcesScreenController = (AttachSourcesScreenController) previousScene.getUserData();
         attachSourcesScreenController.setNextScene(currentStage.getScene());
 
         currentStage.setScene(previousScene);
+
+        currentStage.setWidth(width);
+        currentStage.setHeight(height);
 
     }
 
@@ -647,7 +654,7 @@ public class SelectTablesScreenController {
             Parent root = screenData.node;
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, currentStage.getWidth(), currentStage.getHeight());
             stage.setScene(scene);
             stage.show();
 

@@ -9,6 +9,7 @@ public enum ColumnSettingsValidationResultType {
             "Os identificadores selecionados para as tabelas abaixo resultaram em múltiplos registros nas fontes",
             "A combinação de campos identificadores deve ser única para cada registro. Ajuste os identificadores para garantir unicidade."
     ),
+    NOT_VALIDATED("", ""),
     VALID("", "");
 
     private final String message;

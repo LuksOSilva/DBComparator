@@ -12,7 +12,7 @@ public class ComparedTable {
 
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
-    private ColumnSettingsValidationResultType columnSettingsValidationResult;
+    private ColumnSettingsValidationResultType columnSettingsValidationResult = ColumnSettingsValidationResultType.NOT_VALIDATED;
 
     private String queryDifferences;
 
@@ -83,7 +83,7 @@ public class ComparedTable {
     }
 
     public void clearColumnSettingValidation() {
-        columnSettingsValidationResult = null;
+        columnSettingsValidationResult = ColumnSettingsValidationResultType.NOT_VALIDATED;
     }
 
     public boolean isColumnSettingsValid() {
@@ -95,7 +95,8 @@ public class ComparedTable {
     public boolean isColumnSettingsInvalid() {
         if (columnSettingsValidationResult == null) return false;
 
-        return columnSettingsValidationResult != ColumnSettingsValidationResultType.VALID;
+        return columnSettingsValidationResult != ColumnSettingsValidationResultType.VALID
+                && columnSettingsValidationResult != ColumnSettingsValidationResultType.NOT_VALIDATED;
     }
 
 

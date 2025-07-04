@@ -442,16 +442,17 @@ public class ColumnSettingsScreenController {
         String filterType = filterTypeComboBox.getValue();
 
         filteredTablePanes.setPredicate(pane -> {
-            String tableName = pane.getText().toLowerCase();
+            String tableName = pane.getText();
+            String tableNameLowerCase = tableName.toLowerCase();
 
             // Filter by text
             if (!filterText.isEmpty()) {
                 if ("tabela".equalsIgnoreCase(filterType)) {
-                    if (!tableName.contains(filterText)) return false;
+                    if (!tableNameLowerCase.contains(filterText)) return false;
                 } else if ("coluna".equalsIgnoreCase(filterType)) {
 
                     ComparedTable comparedTable = comparison.getComparedTables().stream()
-                            .filter(ct -> ct.getTableName().equals(pane.getText()))
+                            .filter(ct -> ct.getTableName().equals(tableNameLowerCase))
                             .findFirst()
                             .orElse(null);
 
@@ -466,19 +467,19 @@ public class ColumnSettingsScreenController {
 
             //show only altered filter
             if (showOnlyAlteredCheckBox.isSelected()) {
-                if (!getTableNamesWithAlteredColumns().contains(pane.getText())) return false;
+                if (!getTableNamesWithAlteredColumns().contains(tableName)) return false;
             }
 
             //show only if schema differs filter
             if (showOnlySchemaDiffersCheckBox.isSelected()) {
-                ComparedTable comparedTable = getComparedTableFromTableName(pane.getText());
+                ComparedTable comparedTable = getComparedTableFromTableName(tableName);
                 if (!comparedTable.hasSchemaDifference()) return false;
             }
 
-            //show only invalid column settings
+            //show only invalid column settings filter
             if (showOnlyInvalidColumnSettingsCheckBox.isSelected()) {
-                ComparedTable comparedTable = getComparedTableFromTableName(pane.getText());
-                if (comparedTable.isColumnSettingsValid()) return false;
+                ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+                if (!comparedTable.isColumnSettingsInvalid()) return false;
             }
 
 
@@ -694,7 +695,7 @@ public class ColumnSettingsScreenController {
 
             controller.setMessage("Validando configurações, aguarde...");
 
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             currentStage.setScene(scene);
             currentStage.show();
 
@@ -739,11 +740,13 @@ public class ColumnSettingsScreenController {
         processColumnSettingsTask.setOnSucceeded(event -> {
             try {
 
+
                 Parent nextScreenRoot = processColumnSettingsTask.getValue();
 
-                Scene nextScreenScene = new Scene(nextScreenRoot);
+                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
 
                 currentStage.setScene(nextScreenScene);
+
 
             } catch (Exception e) {
                 DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
@@ -795,7 +798,7 @@ public class ColumnSettingsScreenController {
             Parent root = screenData.node;
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, currentStage.getWidth(), currentStage.getHeight());
             stage.setScene(scene);
             stage.show();
 

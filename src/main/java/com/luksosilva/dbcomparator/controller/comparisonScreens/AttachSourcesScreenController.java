@@ -18,6 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
@@ -34,6 +35,10 @@ public class AttachSourcesScreenController {
     private Stage currentStage;
 
     private Scene nextScene;
+
+    public void setCurrentStage(Stage currentStage) {
+        this.currentStage = currentStage;
+    }
 
     private Comparison comparison;
     private final Map<Pane, Source> perPaneSource = new LinkedHashMap<>();
@@ -59,14 +64,14 @@ public class AttachSourcesScreenController {
     public Text cancelBtn;
 
     @FXML
-    public Pane attachSourceA;
+    public AnchorPane attachSourceA;
     @FXML
     public Label sourceIdLabelA;
     @FXML
     public Label sourcePathLabelA;
 
     @FXML
-    public Pane attachSourceB;
+    public AnchorPane attachSourceB;
     @FXML
     public Label sourceIdLabelB;
     @FXML
@@ -77,16 +82,9 @@ public class AttachSourcesScreenController {
 
 
     public void initialize() {
-
-        attachPaneToolTip = new Tooltip("Adicionar banco de dados");
-        detachPaneToolTip = new Tooltip("Remover banco de dados");
-
-        attachPaneToolTip.setShowDelay(Duration.millis(200));
-        detachPaneToolTip.setShowDelay(Duration.millis(200));
-
-        Tooltip.install(attachSourceA, attachPaneToolTip);
-        Tooltip.install(attachSourceB, attachPaneToolTip);
-
+        setupToolTips();
+        setupDragAndDrop(attachSourceA);
+        setupDragAndDrop(attachSourceB);
     }
 
     public boolean needToProcess() {
@@ -109,6 +107,16 @@ public class AttachSourcesScreenController {
         return false;
     }
 
+    private void setupToolTips() {
+        attachPaneToolTip = new Tooltip("Adicionar banco de dados");
+        detachPaneToolTip = new Tooltip("Remover banco de dados");
+
+        attachPaneToolTip.setShowDelay(Duration.millis(200));
+        detachPaneToolTip.setShowDelay(Duration.millis(200));
+
+        Tooltip.install(attachSourceA, attachPaneToolTip);
+        Tooltip.install(attachSourceB, attachPaneToolTip);
+    }
 
 
     public void attachSource(MouseEvent mouseEvent) {
@@ -127,7 +135,7 @@ public class AttachSourcesScreenController {
         }
 
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("DB Files", "*.s3db", "*.db"),
+                new FileChooser.ExtensionFilter("SQLite Databases", "*.sqlite", "*.db", "*.s3db", "*.sqlite3", "*.db3", "*.sl3"),
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
@@ -158,151 +166,80 @@ public class AttachSourcesScreenController {
 
     }
 
+    private void setupDragAndDrop(Pane pane) {
+        pane.setOnDragEntered(event -> {
+            if (event.getGestureSource() != pane && event.getDragboard().hasFiles()) {
+                pane.getStyleClass().add("drag-over");
+            }
+            event.consume();
+        });
 
+        pane.setOnDragExited(event -> {
+            pane.getStyleClass().remove("drag-over");
+            event.consume();
+        });
 
-    public void nextStep(MouseEvent mouseEvent) {
-        if (perPaneSource.isEmpty()) {
-            DialogUtils.showWarning("Fontes Faltantes", "Você deve anexar ao menos uma fonte para prosseguir.");
-            return;
-        }
+        pane.setOnDragOver(event -> {
+            if (event.getGestureSource() != pane &&
+                    event.getDragboard().hasFiles()) {
+                event.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
+            }
+            event.consume();
+        });
 
-        currentStage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-        Scene currentScene = currentStage.getScene();
-        currentScene.setUserData(AttachSourcesScreenController.this);
+        pane.setOnDragDropped(event -> {
+            var db = event.getDragboard();
+            boolean success = false;
 
-        if (!needToProcess() && nextScene != null) {
-            currentStage.setScene(nextScene);
-            return;
-        }
-
-        try {
-            FxLoadResult<Parent, LoadingScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
-
-            Parent root = screenData.node;
-            LoadingScreenController controller = screenData.controller;
-
-            controller.setMessage("Processando fontes de dados, aguarde...");
-
-            Scene scene = new Scene(root);
-            currentStage.setScene(scene);
-            currentStage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
-            e.printStackTrace();
-            return;
-        }
-
-
-        Task<Parent> processSourcesTask = new Task<>() {
-            @Override
-            protected Parent call() throws Exception {
-
-                comparison.getComparedSources()
-                        .removeIf(comparedSource -> !perPaneSource.containsValue(comparedSource.getSource()));
-
-                List<Source> notProcessedSources = perPaneSource.values().stream()
-                        .filter(source -> comparison.getComparedSources().stream()
-                                .noneMatch(comparedSource -> comparedSource.getSource().equals(source)))
+            if (db.hasFiles()) {
+                List<File> validFiles = db.getFiles().stream()
+                        .filter(this::isSelectedFileValid) // silent to avoid dialog spam
+                        .limit(2)
                         .toList();
 
-                ComparisonService.processSources(comparison, notProcessedSources);
 
-
-
-                FxLoadResult<Parent, SelectTablesScreenController> screenData =
-                        FxmlUtils.loadScreen(FxmlFiles.SELECT_TABLES_SCREEN);
-
-                Parent nextScreenRoot = screenData.node;
-                SelectTablesScreenController controller = screenData.controller;
-
-                controller.setCurrentStage(currentStage);
-                controller.setPreviousScene(currentScene);
-                controller.setComparison(comparison);
-                controller.init();
-
-                return nextScreenRoot;
+                for (File file : validFiles) {
+                    Source newSource = new Source(file);
+                    if (!perPaneSource.containsKey(attachSourceA)) {
+                        perPaneSource.put(attachSourceA, newSource);
+                        changePaneToAttached(attachSourceA);
+                    } else if (!perPaneSource.containsKey(attachSourceB)) {
+                        perPaneSource.put(attachSourceB, newSource);
+                        changePaneToAttached(attachSourceB);
+                    } else {
+                        // Both panes are already filled
+                        break;
+                    }
+                }
+                success = true;
             }
-        };
 
 
-        processSourcesTask.setOnSucceeded(event -> {
-            try {
-
-                Parent nextScreenRoot = processSourcesTask.getValue();
-
-                Scene nextScreenScene = new Scene(nextScreenRoot);
-
-                currentStage.setScene(nextScreenScene);
-
-            } catch (Exception e) {
-                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
-                e.printStackTrace();
-            }
+            event.setDropCompleted(success);
+            event.consume();
         });
-
-
-        processSourcesTask.setOnFailed(event -> {
-            DialogUtils.showError("Erro de Processamento", "Ocorreu um erro durante o processamento: " + processSourcesTask.getException().getMessage());
-            processSourcesTask.getException().printStackTrace();
-
-            try {
-                FxLoadResult<Parent, AttachSourcesScreenController> screenData =
-                        FxmlUtils.loadScreen(FxmlFiles.ATTACH_SOURCES_SCREEN);
-
-                Parent root = screenData.node;
-
-                Scene currentScreenScene = new Scene(root);
-                currentStage.setScene(currentScreenScene);
-
-            } catch (IOException e) {
-                DialogUtils.showError("Erro de Recuperação", "Não foi possível recarregar a tela anterior: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-
-
-        new Thread(processSourcesTask).start();
-
-
-    }
-
-    public void previousStep(MouseEvent mouseEvent) {
-        cancelComparison(mouseEvent);
-    }
-
-    public void cancelComparison(MouseEvent mouseEvent) {
-
-        boolean confirmCancel = DialogUtils.askConfirmation("Cancelar comparação",
-                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");;
-        if (!confirmCancel) {
-            return;
-        }
-
-        try {
-            FxLoadResult<Parent, AttachSourcesScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
-
-            Parent root = screenData.node;
-
-            Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
-            e.printStackTrace();
-            return;
-        }
     }
 
 
+    private boolean isValidExtension(File file) {
+        String name = file.getName().toLowerCase();
+        return name.endsWith(".sqlite") ||
+                name.endsWith(".db") ||
+                name.endsWith(".s3db") ||
+                name.endsWith(".sqlite3") ||
+                name.endsWith(".db3") ||
+                name.endsWith(".sl3");
+    }
 
-    //
+
 
     private boolean isSelectedFileValid(File selectedFile) {
+        if (!isValidExtension(selectedFile)) {
+            DialogUtils.showWarning("Arquivo não é um banco de dados.",
+                    "Apenas arquivos de extensão .s3db ou .db podem ser adicionados.");
+            return false;
+        }
+
         if (FilenameUtils.removeExtension(selectedFile.getName()).equalsIgnoreCase("main")) {
             DialogUtils.showWarning("Nome inválido.",
                     "O nome " + FilenameUtils.removeExtension(selectedFile.getName()) + " não pode ser utilizado.");
@@ -370,6 +307,147 @@ public class AttachSourcesScreenController {
         else if (pane == attachSourceB) {
             sourceIdLabelB.setVisible(false);
             sourcePathLabelB.setVisible(false);
+        }
+    }
+
+    public void nextStep(MouseEvent mouseEvent) {
+        if (perPaneSource.isEmpty()) {
+            DialogUtils.showWarning("Fontes Faltantes", "Você deve anexar ao menos uma fonte para prosseguir.");
+            return;
+        }
+
+        Scene currentScene = currentStage.getScene();
+        currentScene.setUserData(AttachSourcesScreenController.this);
+
+
+        if (!needToProcess() && nextScene != null) {
+            currentStage.setScene(nextScene);
+            return;
+        }
+
+        try {
+            FxLoadResult<Parent, LoadingScreenController> screenData =
+                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
+
+            Parent root = screenData.node;
+            LoadingScreenController controller = screenData.controller;
+
+            controller.setMessage("Processando fontes de dados, aguarde...");
+
+
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
+            //Scene scene = new Scene(root);
+            currentStage.setScene(scene);
+            currentStage.show();
+
+        } catch (IOException e) {
+            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
+
+
+        Task<Parent> processSourcesTask = new Task<>() {
+            @Override
+            protected Parent call() throws Exception {
+
+                comparison.getComparedSources()
+                        .removeIf(comparedSource -> !perPaneSource.containsValue(comparedSource.getSource()));
+
+                List<Source> notProcessedSources = perPaneSource.values().stream()
+                        .filter(source -> comparison.getComparedSources().stream()
+                                .noneMatch(comparedSource -> comparedSource.getSource().equals(source)))
+                        .toList();
+
+                ComparisonService.processSources(comparison, notProcessedSources);
+
+
+
+                FxLoadResult<Parent, SelectTablesScreenController> screenData =
+                        FxmlUtils.loadScreen(FxmlFiles.SELECT_TABLES_SCREEN);
+
+                Parent nextScreenRoot = screenData.node;
+                SelectTablesScreenController controller = screenData.controller;
+
+                controller.setCurrentStage(currentStage);
+                controller.setPreviousScene(currentScene);
+                controller.setComparison(comparison);
+                controller.init();
+
+                return nextScreenRoot;
+            }
+        };
+
+
+        processSourcesTask.setOnSucceeded(event -> {
+            try {
+
+
+                Parent nextScreenRoot = processSourcesTask.getValue();
+                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
+
+                currentStage.setScene(nextScreenScene);
+
+            } catch (Exception e) {
+                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
+
+        processSourcesTask.setOnFailed(event -> {
+            DialogUtils.showError("Erro de Processamento", "Ocorreu um erro durante o processamento: " + processSourcesTask.getException().getMessage());
+            processSourcesTask.getException().printStackTrace();
+
+            try {
+                FxLoadResult<Parent, AttachSourcesScreenController> screenData =
+                        FxmlUtils.loadScreen(FxmlFiles.ATTACH_SOURCES_SCREEN);
+
+                Parent root = screenData.node;
+
+                //Scene currentScreenScene = new Scene(root, currentStage.getWidth(), currentStage.getHeight());
+                Scene currentScreenScene = new Scene(root);
+                currentStage.setScene(currentScreenScene);
+
+            } catch (IOException e) {
+                DialogUtils.showError("Erro de Recuperação", "Não foi possível recarregar a tela anterior: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
+
+        new Thread(processSourcesTask).start();
+
+
+    }
+
+    public void previousStep(MouseEvent mouseEvent) {
+        cancelComparison(mouseEvent);
+    }
+
+    public void cancelComparison(MouseEvent mouseEvent) {
+
+        boolean confirmCancel = DialogUtils.askConfirmation("Cancelar comparação",
+                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");;
+        if (!confirmCancel) {
+            return;
+        }
+
+        try {
+            FxLoadResult<Parent, AttachSourcesScreenController> screenData =
+                    FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
+
+            Parent root = screenData.node;
+
+            Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root, currentStage.getWidth(), currentStage.getHeight());
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (IOException e) {
+            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
     }
 

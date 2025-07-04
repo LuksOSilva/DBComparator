@@ -67,18 +67,18 @@ public class Main extends Application {
 
         Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter = new HashMap<>();
 
-        for (ComparedTable comparedTable : comparison.getComparedTables()) {
-            for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
-
+//        for (ComparedTable comparedTable : comparison.getComparedTables()) {
+//            for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
+//
 //                if (comparedTableColumn.getColumnName().equals("codcli")) {
 //                    List<String> filterValues = new ArrayList<>();
 //                    filterValues.add("1839");
 //                    perComparedTableColumnFilter.put(comparedTableColumn, filterValues);
 //                }
-
-
-            }
-        }
+//
+//
+//            }
+//        }
 
         System.out.println("Starting process filters: " + LocalDateTime.now());
         ComparisonService.processFilters(perComparedTableColumnFilter);
@@ -95,7 +95,9 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         Parent root = FxmlUtils.loadGUI(FxmlFiles.HOME_SCREEN);
         stage.setTitle("hi");
-        stage.setScene(new Scene(root, 300, 275));
+        stage.setMinWidth(1000);
+        stage.setMinHeight(650);
+        stage.setScene(new Scene(root));
         stage.show();
     }
 }
