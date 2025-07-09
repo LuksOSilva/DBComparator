@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="350" prefWidth="400" stylesheets="@css/styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController">
+
+    <VBox spacing="10" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
+
+        <Label styleClass="dialog-title" text="Adicionar novo filtro" />
+         <VBox prefHeight="235.0" prefWidth="360.0" spacing="8">
+         <children>
+            <Label text="Tabela" />
+             <ComboBox fx:id="tableComboBox" editable="true" prefHeight="25.0" prefWidth="378.0" visibleRowCount="5" />
+            <Label text="Campo" />
+             <ComboBox fx:id="columnComboBox" editable="true" prefHeight="25.0" prefWidth="360.0" visibleRowCount="5" disable="true" />
+            <Label text="Tipo de Filtro" />
+            <ComboBox fx:id="filterTypeComboBox" prefHeight="25.0" prefWidth="360.0" visibleRowCount="5" />
+            <Label text="Filtro" />
+            <TextField fx:id="filterTextField" prefHeight="25.0" prefWidth="274.0" promptText="Digite o Filtro..." />
+         </children>
+      </VBox>
+
+        <HBox alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="360.0">
+            <Button maxWidth="80" onAction="#onCancelClicked" styleClass="dialog-button" text="cancelar" />
+         <Region prefHeight="200.0" prefWidth="200.0" />
+         <Button maxWidth="80" onAction="#onOkClicked" styleClass="dialog-button" text="ok" />
+        </HBox>
+    </VBox>
+</AnchorPane>

@@ -1,5 +1,7 @@
 package com.luksosilva.dbcomparator.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
@@ -204,7 +206,7 @@ public class ComparisonService {
         for (ComparedTable comparedTable : comparedTableList) {
 
             String sql = SelectDifferencesBuilder.build(comparedTable);
-
+            System.out.println("construido select para: " + comparedTable.getTableName());
             comparedTable.setQueryDifferences(sql);
 
         }

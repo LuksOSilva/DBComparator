@@ -15,7 +15,9 @@ public enum FxmlFiles {
 
     /// DIALOGS
     COLUMN_SETTINGS_VALIDATION_DIALOG("dialogs/ColumnSettingsValidationDialog"),
-    CONFIRMATION_DIALOG("dialogs/ConfirmationDialog");
+    CONFIRMATION_DIALOG("dialogs/ConfirmationDialog"),
+    COMPARE_SCHEMAS_DIALOG("dialogs/CompareSchemasDialog"),
+    ADD_FILTER_DIALOG("dialogs/AddFilterDialog");
 
     private final String fileName;
 

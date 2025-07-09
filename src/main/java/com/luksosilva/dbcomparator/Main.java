@@ -30,8 +30,8 @@ public class Main extends Application {
 
         ////GET SOURCES
         List<Source> sourceList = new ArrayList<>();
-        sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\sup.s3db")));
-        sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\rca.s3db")));
+        sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\Downloads\\MEmu Download\\Bases\\SUP-61691\\sup.s3db")));
+        sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-61691\\rca.s3db")));
         //sourceList.add(new Source(new File("C:\\Users\\lucas.silva\\\\Downloads\\MEmu Download\\Bases\\SUP-59151\\new\\tst.s3db")));
 
         System.out.println("Starting process sources: " + LocalDateTime.now());

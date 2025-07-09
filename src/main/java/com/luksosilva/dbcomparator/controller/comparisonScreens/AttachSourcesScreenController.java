@@ -193,27 +193,54 @@ public class AttachSourcesScreenController {
 
             if (db.hasFiles()) {
                 List<File> validFiles = db.getFiles().stream()
-                        .filter(this::isSelectedFileValid) // silent to avoid dialog spam
+                        .filter(this::isSelectedFileValid)
                         .limit(2)
                         .toList();
 
+                if (validFiles.isEmpty()) {
+                    event.setDropCompleted(false);
+                    return;
+                }
 
-                for (File file : validFiles) {
+                Iterator<File> fileIterator = validFiles.iterator();
+
+                // Attach first file to the pane that received the drop
+                if (fileIterator.hasNext()) {
+                    File file = fileIterator.next();
                     Source newSource = new Source(file);
-                    if (!perPaneSource.containsKey(attachSourceA)) {
-                        perPaneSource.put(attachSourceA, newSource);
-                        changePaneToAttached(attachSourceA);
-                    } else if (!perPaneSource.containsKey(attachSourceB)) {
-                        perPaneSource.put(attachSourceB, newSource);
-                        changePaneToAttached(attachSourceB);
+
+                    if (!perPaneSource.containsKey(pane)) {
+                        // Pane is empty, attach directly
+                        perPaneSource.put(pane, newSource);
+                        changePaneToAttached(pane);
+                        success = true;
                     } else {
-                        // Both panes are already filled
-                        break;
+                        // Pane already has a source, ask if should replace
+                        boolean confirmReplace = DialogUtils.askConfirmation("Substituir arquivo?",
+                                "Já existe um arquivo aqui. Deseja substituí-lo?");
+                        if (confirmReplace) {
+                            perPaneSource.put(pane, newSource);
+                            changePaneToAttached(pane);
+                            success = true;
+                        }
                     }
                 }
-                success = true;
-            }
 
+                // If there’s a second file, attach to the other pane if available
+                if (fileIterator.hasNext()) {
+                    File secondFile = fileIterator.next();
+                    Source secondSource = new Source(secondFile);
+
+                    // Find the other pane
+                    Pane otherPane = (pane == attachSourceA) ? attachSourceB : attachSourceA;
+
+                    if (!perPaneSource.containsKey(otherPane)) {
+                        perPaneSource.put(otherPane, secondSource);
+                        changePaneToAttached(otherPane);
+                        success = true;
+                    }
+                }
+            }
 
             event.setDropCompleted(success);
             event.consume();

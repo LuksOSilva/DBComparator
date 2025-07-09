@@ -451,10 +451,7 @@ public class ColumnSettingsScreenController {
                     if (!tableNameLowerCase.contains(filterText)) return false;
                 } else if ("coluna".equalsIgnoreCase(filterType)) {
 
-                    ComparedTable comparedTable = comparison.getComparedTables().stream()
-                            .filter(ct -> ct.getTableName().equals(tableNameLowerCase))
-                            .findFirst()
-                            .orElse(null);
+                    ComparedTable comparedTable = getComparedTableFromTableName(tableName);
 
                     if (comparedTable == null) return false;
 
