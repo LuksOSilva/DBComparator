@@ -3,6 +3,7 @@ package com.luksosilva.dbcomparator.util;
 import com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController;
 import com.luksosilva.dbcomparator.controller.dialogs.ColumnSettingsValidationDialogController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
@@ -53,7 +54,7 @@ public class DialogUtils {
         return result.isPresent() && result.get() == buttonTypeYes;
     }
 
-    public static Map<ComparedTableColumn, String> showAddFilterDialog(Stage ownerStage, List<ComparedTable> comparedTableList) {
+    public static Map<ComparedTableColumn, List<ColumnFilter>> showAddFilterDialog(Stage ownerStage, List<ComparedTable> comparedTableList) {
         try {
             FxLoadResult<Stage, AddFilterDialogController> loadResult =
                     FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");

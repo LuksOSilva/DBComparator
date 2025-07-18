@@ -1,12 +1,14 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
+import com.luksosilva.dbcomparator.viewmodel.comparison.ColumnFilterViewModel;
 import com.luksosilva.dbcomparator.viewmodel.comparison.ComparedTableColumnViewModel;
 import com.luksosilva.dbcomparator.viewmodel.comparison.ComparedTableViewModel;
 import javafx.collections.FXCollections;
@@ -82,7 +84,7 @@ public class SetFiltersScreenController {
     /// USER-CALLED METHODS
 
     public void OnAddFilterButtonClicked(ActionEvent event) {
-        Map<ComparedTableColumn, String> perComparedTableColumnFilter = DialogUtils.showAddFilterDialog(currentStage, comparison.getComparedTables());
+        Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter = DialogUtils.showAddFilterDialog(currentStage, comparison.getComparedTables());
 
         if (perComparedTableColumnFilter == null || perComparedTableColumnFilter.isEmpty()) return;
 
@@ -91,7 +93,7 @@ public class SetFiltersScreenController {
 
     /// HELPER METHODS
 
-    private void addFilter(Map<ComparedTableColumn, String> perComparedTableColumnFilter) {
+    private void addFilter(Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter) {
 
         perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
 
@@ -154,7 +156,7 @@ public class SetFiltersScreenController {
         refreshAccordion();
     }
 
-    private void constructTitledPanes(Map<ComparedTableColumn, String> perComparedTableColumnFilter) {
+    private void constructTitledPanes(Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter) {
         List<TitledPane> titledPaneList = new ArrayList<>();
 
         perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
@@ -196,39 +198,42 @@ public class SetFiltersScreenController {
 
         String tableName = titledPane.getText();
 
-
-        List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = comparedTableViewModels.stream()
-                .filter(comparedTableViewModel -> comparedTableViewModel.getTableName().equals(tableName))
-                .flatMap(comparedTableViewModel -> comparedTableViewModel.getComparedTableColumnViewModels().stream())
-                .toList();
-
         ComparedTable comparedTable = getComparedTableFromTableName(tableName);
         if (comparedTable == null) return;
 
-        TableView<ComparedTableColumnViewModel> tableView = new TableView<>();
+        TableView<ColumnFilterViewModel> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<ComparedTableColumnViewModel, String> columnNameCol = new TableColumn<>("Coluna");
+        TableColumn<ColumnFilterViewModel, String> columnNameCol = new TableColumn<>("Coluna");
         columnNameCol.setCellValueFactory(data -> data.getValue().getColumnNameProperty());
 
-        TableColumn<ComparedTableColumnViewModel, String> filterCol = new TableColumn<>("Filtro");
-        filterCol.setCellValueFactory(data -> data.getValue().getColumnFiltersProperty());
+        TableColumn<ColumnFilterViewModel, String> filterTypeCol = new TableColumn<>("Operação");
+        filterTypeCol.setCellValueFactory(data -> data.getValue().getFilterTypeProperty());
 
-        tableView.getColumns().addAll(columnNameCol, filterCol);
+        TableColumn<ColumnFilterViewModel, String> filterCol = new TableColumn<>("Filtro");
+        filterCol.setCellValueFactory(data -> data.getValue().getFilterValueProperty());
 
+        tableView.getColumns().addAll(columnNameCol, filterTypeCol, filterCol);
 
-        ObservableList<ComparedTableColumnViewModel> tableItems = FXCollections.observableArrayList();
-        tableItems.addAll(
-                comparedTableColumnViewModelList.stream()
-                        .filter(vm -> !vm.getComparedTableColumn().getColumnFilter().isEmpty())
-                        .toList()
-        );
+        // Generate one row per filter
+        ObservableList<ColumnFilterViewModel> tableItems = FXCollections.observableArrayList();
+
+        for (ComparedTableColumnViewModel columnViewModel : comparedTableViewModels.stream()
+                .filter(vm -> vm.getTableName().equals(tableName))
+                .flatMap(vm -> vm.getComparedTableColumnViewModels().stream())
+                .toList()) {
+
+            List<ColumnFilter> filters = columnViewModel.getComparedTableColumn().getColumnFilter();
+            for (ColumnFilter filter : filters) {
+                tableItems.add(new ColumnFilterViewModel(columnViewModel.getComparedTableColumn(), filter));
+            }
+        }
+
         tableView.setItems(tableItems);
 
         double calculatedPrefHeight = (tableItems.size() * TABLE_ROW_HEIGHT) + TABLE_HEADER_HEIGHT;
         tableView.setPrefHeight(Math.max(calculatedPrefHeight, TABLE_HEADER_HEIGHT));
 
-        // Wrap the table in a VBox
         VBox container = new VBox(tableView);
         container.setPadding(new Insets(10));
         container.setFillWidth(true);

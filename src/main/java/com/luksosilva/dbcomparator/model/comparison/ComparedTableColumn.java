@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
+import com.luksosilva.dbcomparator.enums.ColumnFilterType;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
 import java.util.ArrayList;
@@ -8,17 +9,17 @@ import java.util.Map;
 
 public class ComparedTableColumn {
 
-    private Map<ComparedSource, SourceTableColumn> perSourceTableColumn;
-    private ComparedTableColumnSettings comparedTableColumnSettings;
+    private final Map<ComparedSource, SourceTableColumn> perSourceTableColumn;
+    private ColumnSettings columnSettings;
 
-    private final List<String> columnFilters = new ArrayList<>();
+    private final List<ColumnFilter> columnFilters = new ArrayList<>();
 
     public ComparedTableColumn(Map<ComparedSource, SourceTableColumn> perSourceTableColumn) {
         this.perSourceTableColumn = perSourceTableColumn;
     }
 
-    public void setColumnSetting(ComparedTableColumnSettings comparedTableColumnSettings) {
-        this.comparedTableColumnSettings = comparedTableColumnSettings;
+    public void setColumnSetting(ColumnSettings columnSettings) {
+        this.columnSettings = columnSettings;
     }
 
     public String getColumnName() {
@@ -28,6 +29,14 @@ public class ComparedTableColumn {
                 .orElse(null);
     }
 
+    public List<String> getColumnTypes() {
+        return perSourceTableColumn.values().stream()
+                .map(SourceTableColumn::getType)
+                .map(String::toUpperCase)
+                .map(s -> s.replaceAll("\\s*\\(.*\\)$", ""))
+                .distinct()
+                .toList();
+    }
 
     public Map<ComparedSource, SourceTableColumn> getPerSourceTableColumn() {
         return perSourceTableColumn;
@@ -35,27 +44,36 @@ public class ComparedTableColumn {
 
 
 
-    public ComparedTableColumnSettings getColumnSetting() {
-        return comparedTableColumnSettings;
+    public ColumnSettings getColumnSetting() {
+        return columnSettings;
     }
 
 
-    public List<String> getColumnFilter() {
+    public List<ColumnFilter> getColumnFilter() {
         return columnFilters;
     }
 
     public boolean hasColumnSetting() {
-        return comparedTableColumnSettings != null;
+        return columnSettings != null;
     }
 
     public void removeColumnSetting() {
-        comparedTableColumnSettings = null;
+        columnSettings = null;
     }
 
-    public void addColumnFilter(String filter) {
+    public void addColumnFilter(ColumnFilter filter) {
         columnFilters.add(filter);
     }
+    public void addColumnFilter(List<ColumnFilter> filters) {
+        columnFilters.addAll(filters);
+    }
 
+    public boolean hasSameType() {
+        return perSourceTableColumn.values().stream()
+                .map(SourceTableColumn::getType)
+                .distinct()
+                .count() <= 1;
+    }
 
 
 }

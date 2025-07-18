@@ -3,7 +3,7 @@ package com.luksosilva.dbcomparator.repository;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.ColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
@@ -34,7 +34,7 @@ public class SchemaRepository {
         }
     }
 
-    public static Optional<Map<ComparedTable, Map<ComparedTableColumn, ComparedTableColumnSettings>>> loadTableColumnsSettingsFromDb(List<ComparedTable> comparedTableList) {
+    public static Optional<Map<ComparedTable, Map<ComparedTableColumn, ColumnSettings>>> loadTableColumnsSettingsFromDb(List<ComparedTable> comparedTableList) {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
             String listTableNames = comparedTableList.stream()
@@ -46,7 +46,7 @@ public class SchemaRepository {
                          SqlFormatter.buildSelectMapColumnSettings(listTableNames))
             ) {
 
-                Map<ComparedTable, Map<ComparedTableColumn, ComparedTableColumnSettings>> perComparedTableColumnSetting = new HashMap<>();
+                Map<ComparedTable, Map<ComparedTableColumn, ColumnSettings>> perComparedTableColumnSetting = new HashMap<>();
 
                 while (resultSet.next()) {
                     String tableName = resultSet.getString("TABLE_NAME");
@@ -70,12 +70,12 @@ public class SchemaRepository {
                     boolean isComparable = resultSet.getString("IS_COMPARABLE").equals("Y");
                     boolean isIdentifier = resultSet.getString("IS_IDENTIFIER").equals("Y");
 
-                    ComparedTableColumnSettings comparedTableColumnSettings = new ComparedTableColumnSettings(isComparable, isIdentifier);
+                    ColumnSettings columnSettings = new ColumnSettings(isComparable, isIdentifier);
 
 
                     perComparedTableColumnSetting
                             .computeIfAbsent(comparedTable, k -> new HashMap<>())
-                            .put(comparedTableColumn, comparedTableColumnSettings);
+                            .put(comparedTableColumn, columnSettings);
 
                 }
 

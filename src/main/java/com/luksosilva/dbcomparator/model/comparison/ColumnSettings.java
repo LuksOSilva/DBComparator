@@ -1,17 +1,15 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
 
-import javafx.beans.property.SimpleBooleanProperty;
-
-public class ComparedTableColumnSettings {
+public class ColumnSettings {
 
     private boolean isComparable;
     private boolean isIdentifier;
 
 
-    public ComparedTableColumnSettings() {}
+    public ColumnSettings() {}
 
-    public ComparedTableColumnSettings(boolean isComparable, boolean isIdentifier) {
+    public ColumnSettings(boolean isComparable, boolean isIdentifier) {
         this.isComparable = isComparable;
         this.isIdentifier = isIdentifier;
     }
@@ -37,7 +35,7 @@ public class ComparedTableColumnSettings {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ComparedTableColumnSettings that = (ComparedTableColumnSettings) o;
+        ColumnSettings that = (ColumnSettings) o;
 
         return isComparable == that.isComparable && isIdentifier == that.isIdentifier;
     }

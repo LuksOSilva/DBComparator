@@ -236,11 +236,12 @@ public class SelectDifferencesBuilder {
                                     .map(s -> "\"" + s + "\"")
                                     .collect(Collectors.joining(", "));
 
-                            return base + "(" + quotedFilters + ")";
+                            //return base + "(" + quotedFilters + ")";
+                            return "temp";
 
                         }
-                        return base + "(" + String.join(", ", comparedTableColumnWithFilter.getColumnFilter()) + ")";
-
+                        //return base + "(" + String.join(", ", comparedTableColumnWithFilter.getColumnFilter()) + ")";
+                        return "temp";
                     })
                     .collect(Collectors.joining("\nOR "));
 

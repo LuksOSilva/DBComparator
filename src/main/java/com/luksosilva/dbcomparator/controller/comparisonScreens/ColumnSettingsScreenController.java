@@ -77,8 +77,8 @@ public class ColumnSettingsScreenController {
             return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getComparedSources().size();
         }
 
-        public ComparedTableColumnSettings getViewModelColumnSetting() {
-            return new ComparedTableColumnSettings(comparableProperty.get(), identifierProperty.get());
+        public ColumnSettings getViewModelColumnSetting() {
+            return new ColumnSettings(comparableProperty.get(), identifierProperty.get());
         }
 
         public String getPrimaryKeyCountText() {
@@ -342,7 +342,7 @@ public class ColumnSettingsScreenController {
                 perTableComparedColumnViewModel.get(comparedTable.getTableName());
         if (comparedTableColumnViewModelList.isEmpty()) return;
 
-        Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings =
+        Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings =
                 comparedTableColumnViewModelList.stream()
                         .collect(Collectors.toMap(
                                 vm -> vm.comparedTableColumn,

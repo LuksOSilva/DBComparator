@@ -3,10 +3,9 @@ package com.luksosilva.dbcomparator.service;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.ColumnSettings;
 import com.luksosilva.dbcomparator.repository.SchemaRepository;
 import com.luksosilva.dbcomparator.util.FileUtils;
-import com.luksosilva.dbcomparator.util.SQLiteUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ public class SchemaService {
     public static void loadColumnsSettings(List<ComparedTable> comparedTableList,
                                            boolean loadFromDb) {
 
-        Optional<Map<ComparedTable, Map<ComparedTableColumn, ComparedTableColumnSettings>>> optionalPerComparedTableColumnSetting =
+        Optional<Map<ComparedTable, Map<ComparedTableColumn, ColumnSettings>>> optionalPerComparedTableColumnSetting =
                 loadFromDb ? SchemaRepository.loadTableColumnsSettingsFromDb(comparedTableList)
                         : Optional.empty();
 
@@ -50,7 +49,7 @@ public class SchemaService {
     }
 
     public static List<String> validateIdentifiers(ComparedTable comparedTable,
-                                           Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings) {
+                                           Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings) {
 
         List<ComparedSource> comparedSourceList = new ArrayList<>();
         comparedTable.getPerSourceTable().forEach((comparedSource, sourceTable) ->

@@ -1,14 +1,10 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison;
 
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumnSettings;
-import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.ColumnSettings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-
-import java.util.List;
-import java.util.Map;
 
 public class ComparedTableColumnViewModel {
 
@@ -20,6 +16,7 @@ public class ComparedTableColumnViewModel {
 
     private final SimpleBooleanProperty identifierProperty = new SimpleBooleanProperty();
     private final SimpleBooleanProperty comparableProperty = new SimpleBooleanProperty();
+
 
     private final SimpleBooleanProperty defaultIdentifierProperty = new SimpleBooleanProperty();
     private final SimpleBooleanProperty defaultComparableProperty = new SimpleBooleanProperty();
@@ -38,11 +35,10 @@ public class ComparedTableColumnViewModel {
     public void setProperties() {
 
         this.columnNameProperty.set(comparedTableColumn.getColumnName());
-        this.columnFiltersProperty.set(String.join(", ", comparedTableColumn.getColumnFilter()));
+        this.columnFiltersProperty.set(comparedTableColumn.getColumnFilter().stream().map(ColumnFilter::getDisplayValue).toString());
 
         this.identifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
         this.comparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
-
 
     }
 
@@ -84,12 +80,9 @@ public class ComparedTableColumnViewModel {
         return (identifierProperty.get() != defaultIdentifierProperty.get())
                 || (comparableProperty.get() != defaultComparableProperty.get());
     }
-//    public boolean existsInAllSources() {
-//        return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getComparedSources().size();
-//    }
 
-    public ComparedTableColumnSettings getViewModelColumnSetting() {
-        return new ComparedTableColumnSettings(comparableProperty.get(), identifierProperty.get());
+    public ColumnSettings getViewModelColumnSetting() {
+        return new ColumnSettings(comparableProperty.get(), identifierProperty.get());
     }
 
 //    public String getPrimaryKeyCountText() {

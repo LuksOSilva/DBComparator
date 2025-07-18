@@ -2,17 +2,20 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="350" prefWidth="400" stylesheets="@css/styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController">
+<AnchorPane prefHeight="377.0" prefWidth="400" stylesheets="@css/styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController">
 
-    <VBox spacing="10" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+    <VBox prefHeight="377.0" prefWidth="400.0" spacing="10" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <padding>
             <Insets bottom="20" left="20" right="20" top="20" />
         </padding>
@@ -20,21 +23,71 @@
         <Label styleClass="dialog-title" text="Adicionar novo filtro" />
          <VBox prefHeight="235.0" prefWidth="360.0" spacing="8">
          <children>
-            <Label text="Tabela" />
-             <ComboBox fx:id="tableComboBox" editable="true" prefHeight="25.0" prefWidth="378.0" visibleRowCount="5" />
-            <Label text="Campo" />
-             <ComboBox fx:id="columnComboBox" editable="true" prefHeight="25.0" prefWidth="360.0" visibleRowCount="5" disable="true" />
-            <Label text="Tipo de Filtro" />
-            <ComboBox fx:id="filterTypeComboBox" prefHeight="25.0" prefWidth="360.0" visibleRowCount="5" />
-            <Label text="Filtro" />
-            <TextField fx:id="filterTextField" prefHeight="25.0" prefWidth="274.0" promptText="Digite o Filtro..." />
+            <VBox prefHeight="200.0" prefWidth="100.0">
+               <children>
+                  <Label text="Tabela" />
+                   <ComboBox fx:id="tableComboBox" editable="true" prefHeight="25.0" prefWidth="378.0" visibleRowCount="5" />
+               </children>
+            </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0">
+               <children>
+                  <Label text="Campo" />
+                   <ComboBox fx:id="columnComboBox" disable="true" editable="true" prefHeight="25.0" prefWidth="360.0" visibleRowCount="5" />
+               </children>
+            </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0">
+               <children>
+                  <Label text="Tipo de Filtro" />
+                  <ComboBox fx:id="filterTypeComboBox" disable="true" prefHeight="25.0" prefWidth="360.0" visibleRowCount="5" />
+               </children>
+            </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0">
+               <children>
+                  <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <Label text="Filtro" />
+                        <Region prefHeight="17.0" prefWidth="310.0" HBox.hgrow="ALWAYS" />
+                        <Label fx:id="filterTipLabel" alignment="CENTER" visible="false">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="OneTextFieldHBox" prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <TextField fx:id="filterTextField" prefHeight="25.0" prefWidth="360.0" promptText="Digite o Filtro..." />
+                     </children>
+                  </HBox>
+                  <HBox fx:id="TwoTextFieldsHBox" alignment="CENTER_LEFT" managed="false" prefHeight="100.0" prefWidth="200.0" visible="false">
+                     <children>
+                        <TextField fx:id="lowerValueTextField" prefHeight="25.0" prefWidth="167.0" promptText="Digite o Menor Valor..." />
+                        <Label text="E">
+                           <padding>
+                              <Insets left="10.0" right="10.0" />
+                           </padding>
+                        </Label>
+                        <TextField fx:id="higherValueTextField" prefHeight="25.0" prefWidth="167.0" promptText="Digite o Maior Valor..." />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
          </children>
       </VBox>
+      <CheckBox fx:id="addToAllTablesCheckBox" mnemonicParsing="false" text="Adicionar filtro para todas tabelas com o mesmo campo">
+         <tooltip>
+            <Tooltip text="Para um campo ser considera o mesmo, deve possuir o mesmo nome e tipo entre as tabelas" />
+         </tooltip>
+      </CheckBox>
 
-        <HBox alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="360.0">
+        <HBox alignment="CENTER_LEFT" prefHeight="26.0" prefWidth="360.0">
             <Button maxWidth="80" onAction="#onCancelClicked" styleClass="dialog-button" text="cancelar" />
-         <Region prefHeight="200.0" prefWidth="200.0" />
-         <Button maxWidth="80" onAction="#onOkClicked" styleClass="dialog-button" text="ok" />
+         <Region prefHeight="27.0" prefWidth="64.0" />
+         <Button maxWidth="116.0" onAction="#onAddButtonClicked" prefHeight="27.0" prefWidth="81.0" styleClass="dialog-button" text="adicionar" />
+         <Button maxWidth="126.0" onAction="#onAddAndCloseButtonClicked" prefHeight="27.0" prefWidth="126.0" styleClass="dialog-button" text="adicionar e fechar" HBox.hgrow="ALWAYS">
+            <HBox.margin>
+               <Insets left="10.0" />
+            </HBox.margin></Button>
         </HBox>
     </VBox>
 </AnchorPane>

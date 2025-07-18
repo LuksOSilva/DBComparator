@@ -1,7 +1,5 @@
 package com.luksosilva.dbcomparator.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
@@ -44,18 +42,18 @@ public class ComparisonService {
 
     //3
     public static void validateColumnSettings(ComparedTable comparedTable,
-                                                                        Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings) {
+                                                                        Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings) {
 
         //checks if table was validated before.
         if (comparedTable.isColumnSettingsValid()) {
 
-            for (Map.Entry<ComparedTableColumn, ComparedTableColumnSettings> entry : perComparedTableColumnSettings.entrySet()) {
+            for (Map.Entry<ComparedTableColumn, ColumnSettings> entry : perComparedTableColumnSettings.entrySet()) {
                 ComparedTableColumn comparedTableColumn = entry.getKey();
-                ComparedTableColumnSettings newcomparedTableColumnSettings = entry.getValue();
-                ComparedTableColumnSettings currentComparedTableColumnSettings = comparedTableColumn.getColumnSetting();
+                ColumnSettings newcomparedTableColumnSettings = entry.getValue();
+                ColumnSettings currentColumnSettings = comparedTableColumn.getColumnSetting();
 
                 //checks if anything changed when compared to the last validation.
-                if (!currentComparedTableColumnSettings.equals(newcomparedTableColumnSettings)){
+                if (!currentColumnSettings.equals(newcomparedTableColumnSettings)){
                     comparedTable.clearColumnSettingValidation();
                     break;
                 }
@@ -68,7 +66,7 @@ public class ComparisonService {
 
 
         boolean hasIdentifier = perComparedTableColumnSettings.values().stream()
-                .anyMatch(ComparedTableColumnSettings::isIdentifier);
+                .anyMatch(ColumnSettings::isIdentifier);
 
         if (!hasIdentifier) {
             comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
@@ -89,7 +87,7 @@ public class ComparisonService {
 
     //4
     public static void processColumnSettings(ComparedTable comparedTable,
-                                             Map<ComparedTableColumn, ComparedTableColumnSettings> perComparedTableColumnSettings,
+                                             Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings,
                                              boolean saveSettingsAsDefault) {
 
         perComparedTableColumnSettings.forEach((comparedTableColumn, comparedTableColumnSettings) -> {
@@ -113,11 +111,11 @@ public class ComparisonService {
     //5
     public static void processFilters(Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter) {
 
-        perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
-
-            comparedTableColumn.getColumnFilter().addAll(filter);
-
-        });
+//        perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
+//
+//            comparedTableColumn.getColumnFilter().addAll(filter);
+//
+//        });
 
     }
 

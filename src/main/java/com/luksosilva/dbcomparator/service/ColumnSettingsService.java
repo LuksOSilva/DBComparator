@@ -3,7 +3,7 @@ package com.luksosilva.dbcomparator.service;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.ColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
 import java.util.ArrayList;
@@ -14,10 +14,10 @@ import java.util.Optional;
 public class ColumnSettingsService {
 
 
-    public static ComparedTableColumnSettings getColumnSettings
+    public static ColumnSettings getColumnSettings
             (ComparedTable comparedTable,
              ComparedTableColumn comparedTableColumn,
-             Optional<Map<ComparedTable, Map<ComparedTableColumn, ComparedTableColumnSettings>>> optionalPerComparedTableColumnSetting) {
+             Optional<Map<ComparedTable, Map<ComparedTableColumn, ColumnSettings>>> optionalPerComparedTableColumnSetting) {
 
 
         List<ComparedSource> comparedSourceList = new ArrayList<>();
@@ -27,7 +27,7 @@ public class ColumnSettingsService {
         boolean existsInAllSources = getExistsInAllSources(comparedTableColumn, comparedSourceList);
         //1. If column doesn't exist in all sources, it is neither identifier nor comparable.
         if (!existsInAllSources) {
-            return new ComparedTableColumnSettings(false, false);
+            return new ColumnSettings(false, false);
         }
 
         boolean tableHasPrimaryKey = comparedTable.getPerSourceTable().values().stream()
@@ -49,7 +49,7 @@ public class ColumnSettingsService {
 
     //
 
-    private static ComparedTableColumnSettings getDefaultColumnSettings(boolean tableHasPrimaryKey, boolean isPkInAnySource, boolean isPkInAllSources) {
+    private static ColumnSettings getDefaultColumnSettings(boolean tableHasPrimaryKey, boolean isPkInAnySource, boolean isPkInAllSources) {
         boolean isIdentifier;
         boolean isComparable;
 
@@ -70,7 +70,7 @@ public class ColumnSettingsService {
         }
 
 
-        return new ComparedTableColumnSettings(isComparable, isIdentifier);
+        return new ColumnSettings(isComparable, isIdentifier);
     }
 
 
