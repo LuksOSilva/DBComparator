@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.service;
 
+import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
@@ -13,6 +14,49 @@ import java.util.Optional;
 
 public class ColumnSettingsService {
 
+    public static void validateColumnSettings(ComparedTable comparedTable,
+                                              Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings) {
+
+        //checks if table was validated before.
+        if (comparedTable.isColumnSettingsValid()) {
+
+            for (Map.Entry<ComparedTableColumn, ColumnSettings> entry : perComparedTableColumnSettings.entrySet()) {
+                ComparedTableColumn comparedTableColumn = entry.getKey();
+                ColumnSettings newcomparedTableColumnSettings = entry.getValue();
+                ColumnSettings currentColumnSettings = comparedTableColumn.getColumnSetting();
+
+                //checks if anything changed when compared to the last validation.
+                if (!currentColumnSettings.equals(newcomparedTableColumnSettings)){
+                    comparedTable.clearColumnSettingValidation();
+                    break;
+                }
+            }
+            //no changes since last validation.
+            if (comparedTable.isColumnSettingsValid()) {
+                return;
+            }
+        }
+
+
+        boolean hasIdentifier = perComparedTableColumnSettings.values().stream()
+                .anyMatch(ColumnSettings::isIdentifier);
+
+        if (!hasIdentifier) {
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
+            return;
+        }
+
+
+        List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
+
+        if (!invalidInSources.isEmpty()) {
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
+            return;
+        }
+
+
+        comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.VALID);
+    }
 
     public static ColumnSettings getColumnSettings
             (ComparedTable comparedTable,

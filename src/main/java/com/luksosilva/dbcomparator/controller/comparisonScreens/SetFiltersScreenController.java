@@ -5,6 +5,7 @@ import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
+import com.luksosilva.dbcomparator.service.ColumnFilterService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
@@ -117,41 +118,27 @@ public class SetFiltersScreenController {
 
     private void addFilter(Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter) {
 
+        ColumnFilterService.addFilter(perComparedTableColumnFilter);
+
         perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
-
-            // 1. Apply the filter to the model
-            comparedTableColumn.addColumnFilter(filter);
-
-            // 2. Find and update the corresponding view model
-            comparedTableViewModels.stream()
-                    .flatMap(vm -> vm.getComparedTableColumnViewModels().stream())
-                    .filter(columnVM -> columnVM.getComparedTableColumn().equals(comparedTableColumn))
-                    .findFirst()
-                    .ifPresent(ComparedTableColumnViewModel::setProperties);
-
             constructTitledPane(comparedTableColumn);
         });
     }
 
     private void editFilter(Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> perComparedTableColumnFilter) {
 
+        ColumnFilterService.editFilter(perComparedTableColumnFilter);
+
         perComparedTableColumnFilter.forEach(((comparedTableColumn, mapOfColumnFilter) -> {
-
-            mapOfColumnFilter.forEach((oldColumnFilter, newColumnFilter) -> {
-
-                comparedTableColumn.getColumnFilter().remove(oldColumnFilter);
-                comparedTableColumn.addColumnFilter(newColumnFilter);
-
-            });
-
             constructTitledPane(comparedTableColumn);
         }));
     }
 
     private void deleteFilter(ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
-        comparedTableColumn.getColumnFilter().remove(columnFilter);
-        constructTitledPane(comparedTableColumn);
 
+        ColumnFilterService.deleteFilter(comparedTableColumn, columnFilter);
+
+        constructTitledPane(comparedTableColumn);
         if (comparedTableColumn.getColumnFilter().isEmpty()) {
             destructTitledPane(comparedTableColumn);
         }
@@ -165,13 +152,6 @@ public class SetFiltersScreenController {
         return comparison.getComparedTables().stream()
                 .filter(ct -> ct.getComparedTableColumns().stream()
                         .anyMatch(ctc -> ctc.equals(comparedTableColumn)))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private ComparedTable getComparedTableFromTableName(String tableName) {
-        return comparison.getComparedTables().stream()
-                .filter(ct -> ct.getTableName().equals(tableName))
                 .findFirst()
                 .orElse(null);
     }

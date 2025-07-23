@@ -4,6 +4,7 @@ import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.model.comparison.*;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.service.ColumnSettingsService;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
@@ -350,7 +351,7 @@ public class ColumnSettingsScreenController {
                         ));
 
         //validate column setting
-        ComparisonService.validateColumnSettings(comparedTable, perComparedTableColumnSettings);
+        ColumnSettingsService.validateColumnSettings(comparedTable, perComparedTableColumnSettings);
         if (comparedTable.isColumnSettingsInvalid()) return;
 
         //saves default
