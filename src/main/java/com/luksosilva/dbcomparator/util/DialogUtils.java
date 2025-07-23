@@ -59,13 +59,37 @@ public class DialogUtils {
             FxLoadResult<Stage, AddFilterDialogController> loadResult =
                     FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
 
-            loadResult.controller.initializeDialog(comparedTableList);
+            loadResult.controller.initializeAddDialog(comparedTableList);
             loadResult.controller.setStage(loadResult.node);
             loadResult.node.setResizable(false);
             loadResult.node.showAndWait();
 
 
-            return loadResult.controller.getFilterMap();
+            return loadResult.controller.getAddedFilterMap();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            DialogUtils.showError("Erro", "Não foi possível abrir o diálogo.");
+            return null;
+        }
+    }
+    public static Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> showEditFilterDialog(Stage ownerStage,
+                                                                                    List<ComparedTable> comparedTableList,
+                                                                                    ComparedTable comparedTable,
+                                                                                    ComparedTableColumn comparedTableColumn,
+                                                                                    ColumnFilter columnFilter) {
+        try {
+            FxLoadResult<Stage, AddFilterDialogController> loadResult =
+                    FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
+
+            loadResult.controller.initializeEditDialog(comparedTableList, comparedTable, comparedTableColumn, columnFilter);
+            loadResult.controller.setStage(loadResult.node);
+            loadResult.node.setResizable(false);
+            loadResult.node.showAndWait();
+
+
+            return loadResult.controller.getEditedFilterMap();
 
 
         } catch (IOException e) {

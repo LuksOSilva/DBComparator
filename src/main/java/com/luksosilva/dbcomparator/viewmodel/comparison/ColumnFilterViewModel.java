@@ -33,7 +33,7 @@ public class ColumnFilterViewModel {
         return filterValue;
     }
 
-    public ComparedTableColumn getColumn() {
+    public ComparedTableColumn getComparedTableColumn() {
         return comparedTableColumn;
     }
 

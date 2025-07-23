@@ -46,7 +46,7 @@ public enum ColumnFilterType {
 
     public int getNumberOfArguments() {
         return switch (this){
-            case IS_NOT_NULL, IS_NULL -> 0;
+            case IS_NULL, IS_NOT_NULL -> 0;
             case BETWEEN, NOT_BETWEEN -> 2;
             default -> 1;
         };
@@ -102,7 +102,7 @@ public enum ColumnFilterType {
     private static List<String> NUMERIC_TYPES() {
         return List.of(
                 "INTEGER", "INT", "BIGINT", "SMALLINT", "TINYINT",
-                "REAL", "FLOAT", "DOUBLE", "DECIMAL", "NUMERIC"
+                "REAL", "FLOAT", "DOUBLE", "DECIMAL", "NUMERIC", "NUM"
         );
     }
 

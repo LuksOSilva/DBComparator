@@ -17,6 +17,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -61,9 +62,9 @@ public class SetFiltersScreenController {
 
     private Comparison comparison;
     private final ObservableList<TitledPane> allFiltersPanes = FXCollections.observableArrayList();
-    private FilteredList<TitledPane> filteredFilterPanes;
+    private FilteredList<TitledPane> filteredFilterPanes = new FilteredList<>(allFiltersPanes, s -> true);
 
-    private List<ComparedTableViewModel> comparedTableViewModels = new ArrayList<>();
+    private final List<ComparedTableViewModel> comparedTableViewModels = new ArrayList<>();
 
 
     public void setComparison(Comparison comparison) {
@@ -91,6 +92,27 @@ public class SetFiltersScreenController {
         addFilter(perComparedTableColumnFilter);
     }
 
+    public void onEditFilterButtonClicked(ComparedTable comparedTable,
+                                          ComparedTableColumn comparedTableColumn,
+                                          ColumnFilter columnFilter) {
+
+        Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> perComparedTableColumnFilter = DialogUtils.showEditFilterDialog(currentStage,
+                comparison.getComparedTables(), comparedTable, comparedTableColumn, columnFilter);
+
+        if (perComparedTableColumnFilter == null || perComparedTableColumnFilter.isEmpty()) return;
+
+        editFilter(perComparedTableColumnFilter);
+    }
+
+    public void onDeleteFilterButtonClicked(ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
+        boolean confirmed = DialogUtils.askConfirmation("Apagar filtro?",
+                "Deseja realmente apagar esse filtro? Essa ação não poderá ser desfeita.");
+
+        if (!confirmed) return;
+
+        deleteFilter(comparedTableColumn, columnFilter);
+    }
+
     /// HELPER METHODS
 
     private void addFilter(Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter) {
@@ -106,10 +128,33 @@ public class SetFiltersScreenController {
                     .filter(columnVM -> columnVM.getComparedTableColumn().equals(comparedTableColumn))
                     .findFirst()
                     .ifPresent(ComparedTableColumnViewModel::setProperties);
+
+            constructTitledPane(comparedTableColumn);
         });
+    }
 
-        constructTitledPanes(perComparedTableColumnFilter);
+    private void editFilter(Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> perComparedTableColumnFilter) {
 
+        perComparedTableColumnFilter.forEach(((comparedTableColumn, mapOfColumnFilter) -> {
+
+            mapOfColumnFilter.forEach((oldColumnFilter, newColumnFilter) -> {
+
+                comparedTableColumn.getColumnFilter().remove(oldColumnFilter);
+                comparedTableColumn.addColumnFilter(newColumnFilter);
+
+            });
+
+            constructTitledPane(comparedTableColumn);
+        }));
+    }
+
+    private void deleteFilter(ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
+        comparedTableColumn.getColumnFilter().remove(columnFilter);
+        constructTitledPane(comparedTableColumn);
+
+        if (comparedTableColumn.getColumnFilter().isEmpty()) {
+            destructTitledPane(comparedTableColumn);
+        }
     }
 
     private void applyFilter() {
@@ -156,50 +201,55 @@ public class SetFiltersScreenController {
         refreshAccordion();
     }
 
-    private void constructTitledPanes(Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter) {
-        List<TitledPane> titledPaneList = new ArrayList<>();
+    private void destructTitledPane(ComparedTableColumn comparedTableColumn) {
 
-        perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
+        ComparedTable comparedTable = getComparedTableOfComparedColumn(comparedTableColumn);
+        if (comparedTable == null) return;
 
-            ComparedTable comparedTable = getComparedTableOfComparedColumn(comparedTableColumn);
-            if (comparedTable == null) return;
+        Optional<TitledPane> existingPaneOpt = allFiltersPanes.stream()
+                .filter(tp -> tp.getText().equals(comparedTable.getTableName()))
+                .findFirst();
+        if (existingPaneOpt.isEmpty()) return;
 
-            Optional<TitledPane> existingPaneOpt = allFiltersPanes.stream()
-                    .filter(tp -> tp.getText().equals(comparedTable.getTableName()))
-                    .findFirst();
+        TitledPane existingPane = existingPaneOpt.get();
+        allFiltersPanes.remove(existingPane);
 
-            if (existingPaneOpt.isPresent()) {
-                TitledPane existingPane = existingPaneOpt.get();
-                if (existingPane.getUserData() != null) {
-                    constructTitledPaneContent(existingPane); //refresh
-                }
-            } else {
-                TitledPane titledPane = new TitledPane();
-                titledPane.setText(comparedTable.getTableName());
-
-                titledPane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
-                    if (isNowExpanded && titledPane.getUserData() == null) {
-                        constructTitledPaneContent(titledPane);
-                    }
-                });
-
-                titledPaneList.add(titledPane);
-            }
-
-        });
-
-        allFiltersPanes.addAll(titledPaneList);
         refreshAccordion();
     }
 
-    private void constructTitledPaneContent(TitledPane titledPane) {
-        final double TABLE_ROW_HEIGHT = 28.0;
+    private void constructTitledPane(ComparedTableColumn comparedTableColumn) {
+
+        ComparedTable comparedTable = getComparedTableOfComparedColumn(comparedTableColumn);
+        if (comparedTable == null) return;
+
+        Optional<TitledPane> existingPaneOpt = allFiltersPanes.stream()
+                .filter(tp -> tp.getText().equals(comparedTable.getTableName()))
+                .findFirst();
+
+        if (existingPaneOpt.isPresent()) {
+            TitledPane existingPane = existingPaneOpt.get();
+            existingPane.setExpanded(false);
+            existingPane.setUserData(null);
+        } else {
+            TitledPane titledPane = new TitledPane();
+            titledPane.setText(comparedTable.getTableName());
+            titledPane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
+                if (isNowExpanded && titledPane.getUserData() == null) {
+                    constructTitledPaneContent(titledPane, comparedTable);
+                }
+            });
+            allFiltersPanes.add(titledPane);
+        }
+
+        refreshAccordion();
+    }
+
+    private void constructTitledPaneContent(TitledPane titledPane, ComparedTable comparedTable) {
+        final double TABLE_ROW_HEIGHT = 35.0;
         final double TABLE_HEADER_HEIGHT = 30.0;
 
-        String tableName = titledPane.getText();
+        String tableName = comparedTable.getTableName();
 
-        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-        if (comparedTable == null) return;
 
         TableView<ColumnFilterViewModel> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -213,9 +263,41 @@ public class SetFiltersScreenController {
         TableColumn<ColumnFilterViewModel, String> filterCol = new TableColumn<>("Filtro");
         filterCol.setCellValueFactory(data -> data.getValue().getFilterValueProperty());
 
-        tableView.getColumns().addAll(columnNameCol, filterTypeCol, filterCol);
+        TableColumn<ColumnFilterViewModel, Void> actionsCol = new TableColumn<>();
+        actionsCol.setCellFactory(col -> new TableCell<>() {
+            private final Button editButton = new Button("edit");
+            private final Button deleteButton = new Button("del");
+            private final HBox hbox = new HBox(10, editButton, deleteButton);
 
-        // Generate one row per filter
+            {
+                hbox.setAlignment(Pos.CENTER);
+
+                editButton.setOnAction(e -> {
+                    ColumnFilterViewModel item = getTableView().getItems().get(getIndex());
+
+                    onEditFilterButtonClicked(comparedTable, item.getComparedTableColumn(), item.getFilter());
+                });
+
+                deleteButton.setOnAction(e -> {
+                    ColumnFilterViewModel item = getTableView().getItems().get(getIndex());
+
+                    onDeleteFilterButtonClicked(item.getComparedTableColumn(), item.getFilter());
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(hbox);
+                }
+            }
+        });
+
+        tableView.getColumns().addAll(columnNameCol, filterTypeCol, filterCol, actionsCol);
+
         ObservableList<ColumnFilterViewModel> tableItems = FXCollections.observableArrayList();
 
         for (ComparedTableColumnViewModel columnViewModel : comparedTableViewModels.stream()

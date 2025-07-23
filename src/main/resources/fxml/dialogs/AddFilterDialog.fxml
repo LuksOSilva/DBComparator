@@ -20,7 +20,7 @@
             <Insets bottom="20" left="20" right="20" top="20" />
         </padding>
 
-        <Label styleClass="dialog-title" text="Adicionar novo filtro" />
+        <Label fx:id="titleLabel" styleClass="dialog-title" text="Adicionar novo filtro" />
          <VBox prefHeight="235.0" prefWidth="360.0" spacing="8">
          <children>
             <VBox prefHeight="200.0" prefWidth="100.0">
@@ -43,23 +43,23 @@
             </VBox>
             <VBox prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0">
+                  <HBox fx:id= "filterHeaderHBox" alignment="CENTER_RIGHT">
                      <children>
                         <Label text="Filtro" />
-                        <Region prefHeight="17.0" prefWidth="310.0" HBox.hgrow="ALWAYS" />
-                        <Label fx:id="filterTipLabel" alignment="CENTER" visible="false">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="filterTipLabel" alignment="CENTER" >
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Label>
                      </children>
                   </HBox>
-                  <HBox fx:id="OneTextFieldHBox" prefHeight="100.0" prefWidth="200.0">
+                  <HBox fx:id="oneTextFieldHBox" prefHeight="100.0" prefWidth="200.0" disable="true" >
                      <children>
-                        <TextField fx:id="filterTextField" prefHeight="25.0" prefWidth="360.0" promptText="Digite o Filtro..." />
+                        <TextField fx:id="filterTextField" prefHeight="25.0" prefWidth="360.0" promptText="Digite o Filtro..."/>
                      </children>
                   </HBox>
-                  <HBox fx:id="TwoTextFieldsHBox" alignment="CENTER_LEFT" managed="false" prefHeight="100.0" prefWidth="200.0" visible="false">
+                  <HBox fx:id="twoTextFieldsHBox" alignment="CENTER_LEFT" managed="false" prefHeight="100.0" prefWidth="200.0" visible="false" disable="true">
                      <children>
                         <TextField fx:id="lowerValueTextField" prefHeight="25.0" prefWidth="167.0" promptText="Digite o Menor Valor..." />
                         <Label text="E">
@@ -74,7 +74,7 @@
             </VBox>
          </children>
       </VBox>
-      <CheckBox fx:id="addToAllTablesCheckBox" mnemonicParsing="false" text="Adicionar filtro para todas tabelas com o mesmo campo">
+      <CheckBox fx:id="applyToMatchingColumnsCheckBox" mnemonicParsing="false" text="Adicionar filtro para todas tabelas com o mesmo campo">
          <tooltip>
             <Tooltip text="Para um campo ser considera o mesmo, deve possuir o mesmo nome e tipo entre as tabelas" />
          </tooltip>
@@ -83,8 +83,8 @@
         <HBox alignment="CENTER_LEFT" prefHeight="26.0" prefWidth="360.0">
             <Button maxWidth="80" onAction="#onCancelClicked" styleClass="dialog-button" text="cancelar" />
          <Region prefHeight="27.0" prefWidth="64.0" />
-         <Button maxWidth="116.0" onAction="#onAddButtonClicked" prefHeight="27.0" prefWidth="81.0" styleClass="dialog-button" text="adicionar" />
-         <Button maxWidth="126.0" onAction="#onAddAndCloseButtonClicked" prefHeight="27.0" prefWidth="126.0" styleClass="dialog-button" text="adicionar e fechar" HBox.hgrow="ALWAYS">
+         <Button fx:id="addButton" maxWidth="116.0" onAction="#onAddButtonClicked" prefHeight="27.0" prefWidth="81.0" styleClass="dialog-button" text="adicionar" />
+         <Button fx:id="addAndCloseButton" maxWidth="126.0" onAction="#onAddAndCloseButtonClicked" prefHeight="27.0" prefWidth="126.0" styleClass="dialog-button" text="adicionar e fechar" HBox.hgrow="ALWAYS">
             <HBox.margin>
                <Insets left="10.0" />
             </HBox.margin></Button>

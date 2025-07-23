@@ -2,6 +2,8 @@ package com.luksosilva.dbcomparator.model.comparison;
 
 import com.luksosilva.dbcomparator.enums.ColumnFilterType;
 
+import java.util.Objects;
+
 public class ColumnFilter {
 
     private final ColumnFilterType columnFilterType;
@@ -48,5 +50,20 @@ public class ColumnFilter {
             default -> value;
         };
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ColumnFilter that)) return false;
+        return columnFilterType == that.columnFilterType &&
+                Objects.equals(value, that.value) &&
+                Objects.equals(lowerValue, that.lowerValue) &&
+                Objects.equals(higherValue, that.higherValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(columnFilterType, value, lowerValue, higherValue);
     }
 }
