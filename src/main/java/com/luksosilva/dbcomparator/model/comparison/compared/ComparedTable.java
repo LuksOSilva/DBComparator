@@ -1,7 +1,8 @@
-package com.luksosilva.dbcomparator.model.comparison;
+package com.luksosilva.dbcomparator.model.comparison.compared;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
+import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 
 import java.util.*;
@@ -13,6 +14,8 @@ public class ComparedTable {
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
     private ColumnSettingsValidationResultType columnSettingsValidationResult = ColumnSettingsValidationResultType.NOT_VALIDATED;
+
+    private TableFilter filter;
 
     private String queryDifferences;
 
@@ -50,6 +53,16 @@ public class ComparedTable {
         this.queryDifferences = queryDifferences;
     }
 
+    public TableFilter getFilter() {
+        return filter;
+    }
+
+    public void setFilter(TableFilter filter) {
+        this.filter = filter;
+    }
+    public void removeFilter() {
+        this.filter = null;
+    }
 
     public boolean hasSchemaDifference() {
 

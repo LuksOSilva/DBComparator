@@ -1,6 +1,6 @@
 package com.luksosilva.dbcomparator.controller.dialogs;
 
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

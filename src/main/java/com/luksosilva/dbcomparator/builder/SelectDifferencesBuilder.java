@@ -1,9 +1,9 @@
 package com.luksosilva.dbcomparator.builder;
 
 
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 
 
@@ -212,7 +212,7 @@ public class SelectDifferencesBuilder {
         allComparedTableColumns.addAll(comparableComparedColumns);
 
         List<ComparedTableColumn> allComparedTableColumnsWithFilter = allComparedTableColumns.stream()
-                .filter(comparedTableColumn -> !comparedTableColumn.getColumnFilter().isEmpty())
+                .filter(comparedTableColumn -> !comparedTableColumn.getColumnFilters().isEmpty())
                 .toList();
 
         if (allComparedTableColumnsWithFilter.isEmpty()) {
@@ -232,7 +232,7 @@ public class SelectDifferencesBuilder {
 
                         if (shouldQuoteValue(columnTypeInSource)) {
 
-                            String quotedFilters = comparedTableColumnWithFilter.getColumnFilter().stream()
+                            String quotedFilters = comparedTableColumnWithFilter.getColumnFilters().stream()
                                     .map(s -> "\"" + s + "\"")
                                     .collect(Collectors.joining(", "));
 
@@ -240,7 +240,7 @@ public class SelectDifferencesBuilder {
                             return "temp";
 
                         }
-                        //return base + "(" + String.join(", ", comparedTableColumnWithFilter.getColumnFilter()) + ")";
+                        //return base + "(" + String.join(", ", comparedTableColumnWithFilter.getColumnFilters()) + ")";
                         return "temp";
                     })
                     .collect(Collectors.joining("\nOR "));

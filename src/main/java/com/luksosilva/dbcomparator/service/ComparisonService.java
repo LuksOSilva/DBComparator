@@ -2,8 +2,11 @@ package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
-import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import com.luksosilva.dbcomparator.model.comparison.*;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
@@ -68,7 +71,7 @@ public class ComparisonService {
 
 //        perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
 //
-//            comparedTableColumn.getColumnFilter().addAll(filter);
+//            comparedTableColumn.getColumnFilters().addAll(filter);
 //
 //        });
 
@@ -148,7 +151,7 @@ public class ComparisonService {
             }
 
             for (Map<ComparedSource, SourceTableColumn> perSourceTableColumn : groupedColumns.values()) {
-                ComparedTableColumn comparedTableColumn = new ComparedTableColumn(perSourceTableColumn);
+                ComparedTableColumn comparedTableColumn = new ComparedTableColumn(comparedTable, perSourceTableColumn);
                 comparedTable.getComparedTableColumns().add(comparedTableColumn);
             }
         }

@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.model.comparison.result;
 
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 
 import java.util.Map;
 import java.util.stream.Collectors;

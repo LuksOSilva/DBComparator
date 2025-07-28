@@ -1,17 +1,18 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.service.ColumnFilterService;
+import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
+import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.service.FilterService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
-import com.luksosilva.dbcomparator.viewmodel.comparison.ColumnFilterViewModel;
-import com.luksosilva.dbcomparator.viewmodel.comparison.ComparedTableColumnViewModel;
-import com.luksosilva.dbcomparator.viewmodel.comparison.ComparedTableViewModel;
+import com.luksosilva.dbcomparator.viewmodel.comparison.*;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -86,61 +87,97 @@ public class SetFiltersScreenController {
     /// USER-CALLED METHODS
 
     public void OnAddFilterButtonClicked(ActionEvent event) {
-        Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter = DialogUtils.showAddFilterDialog(currentStage, comparison.getComparedTables());
+        List<Filter> addedFilters = DialogUtils.showAddFilterDialog(currentStage, comparison.getComparedTables());
 
-        if (perComparedTableColumnFilter == null || perComparedTableColumnFilter.isEmpty()) return;
+        if (addedFilters == null || addedFilters.isEmpty()) return;
 
-        addFilter(perComparedTableColumnFilter);
+        addFilter(addedFilters);
     }
 
-    public void onEditFilterButtonClicked(ComparedTable comparedTable,
+    public void onEditDefaultFilterButtonClicked(ComparedTable comparedTable,
                                           ComparedTableColumn comparedTableColumn,
-                                          ColumnFilter columnFilter) {
+                                          Filter filter) {
 
-        Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> perComparedTableColumnFilter = DialogUtils.showEditFilterDialog(currentStage,
-                comparison.getComparedTables(), comparedTable, comparedTableColumn, columnFilter);
+        Map<Filter, Filter> perNewFilterOldFilter =
+                DialogUtils.showEditDefaultFilterDialog(currentStage,
+                        comparison.getComparedTables(), comparedTable,
+                        comparedTableColumn, (ColumnFilter) filter);
 
-        if (perComparedTableColumnFilter == null || perComparedTableColumnFilter.isEmpty()) return;
+        if (perNewFilterOldFilter == null || perNewFilterOldFilter.isEmpty()) return;
 
-        editFilter(perComparedTableColumnFilter);
+        editFilter(perNewFilterOldFilter);
     }
 
-    public void onDeleteFilterButtonClicked(ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
+    public void onEditAdvancedFilterButtonClicked(ComparedTable comparedTable) {
+        Map<Filter, Filter> perNewFilterOldFilter =
+                DialogUtils.showEditAdvancedFilterDialog(currentStage,comparedTable);
+
+        if (perNewFilterOldFilter == null || perNewFilterOldFilter.isEmpty()) return;
+
+        editFilter(perNewFilterOldFilter);
+    }
+
+    public void onDeleteFilterButtonClicked(Filter filter) {
         boolean confirmed = DialogUtils.askConfirmation("Apagar filtro?",
                 "Deseja realmente apagar esse filtro? Essa ação não poderá ser desfeita.");
 
         if (!confirmed) return;
 
-        deleteFilter(comparedTableColumn, columnFilter);
+        deleteFilter(filter);
     }
 
     /// HELPER METHODS
 
-    private void addFilter(Map<ComparedTableColumn, List<ColumnFilter>> perComparedTableColumnFilter) {
+    private void addFilter(List<Filter> addedFilters) {
 
-        ColumnFilterService.addFilter(perComparedTableColumnFilter);
+        FilterService.applyFilters(addedFilters);
 
-        perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
-            constructTitledPane(comparedTableColumn);
+        addedFilters.forEach((filter) -> {
+            if (filter instanceof TableFilter) {
+                constructTitledPane(((TableFilter) filter).getComparedTable());
+            } else if (filter instanceof ColumnFilter) {
+                constructTitledPane(((ColumnFilter) filter).getComparedTableColumn().getComparedTable());
+            }
         });
     }
 
-    private void editFilter(Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> perComparedTableColumnFilter) {
+    private void editFilter(Map<Filter, Filter> perNewFilterOldFilter) {
 
-        ColumnFilterService.editFilter(perComparedTableColumnFilter);
+        FilterService.editFilter(perNewFilterOldFilter);
 
-        perComparedTableColumnFilter.forEach(((comparedTableColumn, mapOfColumnFilter) -> {
-            constructTitledPane(comparedTableColumn);
-        }));
+        perNewFilterOldFilter.forEach((newFilter, oldFilter) -> {
+            if (newFilter instanceof TableFilter) {
+                constructTitledPane(((TableFilter) newFilter).getComparedTable());
+            } else if (newFilter instanceof ColumnFilter) {
+                constructTitledPane(((ColumnFilter) newFilter).getComparedTableColumn().getComparedTable());
+            }
+        });
     }
 
-    private void deleteFilter(ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
+    private void deleteFilter(Filter filter) {
 
-        ColumnFilterService.deleteFilter(comparedTableColumn, columnFilter);
+        FilterService.deleteFilter(filter);
 
-        constructTitledPane(comparedTableColumn);
-        if (comparedTableColumn.getColumnFilter().isEmpty()) {
-            destructTitledPane(comparedTableColumn);
+        if (filter instanceof TableFilter) {
+            ComparedTable comparedTable = ((TableFilter) filter).getComparedTable();
+
+            if (comparedTable.getFilter() == null) {
+                destructTitledPane(comparedTable);
+                return;
+            }
+
+            constructTitledPane(comparedTable);
+        }
+        else {
+            ComparedTableColumn comparedTableColumn = ((ColumnFilter) filter).getComparedTableColumn();
+            ComparedTable comparedTable = comparedTableColumn.getComparedTable();
+
+            if (comparedTable.getComparedTableColumns().stream().allMatch(tableColumn -> tableColumn.getColumnFilters().isEmpty())) {
+                destructTitledPane(comparedTableColumn.getComparedTable());
+                return;
+            }
+
+            constructTitledPane(comparedTableColumn.getComparedTable());
         }
     }
 
@@ -148,13 +185,6 @@ public class SetFiltersScreenController {
 
     }
 
-    private ComparedTable getComparedTableOfComparedColumn(ComparedTableColumn comparedTableColumn) {
-        return comparison.getComparedTables().stream()
-                .filter(ct -> ct.getComparedTableColumns().stream()
-                        .anyMatch(ctc -> ctc.equals(comparedTableColumn)))
-                .findFirst()
-                .orElse(null);
-    }
 
     private  void setupViewModels() {
         for (ComparedTable comparedTable : comparison.getComparedTables()) {
@@ -181,11 +211,8 @@ public class SetFiltersScreenController {
         refreshAccordion();
     }
 
-    private void destructTitledPane(ComparedTableColumn comparedTableColumn) {
 
-        ComparedTable comparedTable = getComparedTableOfComparedColumn(comparedTableColumn);
-        if (comparedTable == null) return;
-
+    private void destructTitledPane(ComparedTable comparedTable) {
         Optional<TitledPane> existingPaneOpt = allFiltersPanes.stream()
                 .filter(tp -> tp.getText().equals(comparedTable.getTableName()))
                 .findFirst();
@@ -197,10 +224,8 @@ public class SetFiltersScreenController {
         refreshAccordion();
     }
 
-    private void constructTitledPane(ComparedTableColumn comparedTableColumn) {
 
-        ComparedTable comparedTable = getComparedTableOfComparedColumn(comparedTableColumn);
-        if (comparedTable == null) return;
+    private void constructTitledPane(ComparedTable comparedTable) {
 
         Optional<TitledPane> existingPaneOpt = allFiltersPanes.stream()
                 .filter(tp -> tp.getText().equals(comparedTable.getTableName()))
@@ -210,40 +235,77 @@ public class SetFiltersScreenController {
             TitledPane existingPane = existingPaneOpt.get();
             existingPane.setExpanded(false);
             existingPane.setUserData(null);
-        } else {
+        }
+        else {
             TitledPane titledPane = new TitledPane();
             titledPane.setText(comparedTable.getTableName());
+
             titledPane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
                 if (isNowExpanded && titledPane.getUserData() == null) {
                     constructTitledPaneContent(titledPane, comparedTable);
                 }
             });
+
             allFiltersPanes.add(titledPane);
         }
 
         refreshAccordion();
     }
 
+
     private void constructTitledPaneContent(TitledPane titledPane, ComparedTable comparedTable) {
-        final double TABLE_ROW_HEIGHT = 35.0;
-        final double TABLE_HEADER_HEIGHT = 30.0;
 
-        String tableName = comparedTable.getTableName();
+            TableView<FilterViewModel> tableView = createFilterTableView(comparedTable);
+            ObservableList<FilterViewModel> tableItems = getFilterItemsForTable(comparedTable);
 
+            tableView.setItems(tableItems);
+            adjustTableHeight(tableView, tableItems.size());
 
-        TableView<ColumnFilterViewModel> tableView = new TableView<>();
+            VBox container = new VBox(tableView);
+            container.setPadding(new Insets(10));
+            container.setFillWidth(true);
+
+            titledPane.setContent(container);
+            titledPane.setUserData(true);
+
+    }
+
+    private TableView<FilterViewModel> createFilterTableView(ComparedTable comparedTable) {
+        TableView<FilterViewModel> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<ColumnFilterViewModel, String> columnNameCol = new TableColumn<>("Coluna");
-        columnNameCol.setCellValueFactory(data -> data.getValue().getColumnNameProperty());
+        if (comparedTable.getFilter() == null) {
+            tableView.getColumns().addAll(createColumnNameColumn(), createFilterTypeColumn());
+        }
 
-        TableColumn<ColumnFilterViewModel, String> filterTypeCol = new TableColumn<>("Operação");
-        filterTypeCol.setCellValueFactory(data -> data.getValue().getFilterTypeProperty());
+        tableView.getColumns().addAll(createFilterValueColumn(), createActionColumn(comparedTable));
 
-        TableColumn<ColumnFilterViewModel, String> filterCol = new TableColumn<>("Filtro");
-        filterCol.setCellValueFactory(data -> data.getValue().getFilterValueProperty());
+        return tableView;
+    }
 
-        TableColumn<ColumnFilterViewModel, Void> actionsCol = new TableColumn<>();
+    private TableColumn<FilterViewModel, String> createColumnNameColumn() {
+        TableColumn<FilterViewModel, String> col = new TableColumn<>("Coluna");
+        col.setCellValueFactory(data -> data.getValue().columnNameProperty()
+                .orElse(new SimpleStringProperty("")));
+        return col;
+    }
+
+    private TableColumn<FilterViewModel, String> createFilterTypeColumn() {
+        TableColumn<FilterViewModel, String> col = new TableColumn<>("Operação");
+        col.setCellValueFactory(data -> data.getValue().filterTypeDescriptionProperty()
+                .orElse(new SimpleStringProperty("")));
+        return col;
+    }
+
+    private TableColumn<FilterViewModel, String> createFilterValueColumn() {
+        TableColumn<FilterViewModel, String> col = new TableColumn<>("Filtro");
+        col.setCellValueFactory(data -> data.getValue().displayValueProperty());
+        return col;
+    }
+
+    private TableColumn<FilterViewModel, Void> createActionColumn(ComparedTable comparedTable) {
+        TableColumn<FilterViewModel, Void> actionsCol = new TableColumn<>();
+
         actionsCol.setCellFactory(col -> new TableCell<>() {
             private final Button editButton = new Button("edit");
             private final Button deleteButton = new Button("del");
@@ -251,58 +313,69 @@ public class SetFiltersScreenController {
 
             {
                 hbox.setAlignment(Pos.CENTER);
+                editButton.setOnAction(e -> handleEdit(comparedTable));
+                deleteButton.setOnAction(e -> handleDelete(comparedTable));
+            }
 
-                editButton.setOnAction(e -> {
-                    ColumnFilterViewModel item = getTableView().getItems().get(getIndex());
+            private void handleEdit(ComparedTable table) {
+                FilterViewModel item = getTableView().getItems().get(getIndex());
 
-                    onEditFilterButtonClicked(comparedTable, item.getComparedTableColumn(), item.getFilter());
-                });
+                if (table.getFilter() != null) {
+                    onEditAdvancedFilterButtonClicked(table);
+                    return;
+                }
+                onEditDefaultFilterButtonClicked(table,
+                        ((ColumnFilterViewModel) item).getModel().getComparedTableColumn(),
+                        (((ColumnFilterViewModel) item).getModel()));
+            }
 
-                deleteButton.setOnAction(e -> {
-                    ColumnFilterViewModel item = getTableView().getItems().get(getIndex());
+            private void handleDelete(ComparedTable table) {
+                FilterViewModel item = getTableView().getItems().get(getIndex());
 
-                    onDeleteFilterButtonClicked(item.getComparedTableColumn(), item.getFilter());
-                });
+                onDeleteFilterButtonClicked(item.getModel());
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(hbox);
-                }
+                setGraphic(empty ? null : hbox);
             }
         });
 
-        tableView.getColumns().addAll(columnNameCol, filterTypeCol, filterCol, actionsCol);
+        return actionsCol;
+    }
 
-        ObservableList<ColumnFilterViewModel> tableItems = FXCollections.observableArrayList();
+    private ObservableList<FilterViewModel> getFilterItemsForTable(ComparedTable comparedTable) {
+        ObservableList<FilterViewModel> items = FXCollections.observableArrayList();
 
-        for (ComparedTableColumnViewModel columnViewModel : comparedTableViewModels.stream()
-                .filter(vm -> vm.getTableName().equals(tableName))
-                .flatMap(vm -> vm.getComparedTableColumnViewModels().stream())
-                .toList()) {
+        ComparedTableViewModel comparedTableViewModel = comparedTableViewModels.stream()
+                .filter(vm -> vm.getModel().equals(comparedTable))
+                .findFirst()
+                .orElse(null);
+        if (comparedTableViewModel == null) return items; //returns empty
 
-            List<ColumnFilter> filters = columnViewModel.getComparedTableColumn().getColumnFilter();
-            for (ColumnFilter filter : filters) {
-                tableItems.add(new ColumnFilterViewModel(columnViewModel.getComparedTableColumn(), filter));
-            }
+        comparedTableViewModel.updateViewModel();
+
+        if (comparedTable.getFilter() != null) {
+
+            items.add(comparedTableViewModel.getTableFilterViewModel());
+        } else {
+            comparedTableViewModel.getComparedTableColumnViewModels().stream()
+                    .flatMap(colVM -> colVM.getColumnFilterViewModels().stream())
+                    .forEach(items::add);
         }
 
-        tableView.setItems(tableItems);
-
-        double calculatedPrefHeight = (tableItems.size() * TABLE_ROW_HEIGHT) + TABLE_HEADER_HEIGHT;
-        tableView.setPrefHeight(Math.max(calculatedPrefHeight, TABLE_HEADER_HEIGHT));
-
-        VBox container = new VBox(tableView);
-        container.setPadding(new Insets(10));
-        container.setFillWidth(true);
-
-        titledPane.setContent(container);
-        titledPane.setUserData(true);
+        return items;
     }
+
+    private void adjustTableHeight(TableView<?> tableView, int itemCount) {
+        final double TABLE_ROW_HEIGHT = 35.0;
+        final double TABLE_HEADER_HEIGHT = 30.0;
+        double prefHeight = (itemCount * TABLE_ROW_HEIGHT) + TABLE_HEADER_HEIGHT;
+        tableView.setPrefHeight(Math.max(prefHeight, TABLE_HEADER_HEIGHT));
+    }
+
+
 
     /// NAVIGATION METHODS
 

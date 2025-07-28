@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.service.ComparisonService;

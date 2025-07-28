@@ -1,10 +1,10 @@
 package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.ColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
 import java.util.ArrayList;

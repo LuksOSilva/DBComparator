@@ -1,9 +1,9 @@
 package com.luksosilva.dbcomparator.repository;
 
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.ColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;

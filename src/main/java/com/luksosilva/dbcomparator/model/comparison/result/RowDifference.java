@@ -1,7 +1,5 @@
 package com.luksosilva.dbcomparator.model.comparison.result;
 
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
-
 import java.util.ArrayList;
 import java.util.List;
 

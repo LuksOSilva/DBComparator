@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.util;
 
 import com.luksosilva.dbcomparator.enums.SqlFiles;
-import com.luksosilva.dbcomparator.model.comparison.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SQLiteUtils {

@@ -1,9 +1,12 @@
 package com.luksosilva.dbcomparator.controller.dialogs;
 
 import com.luksosilva.dbcomparator.enums.ColumnFilterType;
-import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
+import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.util.DialogUtils;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,6 +14,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.*;
@@ -27,7 +31,15 @@ public class AddFilterDialogController {
     public Label titleLabel;
 
     @FXML
+    public RadioButton defaultFilterRadioButton;
+    @FXML
+    public RadioButton advancedFilterRadioButton;
+
+    @FXML
     public ComboBox<String> tableComboBox;
+
+    @FXML
+    public VBox defaultFilterFieldsBox;
     @FXML
     public ComboBox<String> columnComboBox;
     @FXML
@@ -51,6 +63,13 @@ public class AddFilterDialogController {
     public TextField higherValueTextField;
 
     @FXML
+    public VBox advancedFilterFieldsBox;
+    @FXML
+    public TextArea advancedFilterTextArea;
+
+
+
+    @FXML
     public CheckBox applyToMatchingColumnsCheckBox;
 
     @FXML
@@ -59,14 +78,14 @@ public class AddFilterDialogController {
     public Button addAndCloseButton;
 
 
-    private final Map<ComparedTableColumn, List<ColumnFilter>> addedFilterMap = new HashMap<>();
-    private final Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> editedFilterMap = new HashMap<>();
+    private final List<Filter> addedFilters = new ArrayList<>();
+    private final Map<Filter, Filter> editedFilters = new HashMap<>();
     private List<ComparedTable> comparedTables;
 
     private ComparedTable selectedComparedTable;
     private ComparedTableColumn selectedComparedTableColumn;
     private ColumnFilterType selectedFilterType;
-    private ColumnFilter editingColumnFilter;
+    private Filter editingFilter;
 
     private final ObservableList<String> fullTableList = FXCollections.observableArrayList();
     private final FilteredList<String> filteredTableList = new FilteredList<>(fullTableList, s -> true);
@@ -76,6 +95,15 @@ public class AddFilterDialogController {
 
     private final ObservableList<String> applicableColumnFilterTypeList = FXCollections.observableArrayList();
 
+
+    public List<Filter> getAddedFilters() {
+        return addedFilters;
+    }
+    public Map<Filter, Filter> getEditedFilters() {
+        return editedFilters;
+    }
+
+
     public void setStage(Stage stage) {
         this.stage = stage;
     }
@@ -84,23 +112,55 @@ public class AddFilterDialogController {
         this.comparedTables = comparedTables;
     }
 
+
+
+
+
     public void initializeAddDialog(List<ComparedTable> comparedTableList) {
         isAdding = true;
-
         titleLabel.setText("Adicionar novo filtro");
 
         setComparedTables(comparedTableList);
         setupSearchListeners();
         setupDisablingListeners();
+        setupRadioButtons();
+
         constructTableComboBox();
     }
 
-    public void initializeEditDialog(List<ComparedTable> comparedTableList, ComparedTable comparedTable, ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
+    public void initializeEditAdvancedFilterDialog(ComparedTable comparedTable) {
         titleLabel.setText("Editar filtro");
         isEditing = true;
-        editingColumnFilter = columnFilter;
+        editingFilter = comparedTable.getFilter();
+
+        selectedComparedTable = comparedTable;
+        tableComboBox.setValue(selectedComparedTable.getTableName());
+
+        setupRadioButtons();
+
+        advancedFilterRadioButton.setSelected(true);
+        defaultFilterRadioButton.setDisable(true);
+        advancedFilterRadioButton.setDisable(true);
+
+        tableComboBox.setDisable(true);
+        advancedFilterTextArea.setText(getAdvancedFilterPrefix() + comparedTable.getFilter().getUserWrittenFilter());
+        advancedFilterTextArea.setDisable(false);
+
+        addButton.setVisible(false);
+        addAndCloseButton.setText("aplicar");
+    }
+
+    public void initializeEditDefaultFilterDialog(List<ComparedTable> comparedTableList, ComparedTable comparedTable, ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
+        titleLabel.setText("Editar filtro");
+        isEditing = true;
+        editingFilter = columnFilter;
 
         setComparedTables(comparedTableList);
+
+        defaultFilterRadioButton.setSelected(true);
+        defaultFilterRadioButton.setDisable(true);
+        advancedFilterRadioButton.setDisable(true);
+
 
         selectedComparedTable = comparedTable;
         selectedComparedTableColumn = comparedTableColumn;
@@ -114,22 +174,22 @@ public class AddFilterDialogController {
         filterTypeComboBox.setDisable(false);
 
         constructFilterTypeComboBox(selectedComparedTableColumn);
-        constructFilterUserInput(editingColumnFilter.getColumnFilterType());
+        constructFilterUserInput(((ColumnFilter) editingFilter).getColumnFilterType());
         switch (selectedFilterType.getNumberOfArguments()){
             case 0 -> {
-
             }
             case 2 -> {
-                lowerValueTextField.setText(editingColumnFilter.getLowerValue());
-                higherValueTextField.setText(editingColumnFilter.getHigherValue());
+                lowerValueTextField.setText(((ColumnFilter) editingFilter).getLowerValue());
+                higherValueTextField.setText(((ColumnFilter) editingFilter).getHigherValue());
             }
             default -> {
-                filterTextField.setText(editingColumnFilter.getValue());
+                filterTextField.setText(((ColumnFilter) editingFilter).getValue());
             }
         }
 
-        addButton.setVisible(false);
         applyToMatchingColumnsCheckBox.setText("Editar filtro em todas tabelas com o mesmo campo e filtro");
+
+        addButton.setVisible(false);
         addAndCloseButton.setText("aplicar");
     }
 
@@ -183,6 +243,49 @@ public class AddFilterDialogController {
         });
     }
 
+    private void setupRadioButtons() {
+        ToggleGroup filterModeToggleGroup = new ToggleGroup();
+        defaultFilterRadioButton.setToggleGroup(filterModeToggleGroup);
+        advancedFilterRadioButton.setToggleGroup(filterModeToggleGroup);
+
+        defaultFilterRadioButton.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                showDefaultFilterFieldsBox();
+            }
+        });
+        advancedFilterRadioButton.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                showAdvancedFilterFieldsBox();
+            }
+        });
+    }
+
+    private void setupAdvancedFilterPrefix() {
+        if (selectedComparedTable == null) return;
+        advancedFilterTextArea.setText(getAdvancedFilterPrefix());
+
+        advancedFilterTextArea.textProperty().addListener((obs, oldText, newText) -> {
+            String prefix = getAdvancedFilterPrefix();
+
+            if (newText.equals(getAdvancedFilterPrefix())) return;
+
+            if (!newText.startsWith(prefix)) {
+                // Revert invalid edit
+                advancedFilterTextArea.setText(oldText);
+            } else if (newText.length() < prefix.length()) {
+                // Prevent deleting part of the prefix
+                advancedFilterTextArea.setText(prefix);
+            }
+        });
+
+        Platform.runLater(() -> advancedFilterTextArea.positionCaret(getAdvancedFilterPrefix().length()));
+    }
+
+    private String getAdvancedFilterPrefix() {
+        if (selectedComparedTable == null) return "";
+        return "SELECT * FROM " + selectedComparedTable.getTableName() + " WHERE ";
+    }
+
     private void constructTableComboBox() {
         fullTableList.clear();
         for (ComparedTable table : comparedTables) {
@@ -193,12 +296,15 @@ public class AddFilterDialogController {
             ComparedTable comparedTable = getComparedTableByTableName(newVal);
             if (comparedTable == null) {
                 columnComboBox.setDisable(true);
+                advancedFilterTextArea.setDisable(true);
                 selectedComparedTable = null;
                 return;
             }
             columnComboBox.setDisable(false);
+            advancedFilterTextArea.setDisable(false);
             selectedComparedTable = comparedTable;
             constructColumnComboBox(comparedTable);
+            setupAdvancedFilterPrefix();
         });
 
         tableComboBox.setItems(filteredTableList);
@@ -316,6 +422,28 @@ public class AddFilterDialogController {
         higherValueTextField.setText("");
     }
 
+    private void showDefaultFilterFieldsBox() {
+        hideAdvancedFilterFieldsBox();
+        defaultFilterFieldsBox.setVisible(true);
+        defaultFilterFieldsBox.setManaged(true);
+    }
+    private void hideDefaultFilterFieldsBox() {
+        defaultFilterFieldsBox.setVisible(false);
+        defaultFilterFieldsBox.setManaged(false);
+    }
+    private void showAdvancedFilterFieldsBox() {
+        hideDefaultFilterFieldsBox();
+        setupAdvancedFilterPrefix();
+        advancedFilterFieldsBox.setVisible(true);
+        advancedFilterFieldsBox.setManaged(true);
+    }
+    private void hideAdvancedFilterFieldsBox() {
+        advancedFilterFieldsBox.setVisible(false);
+        advancedFilterFieldsBox.setManaged(false);
+    }
+
+
+
 
     private ComparedTable getComparedTableByTableName(String tableName) {
         return comparedTables.stream()
@@ -342,55 +470,110 @@ public class AddFilterDialogController {
                 .toList();
     }
 
-    private void processFilter(boolean closeAfter) {
-        if (selectedComparedTable == null || selectedComparedTableColumn == null || selectedFilterType == null) return;
+
+    private void processAdvancedFilter(boolean closeAfter) {
+        String userWrittenFilter = advancedFilterTextArea.getText().
+                substring(getAdvancedFilterPrefix().length())
+                .split(";", 2)[0]
+                .trim();
+
+        if (selectedComparedTable == null || userWrittenFilter.isEmpty()) {
+            DialogUtils.showWarning("Preencha todos os campos.", "Todos os campos devem ser preenchidos para prosseguir.");
+            return;
+        }
+
+        boolean anyColumnHasFilter = selectedComparedTable.getComparedTableColumns().stream()
+                .anyMatch(comparedTableColumn -> !comparedTableColumn.getColumnFilters().isEmpty());
+        if (anyColumnHasFilter) {
+            boolean confirm = DialogUtils.askConfirmation("Os filtros das colunas serão apagados.",
+                    "Essa tabela possui filtros aplicados em colunas individuais. Eles serão removidos ao aplicar um filtro avançado. Deseja continuar?");
+            if (!confirm) {
+                return;
+            }
+        }
+
+        TableFilter tableFilter = new TableFilter(selectedComparedTable, userWrittenFilter);
+
+        if (isAdding) {
+            addedFilters.add(tableFilter);
+        }
+        else if (isEditing && !editingFilter.equals(tableFilter)) {
+            editedFilters.put(tableFilter, selectedComparedTable.getFilter());
+        }
+
+        if (closeAfter) {
+            stage.close();
+        }
+    }
+
+
+    private void processDefaultFilter(boolean closeAfter) {
+        boolean anyFieldMissing = selectedComparedTable == null
+                || selectedComparedTableColumn == null
+                || selectedFilterType == null
+                || (selectedFilterType.getNumberOfArguments() == 1 && filterTextField.getText().isEmpty())
+                || (selectedFilterType.getNumberOfArguments() == 2 && (lowerValueTextField.getText().isEmpty()
+                                                                || higherValueTextField.getText().isEmpty()));
+
+        if (anyFieldMissing) {
+            DialogUtils.showWarning("Preencha todos os campos.", "Todos os campos devem ser preenchidos para prosseguir.");
+            return;
+        }
+
+        boolean tableHasAdvancedFilter = selectedComparedTable.getFilter() != null;
+        if (tableHasAdvancedFilter) {
+            boolean confirm = DialogUtils.askConfirmation("O filtro avançado será apagado.",
+                    "Essa tabela possui filtro avançado aplicado. Ele será removido ao aplicar um filtro padrão. Deseja continuar?");
+            if (!confirm) {
+                return;
+            }
+        }
 
         ColumnFilter columnFilter;
 
         switch (selectedFilterType.getNumberOfArguments()) {
             case 0 -> {
-                columnFilter = new ColumnFilter(selectedFilterType);
+                columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType);
             }
             case 2 -> {
                 String lower = lowerValueTextField.getText().trim();
                 String higher = higherValueTextField.getText().trim();
                 if (lower.isEmpty() || higher.isEmpty()) return;
 
-                columnFilter = new ColumnFilter(selectedFilterType, lower, higher);
+                columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, lower, higher);
             }
             default -> {
                 String value = filterTextField.getText().trim();
                 if (value.isEmpty()) return;
 
-                columnFilter = new ColumnFilter(selectedFilterType, value);
+                columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, value);
             }
         }
 
         if (isAdding) {
-            addedFilterMap.computeIfAbsent(selectedComparedTableColumn, k -> new ArrayList<>())
-                    .add(columnFilter);
+
+            addedFilters.add(columnFilter);
 
             if (applyToMatchingColumnsCheckBox.isSelected()) {
                 for (ComparedTableColumn comparedTableColumn : getAllEqualColumns(selectedComparedTableColumn)) {
-                    addedFilterMap.computeIfAbsent(comparedTableColumn, k -> new ArrayList<>())
-                            .add(columnFilter);
+
+                    addedFilters.add(new ColumnFilter(columnFilter, comparedTableColumn));
                 }
             }
         }
-        else if (isEditing && !editingColumnFilter.equals(columnFilter)) {
-            editedFilterMap.put(selectedComparedTableColumn, Map.of(editingColumnFilter, columnFilter));
+        else if (isEditing && !editingFilter.equals(columnFilter)) {
+            editedFilters.put(columnFilter, editingFilter);
 
             if (applyToMatchingColumnsCheckBox.isSelected()) {
                 for (ComparedTableColumn comparedTableColumn : getAllEqualColumns(selectedComparedTableColumn)) {
 
-                    ColumnFilter oldColumnFilter = comparedTableColumn.getColumnFilter().stream()
-                            .filter(cf -> cf.equals(editingColumnFilter))
+                    ColumnFilter oldColumnFilter = comparedTableColumn.getColumnFilters().stream()
+                            .filter(cf -> cf.equalsIgnoreColumn(editingFilter))
                             .findFirst()
                             .orElse(null);
                     if (oldColumnFilter == null) continue;
 
-                    editedFilterMap.computeIfAbsent(comparedTableColumn, k -> new HashMap<>())
-                            .put(oldColumnFilter, columnFilter);
+                    editedFilters.put(new ColumnFilter(columnFilter, comparedTableColumn), oldColumnFilter);
                 }
             }
         }
@@ -400,17 +583,25 @@ public class AddFilterDialogController {
         }
     }
 
-
     @FXML
     private void onAddAndCloseButtonClicked() {
         boolean closeAfter = true;
-        processFilter(closeAfter);
+        if (advancedFilterRadioButton.isSelected()) {
+            processAdvancedFilter(closeAfter);
+        } else {
+            processDefaultFilter(closeAfter);
+        }
     }
 
     @FXML
     private void onAddButtonClicked() {
         boolean closeAfter = false;
-        processFilter(closeAfter);
+        if (advancedFilterRadioButton.isSelected()) {
+            processAdvancedFilter(closeAfter);
+        } else {
+            processDefaultFilter(closeAfter);
+        }
+
         resetUI();
     }
 
@@ -419,10 +610,4 @@ public class AddFilterDialogController {
         stage.close();
     }
 
-    public Map<ComparedTableColumn, List<ColumnFilter>> getAddedFilterMap() {
-        return addedFilterMap;
-    }
-    public Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> getEditedFilterMap() {
-        return editedFilterMap;
-    }
 }

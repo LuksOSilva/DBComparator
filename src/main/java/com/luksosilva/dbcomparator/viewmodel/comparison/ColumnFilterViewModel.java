@@ -1,49 +1,77 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison;
 
 import com.luksosilva.dbcomparator.enums.ColumnFilterType;
-import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class ColumnFilterViewModel {
+import java.util.Optional;
 
-    private final ComparedTableColumn comparedTableColumn;
-    private final ColumnFilter columnFilter;
+public class ColumnFilterViewModel implements FilterViewModel {
+    private final ColumnFilter model;
 
     private final StringProperty columnName = new SimpleStringProperty();
-    private StringProperty filterType = new SimpleStringProperty();
-    private final StringProperty filterValue = new SimpleStringProperty();
+    private final ObjectProperty<ColumnFilterType> filterType = new SimpleObjectProperty<>();
+    private final StringProperty filterTypeDescription = new SimpleStringProperty();
+    private final StringProperty displayValue = new SimpleStringProperty();
+    private final StringProperty lowerValue = new SimpleStringProperty();
+    private final StringProperty higherValue = new SimpleStringProperty();
 
-    public ColumnFilterViewModel(ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
-        this.comparedTableColumn = comparedTableColumn;
-        this.columnFilter = columnFilter;
-        setProperties();
+    public ColumnFilterViewModel(ColumnFilter model) {
+        this.model = model;
+        this.columnName.set(model.getComparedTableColumn().getColumnName());
+
+        this.filterType.set(model.getColumnFilterType());
+        this.filterTypeDescription.bind(this.filterType.map(ColumnFilterType::getDescription));
+
+        this.displayValue.set(computeDisplayValue());
+        this.lowerValue.set(model.getLowerValue());
+        this.higherValue.set(model.getHigherValue());
+
     }
 
-    public StringProperty getColumnNameProperty() {
-        return columnName;
+    public Optional<StringProperty> columnNameProperty() {
+        return Optional.of(columnName);
     }
 
-    public StringProperty getFilterTypeProperty() {
+    public ObjectProperty filterTypeProperty() {
         return filterType;
     }
-
-    public StringProperty getFilterValueProperty() {
-        return filterValue;
+    public Optional<StringProperty> filterTypeDescriptionProperty() {
+        return Optional.of(filterTypeDescription);
     }
 
-    public ComparedTableColumn getComparedTableColumn() {
-        return comparedTableColumn;
+    public StringProperty displayValueProperty() {
+        return displayValue;
     }
 
-    public ColumnFilter getFilter() {
-        return columnFilter;
+    public StringProperty lowerValueProperty() {
+        return lowerValue;
     }
 
-    private void setProperties() {
-        columnName.set(comparedTableColumn.getColumnName());
-        filterType.set(columnFilter.getColumnFilterType().getDescription());
-        filterValue.set(columnFilter.getDisplayValue());
+    public StringProperty higherValueProperty() {
+        return higherValue;
     }
+
+    public ColumnFilter getModel() {
+        return model;
+    }
+
+    /// METHODS
+
+    public void updateDisplayValue() {
+        this.displayValue.set(computeDisplayValue());
+    }
+
+    private String computeDisplayValue() {
+        return switch (filterType.get().getNumberOfArguments()) {
+            case 0 -> "";
+            case 2 -> lowerValue.get() + " e " + higherValue.get();
+            default -> model.getValue();
+        };
+    }
+
+
 }

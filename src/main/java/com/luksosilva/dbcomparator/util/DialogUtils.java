@@ -3,14 +3,16 @@ package com.luksosilva.dbcomparator.util;
 import com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController;
 import com.luksosilva.dbcomparator.controller.dialogs.ColumnSettingsValidationDialogController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,7 @@ public class DialogUtils {
         return result.isPresent() && result.get() == buttonTypeYes;
     }
 
-    public static Map<ComparedTableColumn, List<ColumnFilter>> showAddFilterDialog(Stage ownerStage, List<ComparedTable> comparedTableList) {
+    public static List<Filter> showAddFilterDialog(Stage ownerStage, List<ComparedTable> comparedTableList) {
         try {
             FxLoadResult<Stage, AddFilterDialogController> loadResult =
                     FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
@@ -65,7 +67,7 @@ public class DialogUtils {
             loadResult.node.showAndWait();
 
 
-            return loadResult.controller.getAddedFilterMap();
+            return loadResult.controller.getAddedFilters();
 
 
         } catch (IOException e) {
@@ -74,7 +76,7 @@ public class DialogUtils {
             return null;
         }
     }
-    public static Map<ComparedTableColumn, Map<ColumnFilter, ColumnFilter>> showEditFilterDialog(Stage ownerStage,
+    public static Map<Filter, Filter> showEditDefaultFilterDialog(Stage ownerStage,
                                                                                     List<ComparedTable> comparedTableList,
                                                                                     ComparedTable comparedTable,
                                                                                     ComparedTableColumn comparedTableColumn,
@@ -83,13 +85,37 @@ public class DialogUtils {
             FxLoadResult<Stage, AddFilterDialogController> loadResult =
                     FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
 
-            loadResult.controller.initializeEditDialog(comparedTableList, comparedTable, comparedTableColumn, columnFilter);
+
+            loadResult.controller.initializeEditDefaultFilterDialog(comparedTableList, comparedTable, comparedTableColumn, columnFilter);
             loadResult.controller.setStage(loadResult.node);
             loadResult.node.setResizable(false);
             loadResult.node.showAndWait();
 
 
-            return loadResult.controller.getEditedFilterMap();
+            return loadResult.controller.getEditedFilters();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            DialogUtils.showError("Erro", "Não foi possível abrir o diálogo.");
+            return null;
+        }
+    }
+
+    public static Map<Filter, Filter> showEditAdvancedFilterDialog(Stage ownerStage,
+                                                                  ComparedTable comparedTable) {
+        try {
+            FxLoadResult<Stage, AddFilterDialogController> loadResult =
+                    FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
+
+
+            loadResult.controller.initializeEditAdvancedFilterDialog(comparedTable);
+            loadResult.controller.setStage(loadResult.node);
+            loadResult.node.setResizable(false);
+            loadResult.node.showAndWait();
+
+
+            return loadResult.controller.getEditedFilters();
 
 
         } catch (IOException e) {

@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.model.comparison;
+package com.luksosilva.dbcomparator.model.comparison.customization;
 
 
 public class ColumnSettings {

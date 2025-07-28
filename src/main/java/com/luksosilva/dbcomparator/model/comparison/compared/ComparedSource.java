@@ -1,7 +1,6 @@
-package com.luksosilva.dbcomparator.model.comparison;
+package com.luksosilva.dbcomparator.model.comparison.compared;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luksosilva.dbcomparator.model.source.Source;
 
 public class ComparedSource {

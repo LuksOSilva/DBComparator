@@ -1,5 +1,7 @@
 package com.luksosilva.dbcomparator.model.comparison;
 
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResult;
 import com.luksosilva.dbcomparator.enums.ComparisonStatus;
 

@@ -1,6 +1,7 @@
-package com.luksosilva.dbcomparator.model.comparison;
+package com.luksosilva.dbcomparator.model.comparison.compared;
 
-import com.luksosilva.dbcomparator.enums.ColumnFilterType;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
 import java.util.ArrayList;
@@ -9,17 +10,23 @@ import java.util.Map;
 
 public class ComparedTableColumn {
 
+    private final ComparedTable comparedTable;
     private final Map<ComparedSource, SourceTableColumn> perSourceTableColumn;
     private ColumnSettings columnSettings;
 
     private final List<ColumnFilter> columnFilters = new ArrayList<>();
 
-    public ComparedTableColumn(Map<ComparedSource, SourceTableColumn> perSourceTableColumn) {
+    public ComparedTableColumn(ComparedTable comparedTable, Map<ComparedSource, SourceTableColumn> perSourceTableColumn) {
+        this.comparedTable = comparedTable;
         this.perSourceTableColumn = perSourceTableColumn;
     }
 
     public void setColumnSetting(ColumnSettings columnSettings) {
         this.columnSettings = columnSettings;
+    }
+
+    public ComparedTable getComparedTable() {
+        return comparedTable;
     }
 
     public String getColumnName() {
@@ -49,7 +56,7 @@ public class ComparedTableColumn {
     }
 
 
-    public List<ColumnFilter> getColumnFilter() {
+    public List<ColumnFilter> getColumnFilters() {
         return columnFilters;
     }
 
@@ -64,6 +71,7 @@ public class ComparedTableColumn {
     public void addColumnFilter(ColumnFilter filter) {
         columnFilters.add(filter);
     }
+
     public void addColumnFilter(List<ColumnFilter> filters) {
         columnFilters.addAll(filters);
     }

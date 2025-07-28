@@ -1,101 +1,82 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison;
 
-import com.luksosilva.dbcomparator.model.comparison.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.ColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 
 public class ComparedTableColumnViewModel {
 
     //model
-    private final ComparedTableColumn comparedTableColumn;
+    private final ComparedTableColumn model;
 
-    private final SimpleStringProperty columnNameProperty = new SimpleStringProperty();
-    private final SimpleStringProperty columnFiltersProperty = new SimpleStringProperty();
+    private ObservableList<ColumnFilter> columnFilters;
+    private final ObservableList<ColumnFilterViewModel> columnFilterViewModels = FXCollections.observableArrayList();
 
-    private final SimpleBooleanProperty identifierProperty = new SimpleBooleanProperty();
-    private final SimpleBooleanProperty comparableProperty = new SimpleBooleanProperty();
+    private final StringProperty columnName = new SimpleStringProperty();
+    private final BooleanProperty isIdentifier = new SimpleBooleanProperty();
+    private final BooleanProperty isComparable = new SimpleBooleanProperty();
 
-
-    private final SimpleBooleanProperty defaultIdentifierProperty = new SimpleBooleanProperty();
-    private final SimpleBooleanProperty defaultComparableProperty = new SimpleBooleanProperty();
 
     /// CONSTRUCTORS
 
-    public ComparedTableColumnViewModel(ComparedTableColumn comparedTableColumn) {
-        this.comparedTableColumn = comparedTableColumn;
+    public ComparedTableColumnViewModel(ComparedTableColumn model) {
+        this.model = model;
+        this.columnName.set(model.getColumnName());
 
-        setProperties();
-        setListeners();
+        this.isIdentifier.set(model.getColumnSetting().isIdentifier());
+        this.isComparable.set(model.getColumnSetting().isComparable());
 
-        setDefault();
-    }
+        this.columnFilters = FXCollections.observableList(model.getColumnFilters());
 
-    public void setProperties() {
-
-        this.columnNameProperty.set(comparedTableColumn.getColumnName());
-        this.columnFiltersProperty.set(comparedTableColumn.getColumnFilter().stream().map(ColumnFilter::getDisplayValue).toString());
-
-        this.identifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
-        this.comparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
-
-    }
-
-    public void setDefault() {
-        this.defaultIdentifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
-        this.defaultComparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
-    }
-
-    public void setListeners() {
-        // Radio button-like behavior: selecting one disables the other
-        identifierProperty.addListener((obs, oldVal, newVal) -> {
-            if (newVal) comparableProperty.set(false);
-        });
-
-        comparableProperty.addListener((obs, oldVal, newVal) -> {
-            if (newVal) identifierProperty.set(false);
-        });
+        for (ColumnFilter columnFilter : model.getColumnFilters()) {
+            columnFilterViewModels.add(new ColumnFilterViewModel(columnFilter));
+        }
     }
 
 
     /// GETTERS AND SETTERS
 
-    public ComparedTableColumn getComparedTableColumn() {
-        return comparedTableColumn;
+    public StringProperty columnNameProperty() {
+        return columnName;
     }
 
-    public SimpleStringProperty getColumnNameProperty() {
-        return columnNameProperty;
+    public ObservableList<ColumnFilterViewModel> getColumnFilterViewModels() {
+        return columnFilterViewModels;
     }
 
-    public SimpleStringProperty getColumnFiltersProperty() {
-        return columnFiltersProperty;
+    public BooleanProperty getIsIdentifier() {
+        return isIdentifier;
+    }
+
+    public BooleanProperty getIsComparable() {
+        return isComparable;
+    }
+
+    public ComparedTableColumn getModel() {
+        return model;
     }
 
 
-    /// METHODS
+    public void updateViewModel() {
+        this.isIdentifier.set(model.getColumnSetting().isIdentifier());
+        this.isComparable.set(model.getColumnSetting().isComparable());
 
-    public boolean isAltered() {
-        return (identifierProperty.get() != defaultIdentifierProperty.get())
-                || (comparableProperty.get() != defaultComparableProperty.get());
+        this.columnFilters = FXCollections.observableList(model.getColumnFilters());
+
+        for (ColumnFilter columnFilter : model.getColumnFilters()) {
+            columnFilterViewModels.add(new ColumnFilterViewModel(columnFilter));
+        }
     }
 
-    public ColumnSettings getViewModelColumnSetting() {
-        return new ColumnSettings(comparableProperty.get(), identifierProperty.get());
-    }
 
-//    public String getPrimaryKeyCountText() {
-//        Map<ComparedSource, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
-//
-//        long pkCount = map.values().stream().filter(SourceTableColumn::isPk).count();
-//        int totalSources = comparison.getComparedSources().size();
-//
-//        if (pkCount == 0) return "";
-//        if (pkCount == totalSources) return "Y";
-//
-//        return pkCount + "/" + totalSources;
-//    }
+
+
 
 
 }

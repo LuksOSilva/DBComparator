@@ -1,6 +1,6 @@
 package com.luksosilva.dbcomparator.model.comparison.result;
 
-import com.luksosilva.dbcomparator.model.comparison.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 
 public class IdentifierColumn {
 
