@@ -1,21 +1,27 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
+import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
+import com.luksosilva.dbcomparator.exception.FilterException;
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.service.FilterService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
-import com.luksosilva.dbcomparator.viewmodel.comparison.*;
+import com.luksosilva.dbcomparator.viewmodel.comparison.compared.ComparedTableViewModel;
+import com.luksosilva.dbcomparator.viewmodel.comparison.customization.FilterViewModel;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -24,11 +30,15 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import org.sqlite.FileException;
 
 import java.io.IOException;
 import java.util.*;
@@ -81,7 +91,9 @@ public class SetFiltersScreenController {
     }
 
     public boolean needToProcess() {
-        return true;
+        return comparison.getComparedTables().stream()
+                .anyMatch(comparedTable -> comparedTable.hasFilter()
+                        && comparedTable.getFilterValidationResult().getType().equals(FilterValidationResultType.NOT_VALIDATED));
     }
 
     /// USER-CALLED METHODS
@@ -94,27 +106,29 @@ public class SetFiltersScreenController {
         addFilter(addedFilters);
     }
 
-    public void onEditDefaultFilterButtonClicked(ComparedTable comparedTable,
-                                          ComparedTableColumn comparedTableColumn,
-                                          Filter filter) {
+    public void onEditFilterButtonClicked(Filter filter) {
 
-        Map<Filter, Filter> perNewFilterOldFilter =
-                DialogUtils.showEditDefaultFilterDialog(currentStage,
-                        comparison.getComparedTables(), comparedTable,
-                        comparedTableColumn, (ColumnFilter) filter);
+        if (filter instanceof TableFilter tableFilter) {
 
-        if (perNewFilterOldFilter == null || perNewFilterOldFilter.isEmpty()) return;
+            Map<Filter, Filter> perNewFilterOldFilter =
+                    DialogUtils.showEditAdvancedFilterDialog(currentStage, tableFilter.getComparedTable());
 
-        editFilter(perNewFilterOldFilter);
-    }
+            if (perNewFilterOldFilter == null || perNewFilterOldFilter.isEmpty()) return;
 
-    public void onEditAdvancedFilterButtonClicked(ComparedTable comparedTable) {
-        Map<Filter, Filter> perNewFilterOldFilter =
-                DialogUtils.showEditAdvancedFilterDialog(currentStage,comparedTable);
+            editFilter(perNewFilterOldFilter);
 
-        if (perNewFilterOldFilter == null || perNewFilterOldFilter.isEmpty()) return;
+        } else if (filter instanceof ColumnFilter columnFilter) {
 
-        editFilter(perNewFilterOldFilter);
+            Map<Filter, Filter> perNewFilterOldFilter =
+                    DialogUtils.showEditDefaultFilterDialog(currentStage,
+                            comparison.getComparedTables(), columnFilter);
+
+            if (perNewFilterOldFilter == null || perNewFilterOldFilter.isEmpty()) return;
+
+            editFilter(perNewFilterOldFilter);
+
+        }
+
     }
 
     public void onDeleteFilterButtonClicked(Filter filter) {
@@ -126,6 +140,13 @@ public class SetFiltersScreenController {
         deleteFilter(filter);
     }
 
+    public void onCopyToClipBoardButtonClicked(TableFilter tableFilter) {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(tableFilter.getUserWrittenFilter());
+        clipboard.setContent(content);
+    }
+
     /// HELPER METHODS
 
     private void addFilter(List<Filter> addedFilters) {
@@ -133,10 +154,10 @@ public class SetFiltersScreenController {
         FilterService.applyFilters(addedFilters);
 
         addedFilters.forEach((filter) -> {
-            if (filter instanceof TableFilter) {
-                constructTitledPane(((TableFilter) filter).getComparedTable());
-            } else if (filter instanceof ColumnFilter) {
-                constructTitledPane(((ColumnFilter) filter).getComparedTableColumn().getComparedTable());
+            if (filter instanceof TableFilter tableFilter) {
+                constructTitledPane(tableFilter.getComparedTable());
+            } else if (filter instanceof ColumnFilter columnFilter) {
+                constructTitledPane(columnFilter.getComparedTableColumn().getComparedTable());
             }
         });
     }
@@ -146,10 +167,10 @@ public class SetFiltersScreenController {
         FilterService.editFilter(perNewFilterOldFilter);
 
         perNewFilterOldFilter.forEach((newFilter, oldFilter) -> {
-            if (newFilter instanceof TableFilter) {
-                constructTitledPane(((TableFilter) newFilter).getComparedTable());
-            } else if (newFilter instanceof ColumnFilter) {
-                constructTitledPane(((ColumnFilter) newFilter).getComparedTableColumn().getComparedTable());
+            if (newFilter instanceof TableFilter tableFilter) {
+                constructTitledPane(tableFilter.getComparedTable());
+            } else if (newFilter instanceof ColumnFilter columnFilter) {
+                constructTitledPane(columnFilter.getComparedTableColumn().getComparedTable());
             }
         });
     }
@@ -158,8 +179,8 @@ public class SetFiltersScreenController {
 
         FilterService.deleteFilter(filter);
 
-        if (filter instanceof TableFilter) {
-            ComparedTable comparedTable = ((TableFilter) filter).getComparedTable();
+        if (filter instanceof TableFilter tableFilter) {
+            ComparedTable comparedTable = tableFilter.getComparedTable();
 
             if (comparedTable.getFilter() == null) {
                 destructTitledPane(comparedTable);
@@ -168,22 +189,18 @@ public class SetFiltersScreenController {
 
             constructTitledPane(comparedTable);
         }
-        else {
-            ComparedTableColumn comparedTableColumn = ((ColumnFilter) filter).getComparedTableColumn();
-            ComparedTable comparedTable = comparedTableColumn.getComparedTable();
+        else if (filter instanceof ColumnFilter columnFilter){
+            ComparedTable comparedTable = columnFilter.getComparedTableColumn().getComparedTable();
 
             if (comparedTable.getComparedTableColumns().stream().allMatch(tableColumn -> tableColumn.getColumnFilters().isEmpty())) {
-                destructTitledPane(comparedTableColumn.getComparedTable());
+                destructTitledPane(comparedTable);
                 return;
             }
 
-            constructTitledPane(comparedTableColumn.getComparedTable());
+            constructTitledPane(comparedTable);
         }
     }
 
-    private void applyFilter() {
-
-    }
 
 
     private  void setupViewModels() {
@@ -204,13 +221,14 @@ public class SetFiltersScreenController {
         tablesAccordion.getPanes().clear(); // Clears Accordion
         allFiltersPanes.clear();             // Clears master list
 
+        constructTitledPanes();
+
         // Initialize FilteredList based on allTablePanes
         filteredFilterPanes = new FilteredList<>(allFiltersPanes, pane -> true);
 
         // Set the Accordion's panes to the filtered list.
         refreshAccordion();
     }
-
 
     private void destructTitledPane(ComparedTable comparedTable) {
         Optional<TitledPane> existingPaneOpt = allFiltersPanes.stream()
@@ -224,6 +242,20 @@ public class SetFiltersScreenController {
         refreshAccordion();
     }
 
+
+    private void constructTitledPanes() {
+        List<ComparedTable> comparedTablesWithFilter = comparison.getComparedTables().stream()
+                .filter(ComparedTable::hasFilter)
+                .toList();
+
+        if (comparedTablesWithFilter.isEmpty()) {
+            return;
+        }
+
+        for (ComparedTable comparedTable : comparedTablesWithFilter) {
+            constructTitledPane(comparedTable);
+        }
+    }
 
     private void constructTitledPane(ComparedTable comparedTable) {
 
@@ -255,13 +287,31 @@ public class SetFiltersScreenController {
 
     private void constructTitledPaneContent(TitledPane titledPane, ComparedTable comparedTable) {
 
+            List<Node> content = new ArrayList<>();
+
             TableView<FilterViewModel> tableView = createFilterTableView(comparedTable);
             ObservableList<FilterViewModel> tableItems = getFilterItemsForTable(comparedTable);
-
             tableView.setItems(tableItems);
-            adjustTableHeight(tableView, tableItems.size());
 
-            VBox container = new VBox(tableView);
+            content.add(tableView);
+
+            if (comparedTable.hasTableFilter()) {
+
+                Region spacer = new Region();
+                spacer.setPrefHeight(5);
+                content.add(spacer);
+                content.add(createActionButtonsHBox(comparedTable.getFilter()));
+
+                adjustTableHeight(tableView, 100);
+            } else {
+                adjustTableHeight(tableView, 35);
+            }
+
+
+            VBox container = new VBox();
+            container.getChildren().setAll(content);
+
+
             container.setPadding(new Insets(10));
             container.setFillWidth(true);
 
@@ -274,12 +324,24 @@ public class SetFiltersScreenController {
         TableView<FilterViewModel> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        if (comparedTable.getFilter() == null) {
-            tableView.getColumns().addAll(createColumnNameColumn(), createFilterTypeColumn());
+        List<TableColumn<FilterViewModel, ?>> columns = new ArrayList<>();
+
+        // 1. Column Name (only if no table filter)
+        if (!comparedTable.hasTableFilter()) {
+            columns.add(createColumnNameColumn());
+            columns.add(createFilterTypeColumn());
         }
 
-        tableView.getColumns().addAll(createFilterValueColumn(), createActionColumn(comparedTable));
+        // 2. Filter value column (always present)
+        columns.add(createFilterValueColumn());
 
+        // 3. Action buttons column (only if no table filter)
+        if (!comparedTable.hasTableFilter()) {
+            columns.add(createActionColumn(comparedTable));
+        }
+
+        // Add all columns in one shot, in order
+        tableView.getColumns().addAll(columns);
         return tableView;
     }
 
@@ -300,6 +362,31 @@ public class SetFiltersScreenController {
     private TableColumn<FilterViewModel, String> createFilterValueColumn() {
         TableColumn<FilterViewModel, String> col = new TableColumn<>("Filtro");
         col.setCellValueFactory(data -> data.getValue().displayValueProperty());
+
+        col.setCellFactory(tc -> {
+            TableCell<FilterViewModel, String> cell = new TableCell<>() {
+                private final Text text;
+
+                {
+                    text = new Text();
+                    text.wrappingWidthProperty().bind(tc.widthProperty().subtract(10)); // adjust padding
+                    setGraphic(text);
+                    setPrefHeight(Control.USE_COMPUTED_SIZE);
+                }
+
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        text.setText(null);
+                    } else {
+                        text.setText(item);
+                    }
+                }
+            };
+            return cell;
+        });
+
         return col;
     }
 
@@ -307,42 +394,45 @@ public class SetFiltersScreenController {
         TableColumn<FilterViewModel, Void> actionsCol = new TableColumn<>();
 
         actionsCol.setCellFactory(col -> new TableCell<>() {
-            private final Button editButton = new Button("edit");
-            private final Button deleteButton = new Button("del");
-            private final HBox hbox = new HBox(10, editButton, deleteButton);
-
-            {
-                hbox.setAlignment(Pos.CENTER);
-                editButton.setOnAction(e -> handleEdit(comparedTable));
-                deleteButton.setOnAction(e -> handleDelete(comparedTable));
-            }
-
-            private void handleEdit(ComparedTable table) {
-                FilterViewModel item = getTableView().getItems().get(getIndex());
-
-                if (table.getFilter() != null) {
-                    onEditAdvancedFilterButtonClicked(table);
-                    return;
-                }
-                onEditDefaultFilterButtonClicked(table,
-                        ((ColumnFilterViewModel) item).getModel().getComparedTableColumn(),
-                        (((ColumnFilterViewModel) item).getModel()));
-            }
-
-            private void handleDelete(ComparedTable table) {
-                FilterViewModel item = getTableView().getItems().get(getIndex());
-
-                onDeleteFilterButtonClicked(item.getModel());
-            }
-
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty ? null : hbox);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    FilterViewModel vm = getTableView().getItems().get(getIndex());
+                    setGraphic(createActionButtonsHBox(vm.getModel()));
+                }
             }
         });
 
         return actionsCol;
+    }
+
+    private HBox createActionButtonsHBox(Filter filter) {
+        List<Node> actionButtons = new ArrayList<>();
+
+        if (filter instanceof TableFilter tableFilter) {
+            Button copyToClipboardButton = new Button("copy");
+            copyToClipboardButton.setOnAction(e -> onCopyToClipBoardButtonClicked(tableFilter));
+
+            actionButtons.add(copyToClipboardButton);
+        }
+
+        Button editButton = new Button("edit");
+        Button deleteButton = new Button("del");
+
+        editButton.setOnAction(e -> onEditFilterButtonClicked(filter));
+        deleteButton.setOnAction(e -> onDeleteFilterButtonClicked(filter));
+
+        actionButtons.add(editButton);
+        actionButtons.add(deleteButton);
+
+        HBox hbox = new HBox(10);
+        hbox.setAlignment(Pos.TOP_RIGHT);
+        hbox.getChildren().setAll(actionButtons);
+
+        return hbox;
     }
 
     private ObservableList<FilterViewModel> getFilterItemsForTable(ComparedTable comparedTable) {
@@ -356,9 +446,10 @@ public class SetFiltersScreenController {
 
         comparedTableViewModel.updateViewModel();
 
-        if (comparedTable.getFilter() != null) {
+        if (comparedTable.hasTableFilter()) {
 
             items.add(comparedTableViewModel.getTableFilterViewModel());
+
         } else {
             comparedTableViewModel.getComparedTableColumnViewModels().stream()
                     .flatMap(colVM -> colVM.getColumnFilterViewModels().stream())
@@ -368,19 +459,153 @@ public class SetFiltersScreenController {
         return items;
     }
 
-    private void adjustTableHeight(TableView<?> tableView, int itemCount) {
-        final double TABLE_ROW_HEIGHT = 35.0;
-        final double TABLE_HEADER_HEIGHT = 30.0;
-        double prefHeight = (itemCount * TABLE_ROW_HEIGHT) + TABLE_HEADER_HEIGHT;
-        tableView.setPrefHeight(Math.max(prefHeight, TABLE_HEADER_HEIGHT));
+    private void adjustTableHeight(TableView<FilterViewModel> tableView, int ROW_HEIGHT) {
+        final int MAX_ROWS = 5;
+        final int HEADER_HEIGHT = 30;
+
+
+        // Set fixed row height
+        tableView.setRowFactory(tv -> {
+            TableRow<FilterViewModel> row = new TableRow<>();
+            row.setPrefHeight(ROW_HEIGHT);
+            return row;
+        });
+
+        tableView.prefHeightProperty().bind(
+                Bindings.createDoubleBinding(() -> {
+                    int rowCount = tableView.getItems().size();
+
+                    double prefHeight = (rowCount * ROW_HEIGHT) + HEADER_HEIGHT;
+                    double maxHeight = (MAX_ROWS * ROW_HEIGHT) + HEADER_HEIGHT;
+
+                    return Math.min(prefHeight, maxHeight);
+
+                }, tableView.getItems())
+        );
     }
 
+    private boolean hasAnyInvalidFilter() {
+        return comparison.getComparedTables().stream().anyMatch(comparedTable -> comparedTable.getFilterValidationResult().isInvalid());
+    }
+
+    private void showErrorInvalidFilter() {
+        if (!hasAnyInvalidFilter()) return;
+
+        List<ComparedTable> tablesWithInvalidFilters = comparison.getComparedTables().stream()
+                .filter(comparedTable -> comparedTable.getFilterValidationResult().isInvalid())
+                .toList();
+
+        DialogUtils.showInvalidFiltersDialog(currentStage, tablesWithInvalidFilters);
+    }
 
 
     /// NAVIGATION METHODS
 
     public void nextStep(MouseEvent mouseEvent) {
+
+        Scene currentScene = currentStage.getScene();
+        currentScene.setUserData(SetFiltersScreenController.this);
+
+
+        if (!needToProcess() && nextScene != null) {
+            currentStage.setScene(nextScene);
+            return;
+        }
+
+        try {
+            FxLoadResult<Parent, LoadingScreenController> screenData =
+                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
+
+            Parent root = screenData.node;
+            LoadingScreenController controller = screenData.controller;
+
+            controller.setMessage("Validando filtros, aguarde...");
+
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
+            currentStage.setScene(scene);
+            currentStage.show();
+
+        } catch (IOException e) {
+            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
+
+
+        Task<Parent> processFiltersTask = new Task<>() {
+            @Override
+            protected Parent call() throws Exception {
+
+
+                FilterService.validateFilters(comparison.getComparedTables().stream()
+                        .filter(comparedTable -> !comparedTable.getFilterValidationResult().isValid())
+                        .toList());
+
+                if (hasAnyInvalidFilter()) {
+                    throw new FilterException(
+                            comparison.getComparedTables().stream()
+                                    .filter(comparedTable -> comparedTable.getFilterValidationResult().isInvalid())
+                                    .toList());
+                }
+
+                ComparisonService.processFilters(comparison.getComparedTables());
+
+
+                FxLoadResult<Parent, ComparisonResultScreenController> screenData =
+                        FxmlUtils.loadScreen(FxmlFiles.COMPARISON_RESULT_SCREEN);
+
+                Parent nextScreenRoot = screenData.node;
+                ComparisonResultScreenController controller = screenData.controller;
+
+                controller.setCurrentStage(currentStage);
+                controller.setPreviousScene(currentScene);
+                controller.setComparison(comparison);
+                controller.init();
+
+                return nextScreenRoot;
+            }
+        };
+
+
+        processFiltersTask.setOnSucceeded(event -> {
+            try {
+
+                Parent nextScreenRoot = processFiltersTask.getValue();
+
+                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
+
+                currentStage.setScene(nextScreenScene);
+
+
+            } catch (Exception e) {
+                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
+
+        processFiltersTask.setOnFailed(event -> {
+            currentStage.setScene(currentScene);
+
+            Throwable exception = processFiltersTask.getException();
+
+            if (exception instanceof FilterException) {
+                showErrorInvalidFilter();
+                return;
+            }
+
+            DialogUtils.showError("Erro de Processamento",
+                    "Ocorreu um erro inesperado: " + exception.getMessage());
+            exception.printStackTrace();
+        });
+
+
+        new Thread(processFiltersTask).start();
+
+
     }
+
+
 
     public void previousStep(MouseEvent mouseEvent) {
 

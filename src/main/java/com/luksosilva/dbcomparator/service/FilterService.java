@@ -1,16 +1,70 @@
 package com.luksosilva.dbcomparator.service;
 
+import com.luksosilva.dbcomparator.builder.FilterSqlBuilder;
+import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.model.comparison.customization.validation.FilterValidationResult;
+import com.luksosilva.dbcomparator.repository.SchemaRepository;
+import com.luksosilva.dbcomparator.util.FileUtils;
 
 
 import java.util.List;
 import java.util.Map;
 
 public class FilterService {
+
+    public static void generateSqlForTable(ComparedTable comparedTable) {
+
+        String filterSql = FilterSqlBuilder.build(comparedTable);
+
+        comparedTable.setSqlUserFilter(filterSql);
+
+    }
+
+    public static void validateFilters(List<ComparedTable> comparedTableList) {
+
+        for (ComparedTable comparedTable : comparedTableList) {
+
+            if (comparedTable.getFilterValidationResult().isValid()) {
+                continue; // skip if already valid
+            }
+
+            if (comparedTable.getFilter() == null &&
+                    comparedTable.getComparedTableColumns().stream()
+                        .allMatch(comparedColumn -> comparedColumn.getColumnFilters().isEmpty())) {
+
+                comparedTable.setFilterValidationResult(new FilterValidationResult(FilterValidationResultType.VALID));
+                continue;
+            }
+
+            for (ComparedSource comparedSource : comparedTable.getPerSourceTable().keySet()) {
+
+                String filterSql = FilterSqlBuilder.build(comparedTable, comparedSource);
+
+                // Run the test query
+                FilterValidationResult result = SchemaRepository.selectValidateFilter(
+                        comparedSource.getSourceId(),
+                        FileUtils.getCanonicalPath(comparedSource.getSource().getPath()),
+                        comparedTable.getTableName(),
+                        filterSql
+                );
+
+                comparedTable.setFilterValidationResult(result);
+                if (comparedTable.getFilterValidationResult().isInvalid()) { //stops validating if its invalid in current source
+                    break;
+                }
+            }
+        }
+
+
+    }
+
+
 
     public static void applyFilters(List<Filter> filters) {
 
@@ -33,6 +87,8 @@ public class FilterService {
                 }
 
             }
+
+            clearValidation(filter);
         }
 
 
@@ -43,27 +99,29 @@ public class FilterService {
 
         perNewFilterOldFilter.forEach(((newFilter, oldFilter) -> {
 
+            clearValidation(newFilter);
+
             // Remove old filter
-            if (oldFilter instanceof TableFilter) {
-                ComparedTable oldTable = ((TableFilter) oldFilter).getComparedTable();
+            if (oldFilter instanceof TableFilter tableFilter) {
+                ComparedTable oldTable = tableFilter.getComparedTable();
                 oldTable.removeFilter();
 
-            } else if (oldFilter instanceof ColumnFilter) {
-                ComparedTableColumn oldColumn = ((ColumnFilter) oldFilter).getComparedTableColumn();
-                oldColumn.getColumnFilters().remove((ColumnFilter) oldFilter);
+            } else if (oldFilter instanceof ColumnFilter columnFilter) {
+                ComparedTableColumn oldColumn = columnFilter.getComparedTableColumn();
+                oldColumn.getColumnFilters().remove(columnFilter);
             }
 
             // Add new filter
-            if (newFilter instanceof TableFilter) {
-                ComparedTable newTable = ((TableFilter) newFilter).getComparedTable();
-                newTable.setFilter((TableFilter) newFilter);
+            if (newFilter instanceof TableFilter tableFilter) {
+                ComparedTable newTable = tableFilter.getComparedTable();
+                newTable.setFilter(tableFilter);
 
                 //removes all column filters if any
                 newTable.getComparedTableColumns().forEach(col -> col.getColumnFilters().clear());
 
-            } else if (newFilter instanceof ColumnFilter) {
-                ComparedTableColumn newColumn = ((ColumnFilter) newFilter).getComparedTableColumn();
-                newColumn.addColumnFilter((ColumnFilter) newFilter);
+            } else if (newFilter instanceof ColumnFilter columnFilter) {
+                ComparedTableColumn newColumn = columnFilter.getComparedTableColumn();
+                newColumn.addColumnFilter(columnFilter);
             }
 
         }));
@@ -72,12 +130,23 @@ public class FilterService {
     public static void deleteFilter(Filter filter) {
 
 
-        if (filter instanceof TableFilter) {
-            ((TableFilter) filter).getComparedTable().setFilter(null);
-            return;
-        }
-        ((ColumnFilter) filter).getComparedTableColumn().getColumnFilters().remove(filter);
+        if (filter instanceof TableFilter tableFilter) {
 
+            tableFilter.getComparedTable().setFilter(null);
+
+        } else if (filter  instanceof ColumnFilter columnFilter) {
+
+            columnFilter.getComparedTableColumn().getColumnFilters().remove(filter);
+
+        }
+
+        clearValidation(filter);
+    }
+
+
+    private static void clearValidation(Filter filter) {
+        ComparedTable comparedTable = filter.getComparedTable();
+        comparedTable.clearFilterValidation();
     }
 
 

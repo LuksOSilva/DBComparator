@@ -1,14 +1,11 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison;
+package com.luksosilva.dbcomparator.viewmodel.comparison.compared;
 
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.viewmodel.comparison.customization.TableFilterViewModel;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ComparedTableViewModel {
 
@@ -59,11 +56,12 @@ public class ComparedTableViewModel {
     }
 
     public void updateViewModel() {
-        this.usingTableFilter.set(model.getFilter() != null);
+        this.usingTableFilter.set(model.hasTableFilter());
+
         if (usingTableFilter.get() && (this.tableFilterViewModel.get() == null || !this.tableFilterViewModel.get().getModel().equals(model.getFilter()))) {
+
             this.tableFilterViewModel.set(new TableFilterViewModel(model.getFilter()));
-        } else {
-            this.tableFilterViewModel.set(null);
+
         }
 
         comparedTableColumnViewModels.clear();

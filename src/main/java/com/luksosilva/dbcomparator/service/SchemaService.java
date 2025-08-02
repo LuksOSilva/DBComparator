@@ -65,7 +65,7 @@ public class SchemaService {
         for (ComparedSource comparedSource : comparedSourceList) {
 
             invalidInSources.addAll(
-                    SchemaRepository.selectValidateIdentifiers(comparedSource.getSourceId(),
+                    SchemaRepository.selectValidateColumnSettings(comparedSource.getSourceId(),
                             FileUtils.getCanonicalPath(comparedSource.getSource().getPath()),
                             comparedTable.getTableName(), identifiersComparedColumns));
 

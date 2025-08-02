@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison;
+package com.luksosilva.dbcomparator.viewmodel.comparison.customization;
 
 import com.luksosilva.dbcomparator.enums.ColumnFilterType;
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
@@ -7,6 +7,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 public class ColumnFilterViewModel implements FilterViewModel {
@@ -16,8 +18,12 @@ public class ColumnFilterViewModel implements FilterViewModel {
     private final ObjectProperty<ColumnFilterType> filterType = new SimpleObjectProperty<>();
     private final StringProperty filterTypeDescription = new SimpleStringProperty();
     private final StringProperty displayValue = new SimpleStringProperty();
+    private final StringProperty filterValue = new SimpleStringProperty();
     private final StringProperty lowerValue = new SimpleStringProperty();
     private final StringProperty higherValue = new SimpleStringProperty();
+    private final ObjectProperty<LocalDateTime> filterDate = new SimpleObjectProperty<>();
+    private final ObjectProperty<LocalDateTime> lowerDate = new SimpleObjectProperty<>();
+    private final ObjectProperty<LocalDateTime> higherDate = new SimpleObjectProperty<>();
 
     public ColumnFilterViewModel(ColumnFilter model) {
         this.model = model;
@@ -26,10 +32,14 @@ public class ColumnFilterViewModel implements FilterViewModel {
         this.filterType.set(model.getColumnFilterType());
         this.filterTypeDescription.bind(this.filterType.map(ColumnFilterType::getDescription));
 
-        this.displayValue.set(computeDisplayValue());
+        this.filterValue.set(model.getValue());
         this.lowerValue.set(model.getLowerValue());
         this.higherValue.set(model.getHigherValue());
+        this.filterDate.set(model.getDate());
+        this.lowerDate.set(model.getLowerDate());
+        this.higherDate.set(model.getHigherDate());
 
+        this.displayValue.set(computeDisplayValue());
     }
 
     public Optional<StringProperty> columnNameProperty() {
@@ -66,11 +76,32 @@ public class ColumnFilterViewModel implements FilterViewModel {
     }
 
     private String computeDisplayValue() {
-        return switch (filterType.get().getNumberOfArguments()) {
-            case 0 -> "";
-            case 2 -> lowerValue.get() + " e " + higherValue.get();
-            default -> model.getValue();
-        };
+        int args = filterType.get().getNumberOfArguments();
+
+        if (filterDate.get() != null || (lowerDate.get() != null && higherDate.get() != null)) {
+
+            DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            if (args == 2) {
+                return lowerDate.get().format(DATE_FORMAT) + " e " + higherDate.get().format(DATE_FORMAT);
+            } else {
+                return filterDate.get().format(DATE_FORMAT);
+            }
+
+        }
+        else if (filterValue.get() != null || (lowerValue.get() != null && higherValue.get() != null)) {
+
+            if (args == 2) {
+                return lowerValue.get() + " e " + higherValue.get();
+            } else {
+                return filterValue.get();
+            }
+
+        }
+
+
+
+        return "";
     }
 
 

@@ -1,9 +1,11 @@
 package com.luksosilva.dbcomparator.repository;
 
+import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.customization.validation.FilterValidationResult;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
@@ -11,6 +13,7 @@ import com.luksosilva.dbcomparator.util.SQLiteUtils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -110,14 +113,14 @@ public class SchemaRepository {
         }
     }
 
-    public static List<String> selectValidateIdentifiers(String sourceId, String filePath, String tableName, List<String> identifierColumns) {
+    public static List<String> selectValidateColumnSettings(String sourceId, String sourcePath, String tableName, List<String> identifierColumns) {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
             List<String> results = new ArrayList<>();
 
             String sql = SqlFormatter.buildSelectValidateIdentifiers(sourceId, tableName, identifierColumns);
 
-            SQLiteUtils.attachSource(connection, filePath, sourceId);
+            SQLiteUtils.attachSource(connection, sourcePath, sourceId);
 
             try (Statement stmt = connection.createStatement();
                  ResultSet resultSet = stmt.executeQuery(sql)
@@ -134,6 +137,39 @@ public class SchemaRepository {
             SQLiteUtils.detachSource(connection, sourceId);
 
             return results;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static FilterValidationResult selectValidateFilter(String sourceId, String sourcePath, String tableName, String filterSql) {
+
+        FilterValidationResult filterValidationResult;
+
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String sql = SqlFormatter.buildSelectValidateFilter(sourceId, tableName, filterSql);
+
+            SQLiteUtils.attachSource(connection, sourcePath, sourceId);
+
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+
+                if (!rs.next()) {
+                    filterValidationResult = new FilterValidationResult(FilterValidationResultType.NO_RECORDS_FOUND, sourceId);
+                } else {
+                    filterValidationResult = new FilterValidationResult(FilterValidationResultType.VALID);
+                }
+
+
+            } catch (SQLException e) {
+                filterValidationResult = new FilterValidationResult(FilterValidationResultType.INVALID_SYNTAX, sourceId, e.getMessage());
+            }
+
+            SQLiteUtils.detachSource(connection, sourceId);
+
+            return  filterValidationResult;
 
         } catch (Exception e) {
             throw new RuntimeException(e);

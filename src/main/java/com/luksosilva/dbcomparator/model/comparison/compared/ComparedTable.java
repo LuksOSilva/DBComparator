@@ -1,8 +1,10 @@
 package com.luksosilva.dbcomparator.model.comparison.compared;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.model.comparison.customization.validation.FilterValidationResult;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 
 import java.util.*;
@@ -14,10 +16,13 @@ public class ComparedTable {
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
     private ColumnSettingsValidationResultType columnSettingsValidationResult = ColumnSettingsValidationResultType.NOT_VALIDATED;
+    private FilterValidationResult filterValidationResult = new FilterValidationResult(FilterValidationResultType.NOT_VALIDATED);
+
 
     private TableFilter filter;
 
-    private String queryDifferences;
+    private String sqlUserFilter;
+    private String sqlSelectDifferences;
 
 
 
@@ -45,12 +50,20 @@ public class ComparedTable {
     }
 
     @JsonIgnore
-    public String getQueryDifferences() {
-        return queryDifferences;
+    public String getSqlSelectDifferences() {
+        return sqlSelectDifferences;
     }
 
-    public void setQueryDifferences(String queryDifferences) {
-        this.queryDifferences = queryDifferences;
+    public void setSqlSelectDifferences(String sqlSelectDifferences) {
+        this.sqlSelectDifferences = sqlSelectDifferences;
+    }
+
+    public String getSqlUserFilter() {
+        return sqlUserFilter;
+    }
+
+    public void setSqlUserFilter(String sqlUserFilter) {
+        this.sqlUserFilter = sqlUserFilter;
     }
 
     public TableFilter getFilter() {
@@ -86,6 +99,20 @@ public class ComparedTable {
                 .allMatch(first::equalRecordCount);
     }
 
+    public boolean hasTableFilter() {
+        return getFilter() != null;
+    }
+
+    public boolean hasColumnFilter() {
+        return getComparedTableColumns().stream().anyMatch(ComparedTableColumn::hasFilter);
+    }
+
+    public boolean hasFilter() {
+        return hasTableFilter() || hasColumnFilter();
+    }
+
+
+    /// COLUMN SETTINGS VALIDATION
 
     public ColumnSettingsValidationResultType getColumnSettingsValidationResult() {
         return columnSettingsValidationResult;
@@ -110,6 +137,21 @@ public class ComparedTable {
 
         return columnSettingsValidationResult != ColumnSettingsValidationResultType.VALID
                 && columnSettingsValidationResult != ColumnSettingsValidationResultType.NOT_VALIDATED;
+    }
+
+    /// FILTER VALIDATION
+
+    public FilterValidationResult getFilterValidationResult() {
+        return filterValidationResult;
+    }
+
+    public void setFilterValidationResult(FilterValidationResult filterValidationResult) {
+        this.filterValidationResult = filterValidationResult;
+    }
+
+
+    public void clearFilterValidation() {
+        this.filterValidationResult = new FilterValidationResult(FilterValidationResultType.NOT_VALIDATED);
     }
 
 

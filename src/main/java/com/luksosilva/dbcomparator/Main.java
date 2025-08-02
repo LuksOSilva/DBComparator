@@ -79,13 +79,13 @@ public class Main extends Application {
 //            }
 //        }
 
-        System.out.println("Starting process filters: " + LocalDateTime.now());
-        ComparisonService.processFilters(perComparedTableColumnFilter);
-        System.out.println("Finished process filters: " + LocalDateTime.now());
+//        System.out.println("Starting process filters: " + LocalDateTime.now());
+//        ComparisonService.processFilters(perComparedTableColumnFilter);
+//        System.out.println("Finished process filters: " + LocalDateTime.now());
 
-        System.out.println("Starting compare: " + LocalDateTime.now());
-        ComparisonService.compare(comparison);
-        System.out.println("Finished compare: " + LocalDateTime.now());
+//        System.out.println("Starting compare: " + LocalDateTime.now());
+//        ComparisonService.compare(comparison);
+//        System.out.println("Finished compare: " + LocalDateTime.now());
 
 
     }

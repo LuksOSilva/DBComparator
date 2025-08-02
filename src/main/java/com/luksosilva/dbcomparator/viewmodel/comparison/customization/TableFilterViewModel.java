@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison;
+package com.luksosilva.dbcomparator.viewmodel.comparison.customization;
 
 import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
 import javafx.beans.property.SimpleStringProperty;

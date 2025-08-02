@@ -8,6 +8,7 @@ public enum SqlPlaceholders {
     LIST_TABLE_NAMES("{{list_table_names}}"),
     IS_COMPARABLE("{{is_comparable}}"),
     IS_IDENTIFIER("{{is_identifier}}"),
+    FILTER_SQL("{{filter_sql}}"),
 
     //select differences
     WITH_CLAUSE("{{with_clause}}"),

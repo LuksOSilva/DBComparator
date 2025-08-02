@@ -12,14 +12,18 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class AddFilterDialogController {
+
+
 
 
     private Stage stage;
@@ -54,6 +58,8 @@ public class AddFilterDialogController {
     public HBox oneTextFieldHBox;
     @FXML
     public TextField filterTextField;
+    @FXML
+    public DatePicker filterDatePicker;
 
     @FXML
     public HBox twoTextFieldsHBox;
@@ -61,6 +67,10 @@ public class AddFilterDialogController {
     public TextField lowerValueTextField;
     @FXML
     public TextField higherValueTextField;
+    @FXML
+    public DatePicker lowerValueDatePicker;
+    @FXML
+    public DatePicker higherValueDatePicker;
 
     @FXML
     public VBox advancedFilterFieldsBox;
@@ -150,7 +160,7 @@ public class AddFilterDialogController {
         addAndCloseButton.setText("aplicar");
     }
 
-    public void initializeEditDefaultFilterDialog(List<ComparedTable> comparedTableList, ComparedTable comparedTable, ComparedTableColumn comparedTableColumn, ColumnFilter columnFilter) {
+    public void initializeEditDefaultFilterDialog(List<ComparedTable> comparedTableList, ColumnFilter columnFilter) {
         titleLabel.setText("Editar filtro");
         isEditing = true;
         editingFilter = columnFilter;
@@ -161,14 +171,15 @@ public class AddFilterDialogController {
         defaultFilterRadioButton.setDisable(true);
         advancedFilterRadioButton.setDisable(true);
 
-
-        selectedComparedTable = comparedTable;
-        selectedComparedTableColumn = comparedTableColumn;
         selectedFilterType = columnFilter.getColumnFilterType();
+        selectedComparedTableColumn = columnFilter.getComparedTableColumn();
+        selectedComparedTable = selectedComparedTableColumn.getComparedTable();
+
+
 
         tableComboBox.setValue(selectedComparedTable.getTableName());
         columnComboBox.setValue(selectedComparedTableColumn.getColumnName());
-        filterTypeComboBox.setValue(selectedFilterType.getDescription());
+        filterTypeComboBox.setValue(selectedFilterType.getDescriptionWithDetail());
 
         tableComboBox.setDisable(true);
         filterTypeComboBox.setDisable(false);
@@ -179,11 +190,20 @@ public class AddFilterDialogController {
             case 0 -> {
             }
             case 2 -> {
-                lowerValueTextField.setText(((ColumnFilter) editingFilter).getLowerValue());
-                higherValueTextField.setText(((ColumnFilter) editingFilter).getHigherValue());
+                if (isSelectedFieldTypeDate()) {
+                    lowerValueDatePicker.setValue(((ColumnFilter) editingFilter).getLowerDate().toLocalDate());
+                    higherValueDatePicker.setValue(((ColumnFilter) editingFilter).getHigherDate().toLocalDate());
+                } else {
+                    lowerValueTextField.setText(((ColumnFilter) editingFilter).getLowerValue());
+                    higherValueTextField.setText(((ColumnFilter) editingFilter).getHigherValue());
+                }
             }
             default -> {
-                filterTextField.setText(((ColumnFilter) editingFilter).getValue());
+                if (isSelectedFieldTypeDate()) {
+                    filterDatePicker.setValue(((ColumnFilter) editingFilter).getDate().toLocalDate());
+                } else {
+                    filterTextField.setText(((ColumnFilter) editingFilter).getValue());
+                }
             }
         }
 
@@ -237,8 +257,19 @@ public class AddFilterDialogController {
             if (newVal) {
                 oneTextFieldHBox.setDisable(true);
                 twoTextFieldsHBox.setDisable(true);
+
                 filterTipLabel.setText("");
                 filterHeaderHBox.setVisible(true);
+            }
+        });
+
+        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null) {
+                oneTextFieldHBox.setDisable(true);
+                twoTextFieldsHBox.setDisable(true);
+            } else {
+                oneTextFieldHBox.setDisable(false);
+                twoTextFieldsHBox.setDisable(false);
             }
         });
     }
@@ -310,6 +341,7 @@ public class AddFilterDialogController {
         tableComboBox.setItems(filteredTableList);
     }
 
+
     private void constructColumnComboBox(ComparedTable comparedTable) {
         fullColumnList.clear();
         filteredColumnList.clear();
@@ -320,7 +352,7 @@ public class AddFilterDialogController {
 
         columnComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == null) newVal = "";
-            String columnNameWithoutType = newVal.replaceAll("\\s*\\[.*]$", "");
+            String columnNameWithoutType = removeDetail(newVal);
 
             ComparedTableColumn comparedTableColumn = getComparedTableColumnByColumnName(comparedTable, columnNameWithoutType);
             if (comparedTableColumn == null) {
@@ -343,14 +375,21 @@ public class AddFilterDialogController {
         List<String> columnTypes = comparedTableColumn.getColumnTypes();
         List<ColumnFilterType> supportedFilterTypes = ColumnFilterType.getSupportedForTypes(columnTypes);
 
-        applicableColumnFilterTypeList.addAll(supportedFilterTypes.stream().map(ColumnFilterType::getDescription).toList());
+        applicableColumnFilterTypeList.addAll(supportedFilterTypes.stream().map(ColumnFilterType::getDescriptionWithDetail).toList());
 
-        filterTypeComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            selectedFilterType = ColumnFilterType.getColumnTypeFromDescription(newValue);
+        filterTypeComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldVal, newVal) -> {
+            if (newVal == null) newVal = "";
+            String filterTypeDescription = removeDetail(newVal);
+
+            selectedFilterType = ColumnFilterType.getColumnTypeFromDescription(filterTypeDescription);
             constructFilterUserInput(selectedFilterType);
         });
 
         filterTypeComboBox.setItems(applicableColumnFilterTypeList);
+    }
+
+    private String removeDetail(String textWithDetail) {
+        return textWithDetail.replaceAll("\\s*\\[.*]$", "");
     }
 
     private void constructFilterUserInput(ColumnFilterType columnFilterType) {
@@ -378,36 +417,73 @@ public class AddFilterDialogController {
 
     }
 
-    private void showOneTextFieldHBox(String tip) {
-        hideTwoTextFieldsHBox();
-        oneTextFieldHBox.setDisable(false);
-        oneTextFieldHBox.setManaged(true);
-        oneTextFieldHBox.setVisible(true);
-        filterTipLabel.setText(tip);
-    }
-    private void showTwoTextFieldsHBox(String tip) {
-        hideOneTextFieldHBox();
-        twoTextFieldsHBox.setDisable(false);
-        twoTextFieldsHBox.setManaged(true);
-        twoTextFieldsHBox.setVisible(true);
-        filterTipLabel.setText(tip);
+    private boolean isSelectedFieldTypeDate() {
+        if (selectedComparedTableColumn == null) return false;
+        return selectedComparedTableColumn.getColumnTypes().contains("DATE");
     }
 
-    private void hideOneTextFieldHBox() {
-        oneTextFieldHBox.setDisable(true);
-        oneTextFieldHBox.setManaged(false);
-        oneTextFieldHBox.setVisible(false);
+    private boolean isSelectedFieldTypeNumeric() {
+        if (selectedComparedTable == null) return false;
+
+        List<String> columnTypes = selectedComparedTableColumn.getColumnTypes();
+
+        return columnTypes.stream()
+                .anyMatch(t ->
+                        t.contains("INT")
+                        || t.contains("REAL")
+                        || t.contains("FLOA")
+                        || t.contains("DOUB")
+                        || t.contains("NUMERIC")
+                        || t.contains("DECIMAL")
+                );
     }
-    private void hideTwoTextFieldsHBox() {
-        twoTextFieldsHBox.setDisable(true);
-        twoTextFieldsHBox.setVisible(false);
-        twoTextFieldsHBox.setManaged(false);
+
+    private void showOneTextFieldHBox(String tip) {
+        hideAndDisableNodes(twoTextFieldsHBox);
+        showAndEnableNodes(oneTextFieldHBox);
+        filterTipLabel.setText(tip);
+
+        if (isSelectedFieldTypeDate()) {
+            hideAndDisableNodes(filterTextField);
+            showAndEnableNodes(filterDatePicker);
+        } else {
+            hideAndDisableNodes(filterDatePicker);
+            showAndEnableNodes(filterTextField);
+        }
+
     }
+
+    private void showTwoTextFieldsHBox(String tip) {
+        hideAndDisableNodes(oneTextFieldHBox);
+        showAndEnableNodes(twoTextFieldsHBox);
+        filterTipLabel.setText(tip);
+
+        if (isSelectedFieldTypeDate()) {
+            hideAndDisableNodes(lowerValueTextField, higherValueTextField);
+            showAndEnableNodes(lowerValueDatePicker, higherValueDatePicker);
+        } else {
+            hideAndDisableNodes(lowerValueDatePicker, higherValueDatePicker);
+            showAndEnableNodes(lowerValueTextField, higherValueTextField);
+        }
+    }
+
+
     private void hideAllTextFieldsHBox() {
         filterHeaderHBox.setVisible(false);
-        hideOneTextFieldHBox();
-        hideTwoTextFieldsHBox();
+        hideAndDisableNodes(oneTextFieldHBox, twoTextFieldsHBox);
     }
+
+    private void showDefaultFilterFieldsBox() {
+        hideNodes(advancedFilterFieldsBox);
+        showNodes(defaultFilterFieldsBox);
+    }
+
+    private void showAdvancedFilterFieldsBox() {
+        hideNodes(defaultFilterFieldsBox);
+        setupAdvancedFilterPrefix();
+        showNodes(advancedFilterFieldsBox);
+    }
+
 
     private void resetUI() {
         tableComboBox.getSelectionModel().clearSelection();
@@ -422,26 +498,31 @@ public class AddFilterDialogController {
         higherValueTextField.setText("");
     }
 
-    private void showDefaultFilterFieldsBox() {
-        hideAdvancedFilterFieldsBox();
-        defaultFilterFieldsBox.setVisible(true);
-        defaultFilterFieldsBox.setManaged(true);
+    private void showNodes(Node ... nodes) {
+        for (Node node : nodes) {
+            node.setManaged(true);
+            node.setVisible(true);
+        }
     }
-    private void hideDefaultFilterFieldsBox() {
-        defaultFilterFieldsBox.setVisible(false);
-        defaultFilterFieldsBox.setManaged(false);
-    }
-    private void showAdvancedFilterFieldsBox() {
-        hideDefaultFilterFieldsBox();
-        setupAdvancedFilterPrefix();
-        advancedFilterFieldsBox.setVisible(true);
-        advancedFilterFieldsBox.setManaged(true);
-    }
-    private void hideAdvancedFilterFieldsBox() {
-        advancedFilterFieldsBox.setVisible(false);
-        advancedFilterFieldsBox.setManaged(false);
+    private void hideNodes(Node ... nodes) {
+        for (Node node : nodes) {
+            node.setVisible(false);
+            node.setManaged(false);
+        }
     }
 
+    private void hideAndDisableNodes(Node ... nodes) {
+        hideNodes(nodes);
+        for (Node node : nodes) {
+            node.setDisable(true);
+        }
+    }
+    private void showAndEnableNodes(Node ... nodes) {
+        for (Node node : nodes) {
+            node.setDisable(false);
+        }
+        showNodes(nodes);
+    }
 
 
 
@@ -472,13 +553,7 @@ public class AddFilterDialogController {
 
 
     private void processAdvancedFilter(boolean closeAfter) {
-        String userWrittenFilter = advancedFilterTextArea.getText().
-                substring(getAdvancedFilterPrefix().length())
-                .split(";", 2)[0]
-                .trim();
-
-        if (selectedComparedTable == null || userWrittenFilter.isEmpty()) {
-            DialogUtils.showWarning("Preencha todos os campos.", "Todos os campos devem ser preenchidos para prosseguir.");
+        if (!isAdvancedFilterValid()) {
             return;
         }
 
@@ -492,7 +567,7 @@ public class AddFilterDialogController {
             }
         }
 
-        TableFilter tableFilter = new TableFilter(selectedComparedTable, userWrittenFilter);
+        TableFilter tableFilter = new TableFilter(selectedComparedTable, getUserWrittenAdvancedFilter());
 
         if (isAdding) {
             addedFilters.add(tableFilter);
@@ -508,15 +583,7 @@ public class AddFilterDialogController {
 
 
     private void processDefaultFilter(boolean closeAfter) {
-        boolean anyFieldMissing = selectedComparedTable == null
-                || selectedComparedTableColumn == null
-                || selectedFilterType == null
-                || (selectedFilterType.getNumberOfArguments() == 1 && filterTextField.getText().isEmpty())
-                || (selectedFilterType.getNumberOfArguments() == 2 && (lowerValueTextField.getText().isEmpty()
-                                                                || higherValueTextField.getText().isEmpty()));
-
-        if (anyFieldMissing) {
-            DialogUtils.showWarning("Preencha todos os campos.", "Todos os campos devem ser preenchidos para prosseguir.");
+        if (!isDefaultFilterValid()) {
             return;
         }
 
@@ -536,17 +603,30 @@ public class AddFilterDialogController {
                 columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType);
             }
             case 2 -> {
-                String lower = lowerValueTextField.getText().trim();
-                String higher = higherValueTextField.getText().trim();
-                if (lower.isEmpty() || higher.isEmpty()) return;
 
-                columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, lower, higher);
+                if (isSelectedFieldTypeDate()) {
+                    LocalDateTime lower = lowerValueDatePicker.getValue().atStartOfDay();
+                    LocalDateTime higher = higherValueDatePicker.getValue().atStartOfDay();
+
+                    columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, lower, higher);
+                } else {
+                    String lower = lowerValueTextField.getText().trim();
+                    String higher = higherValueTextField.getText().trim();
+
+                    columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, lower, higher);
+                }
+
             }
             default -> {
-                String value = filterTextField.getText().trim();
-                if (value.isEmpty()) return;
 
-                columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, value);
+                if (isSelectedFieldTypeDate()) {
+                    LocalDateTime value = filterDatePicker.getValue().atStartOfDay();
+                    columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, value);
+                } else {
+                    String value = filterTextField.getText().trim();
+                    columnFilter = new ColumnFilter(selectedComparedTableColumn, selectedFilterType, value);
+                }
+
             }
         }
 
@@ -581,6 +661,122 @@ public class AddFilterDialogController {
         if (closeAfter) {
             stage.close();
         }
+    }
+
+    private boolean isDefaultFilterValid() {
+        if (selectedComparedTable == null || selectedComparedTableColumn == null || selectedFilterType == null) {
+            showMissingFieldsWarning();
+            return false;
+        }
+
+        int args = selectedFilterType.getNumberOfArguments();
+        if (args == 0) return true;
+
+        // Field presence check:
+        if (isSelectedFieldTypeDate()) {
+
+            if (args == 1 && filterDatePicker.getValue() == null) {
+                showMissingFieldsWarning();
+                return false;
+            }
+            else if (args == 2 && (lowerValueDatePicker.getValue() == null || higherValueDatePicker.getValue() == null)) {
+                showMissingFieldsWarning();
+                return false;
+            }
+        } else {
+
+            if (args == 1 && filterTextField.getText().isEmpty()) {
+                showMissingFieldsWarning();
+                return false;
+            }
+            else if (args == 2 && (lowerValueTextField.getText().isEmpty() || higherValueTextField.getText().isEmpty())) {
+                showMissingFieldsWarning();
+                return false;
+            }
+
+        }
+
+        // Numeric validation:
+        if (isSelectedFieldTypeNumeric()) {
+            if (args == 1 && isWrittenFilterInvalid(filterTextField.getText())) {
+                showInvalidFieldWarning();
+                return false;
+            }
+            if (args == 2 && (isWrittenFilterInvalid(lowerValueTextField.getText())
+                    || isWrittenFilterInvalid(higherValueTextField.getText()))) {
+                showInvalidFieldWarning();
+                return false;
+            }
+        }
+
+        // Between validation:
+        if (args == 2) {
+            if (isSelectedFieldTypeDate()) {
+                if (higherValueDatePicker.getValue().isBefore(lowerValueDatePicker.getValue())
+                        || higherValueDatePicker.getValue().isEqual(lowerValueDatePicker.getValue()) ) {
+                    showInvalidBetweenValuesWarning();
+                    return false;
+                }
+            } else {
+                if (Double.parseDouble(higherValueTextField.getText()) <= Double.parseDouble(lowerValueTextField.getText())) {
+                    showInvalidBetweenValuesWarning();
+                    return false;
+                }
+            }
+        }
+
+
+        return true;
+    }
+
+
+
+    private boolean isWrittenFilterInvalid(String value) {
+        try {
+            Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isAdvancedFilterValid() {
+        String userWrittenFilter = getUserWrittenAdvancedFilter();
+
+        if (selectedComparedTable == null || userWrittenFilter.isEmpty()) {
+            showMissingFieldsWarning();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void showMissingFieldsWarning() {
+        DialogUtils.showWarning(
+                "Preencha todos os campos.",
+                "Todos os campos devem ser preenchidos para prosseguir."
+        );
+    }
+
+    private void showInvalidFieldWarning() {
+        DialogUtils.showWarning(
+                "Valor inválido",
+                "Filtro informado não é válido para o tipo do campo."
+        );
+    }
+
+    private void showInvalidBetweenValuesWarning() {
+        DialogUtils.showWarning(
+                "Valores inválidos",
+                "Informe sempre o menor valor primeiro seguido pelo maior valor."
+        );
+    }
+
+    private String getUserWrittenAdvancedFilter() {
+        return advancedFilterTextArea.getText().
+                substring(getAdvancedFilterPrefix().length())
+                .split(";", 2)[0]
+                .trim();
     }
 
     @FXML

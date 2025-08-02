@@ -15,6 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.control.DatePicker?>
 <AnchorPane prefHeight="377.0" prefWidth="400" stylesheets="@css/styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController">
 
     <VBox prefHeight="377.0" prefWidth="400.0" spacing="10" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
@@ -74,31 +75,39 @@
                         </HBox>
                         <HBox fx:id="oneTextFieldHBox" disable="true" prefHeight="100.0" prefWidth="200.0">
                            <children>
-                              <TextField fx:id="filterTextField" prefHeight="25.0" prefWidth="360.0" promptText="Digite o Filtro..." />
+                              <TextField fx:id="filterTextField" HBox.hgrow="ALWAYS" promptText="Digite o Filtro..." />
+                              <DatePicker fx:id="filterDatePicker" HBox.hgrow="ALWAYS" prefWidth="999" promptText="Selecione a Data..." managed="false" visible="false" editable="false"/>
                            </children>
                         </HBox>
-                        <HBox fx:id="twoTextFieldsHBox" alignment="CENTER_LEFT" disable="true" managed="false" prefHeight="100.0" prefWidth="200.0" visible="false">
+                        <HBox fx:id="twoTextFieldsHBox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" disable="true" managed="false"  visible="false" >
                            <children>
                               <TextField fx:id="lowerValueTextField" prefHeight="25.0" prefWidth="167.0" promptText="Digite o Menor Valor..." />
+                              <DatePicker fx:id="lowerValueDatePicker" HBox.hgrow="ALWAYS" promptText="Selecione a Menor Data..." managed="false" visible="false" editable="false" />
                               <Label text="E">
                                  <padding>
                                     <Insets left="10.0" right="10.0" />
                                  </padding>
                               </Label>
                               <TextField fx:id="higherValueTextField" prefHeight="25.0" prefWidth="167.0" promptText="Digite o Maior Valor..." />
+                              <DatePicker fx:id="higherValueDatePicker" HBox.hgrow="ALWAYS" promptText="Selecione a Maior Data..." managed="false" visible="false" editable="false" />
                            </children>
                         </HBox>
                      </children>
                   </VBox>
+                  <CheckBox fx:id="applyToMatchingColumnsCheckBox" mnemonicParsing="false" text="Adicionar filtro para todas tabelas com o mesmo campo">
+                     <tooltip>
+                        <Tooltip text="Para um campo ser considera o mesmo, deve possuir o mesmo nome e tipo entre as tabelas" />
+                     </tooltip>
+                  </CheckBox>
                </children>
             </VBox>
             <VBox fx:id="advancedFilterFieldsBox" prefHeight="200.0" prefWidth="100.0" managed="false" visible="false">
                <children>
                   <HBox prefHeight="17.0" prefWidth="322.0">
                      <children>
-                        <Label prefHeight="17.0" prefWidth="119.0" text="Consulta SQL" />
+                        <Label text="Consulta SQL" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <Label prefHeight="17.0" prefWidth="311.0" text="insira a cláusula WHERE" />
+                        <Label  text="insira a cláusula WHERE" />
                      </children>
                   </HBox>
                   <TextArea fx:id="advancedFilterTextArea" prefHeight="200.0" prefWidth="200.0" disable="true" />
@@ -106,14 +115,10 @@
             </VBox>
          </children>
       </VBox>
-      <CheckBox fx:id="applyToMatchingColumnsCheckBox" mnemonicParsing="false" text="Adicionar filtro para todas tabelas com o mesmo campo">
-         <tooltip>
-            <Tooltip text="Para um campo ser considera o mesmo, deve possuir o mesmo nome e tipo entre as tabelas" />
-         </tooltip>
-      </CheckBox>
+
 
         <HBox alignment="CENTER_LEFT" prefHeight="26.0" prefWidth="360.0">
-            <Button maxWidth="80" onAction="#onCancelClicked" styleClass="dialog-button" text="cancelar" />
+            <Button maxWidth="80" onAction="#onCancelClicked" styleClass="dialog-button" text="fechar" />
          <Region prefHeight="27.0" prefWidth="64.0" />
          <Button fx:id="addButton" maxWidth="116.0" onAction="#onAddButtonClicked" prefHeight="27.0" prefWidth="81.0" styleClass="dialog-button" text="adicionar" />
          <Button fx:id="addAndCloseButton" maxWidth="126.0" onAction="#onAddAndCloseButtonClicked" prefHeight="27.0" prefWidth="126.0" styleClass="dialog-button" text="adicionar e fechar" HBox.hgrow="ALWAYS">

@@ -12,7 +12,7 @@
             <Insets top="20" right="20" bottom="20" left="20"/>
         </padding>
 
-        <Label text="Validação de Configurações" styleClass="dialog-title"/>
+        <Label fx:id="title" text="Validação de Configurações" styleClass="dialog-title"/>
 
         <ScrollPane fitToWidth="true" prefHeight="250">
             <VBox fx:id="messageContainer" spacing="8" />

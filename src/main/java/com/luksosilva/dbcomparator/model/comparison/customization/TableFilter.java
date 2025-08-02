@@ -7,6 +7,14 @@ public class TableFilter implements Filter {
     ComparedTable comparedTable;
     String userWrittenFilter;
 
+
+    @Override
+    public void apply() {
+        comparedTable.setFilter(this);
+    }
+
+
+
     public TableFilter(ComparedTable comparedTable, String userWrittenFilter) {
         this.comparedTable = comparedTable;
         this.userWrittenFilter = userWrittenFilter;
@@ -20,8 +28,5 @@ public class TableFilter implements Filter {
         return userWrittenFilter;
     }
 
-    @Override
-    public void apply() {
-        comparedTable.setFilter(this);
-    }
+
 }

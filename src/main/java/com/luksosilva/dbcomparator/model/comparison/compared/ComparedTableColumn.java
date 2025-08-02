@@ -72,16 +72,11 @@ public class ComparedTableColumn {
         columnFilters.add(filter);
     }
 
-    public void addColumnFilter(List<ColumnFilter> filters) {
-        columnFilters.addAll(filters);
+    public boolean hasFilter() {
+        return !getColumnFilters().isEmpty();
     }
 
-    public boolean hasSameType() {
-        return perSourceTableColumn.values().stream()
-                .map(SourceTableColumn::getType)
-                .distinct()
-                .count() <= 1;
-    }
+
 
 
 }

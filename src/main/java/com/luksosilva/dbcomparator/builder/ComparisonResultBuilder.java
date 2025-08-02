@@ -37,7 +37,7 @@ public class ComparisonResultBuilder {
             sourcesInfo.put(comparedSource.getSourceId(), FileUtils.getCanonicalPath(comparedSource.getSource().getPath()));
         }
 
-        List<Map<String, Object>> rowDataList = ComparisonRepository.executeQueryDifferences(sourcesInfo, comparedTable.getQueryDifferences());
+        List<Map<String, Object>> rowDataList = ComparisonRepository.executeQueryDifferences(sourcesInfo, comparedTable.getSqlSelectDifferences());
 
         for (Map<String,Object> rowData : rowDataList) {
 

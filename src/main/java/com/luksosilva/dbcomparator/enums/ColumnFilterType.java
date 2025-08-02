@@ -7,17 +7,17 @@ public enum ColumnFilterType {
 
 
     EQUALS("=", "igual", concat(TEXT_TYPES(), NUMERIC_TYPES(), DATE_TYPES())),
+    NOT_EQUALS("<>", "diferente", concat(TEXT_TYPES(), NUMERIC_TYPES(), DATE_TYPES())),
     GREATER_THAN_OR_EQUAL(">=", "maior ou igual", concat(NUMERIC_TYPES(), DATE_TYPES())),
     LESS_THAN_OR_EQUAL("<=", "menor ou igual", concat(NUMERIC_TYPES(), DATE_TYPES())),
     GREATER_THAN(">", "maior", concat(NUMERIC_TYPES(), DATE_TYPES())),
     LESS_THAN("<", "menor", concat(NUMERIC_TYPES(), DATE_TYPES())),
-    NOT_EQUALS("<>", "diferente", concat(TEXT_TYPES(), NUMERIC_TYPES(), DATE_TYPES())),
     LIKE("LIKE", "contém", concat(TEXT_TYPES())),
     NOT_LIKE("NOT LIKE", "não contém", concat(TEXT_TYPES())),
     BETWEEN("BETWEEN", "entre", concat(NUMERIC_TYPES(), DATE_TYPES())),
     NOT_BETWEEN("NOT BETWEEN", "não entre", concat(NUMERIC_TYPES(), DATE_TYPES())),
-    IN("IN", "em", concat(TEXT_TYPES(), NUMERIC_TYPES(), DATE_TYPES())),
-    NOT_IN("NOT IN", "não está em", concat(TEXT_TYPES(), NUMERIC_TYPES(), DATE_TYPES())),
+    IN("IN", "em", concat(TEXT_TYPES(), NUMERIC_TYPES())),
+    NOT_IN("NOT IN", "não está em", concat(TEXT_TYPES(), NUMERIC_TYPES())),
     IS_NOT_NULL("IS NOT NULL", "não nulo", concat(TEXT_TYPES(), NUMERIC_TYPES(), DATE_TYPES())),
     IS_NULL("IS NULL", "nulo", concat(TEXT_TYPES(), NUMERIC_TYPES(), DATE_TYPES()));
 
@@ -38,6 +38,10 @@ public enum ColumnFilterType {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getDescriptionWithDetail() {
+        return description + " " + "[" + symbol + "]";
     }
 
     public boolean supportsType(String type) {

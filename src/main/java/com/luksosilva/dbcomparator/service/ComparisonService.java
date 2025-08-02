@@ -1,6 +1,7 @@
 package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
+import com.luksosilva.dbcomparator.builder.FilterSqlBuilder;
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
 import com.luksosilva.dbcomparator.model.comparison.*;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
@@ -67,13 +68,13 @@ public class ComparisonService {
 
 
     //5
-    public static void processFilters(Map<ComparedTableColumn, List<String>> perComparedTableColumnFilter) {
+    public static void processFilters(List<ComparedTable> comparedTableList) {
 
-//        perComparedTableColumnFilter.forEach((comparedTableColumn, filter) -> {
-//
-//            comparedTableColumn.getColumnFilters().addAll(filter);
-//
-//        });
+        for (ComparedTable comparedTable : comparedTableList) {
+            String filterSql = FilterSqlBuilder.build(comparedTable);
+
+            comparedTable.setSqlUserFilter(filterSql);
+        }
 
     }
 
@@ -162,8 +163,7 @@ public class ComparisonService {
         for (ComparedTable comparedTable : comparedTableList) {
 
             String sql = SelectDifferencesBuilder.build(comparedTable);
-            System.out.println("construido select para: " + comparedTable.getTableName());
-            comparedTable.setQueryDifferences(sql);
+            comparedTable.setSqlSelectDifferences(sql);
 
         }
 

@@ -1,13 +1,13 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison;
+package com.luksosilva.dbcomparator.viewmodel.comparison.compared;
 
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.viewmodel.comparison.customization.ColumnFilterViewModel;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
 public class ComparedTableColumnViewModel {

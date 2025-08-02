@@ -12,6 +12,8 @@ public enum FxmlFiles {
     SELECT_TABLES_SCREEN("comparisonScreens/SelectTablesScreen"),
     COLUMN_SETTINGS_SCREEN("comparisonScreens/ColumnSettingsScreen"),
     SET_FILTERS_SCREEN("comparisonScreens/SetFiltersScreen"),
+    COMPARISON_RESULT_SCREEN("comparisonScreens/ComparisonResultScreen"),
+
 
     /// DIALOGS
     COLUMN_SETTINGS_VALIDATION_DIALOG("dialogs/ColumnSettingsValidationDialog"),

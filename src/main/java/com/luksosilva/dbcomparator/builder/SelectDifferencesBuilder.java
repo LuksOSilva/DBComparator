@@ -1,26 +1,27 @@
 package com.luksosilva.dbcomparator.builder;
 
-
+import com.luksosilva.dbcomparator.enums.ColumnFilterType;
+import com.luksosilva.dbcomparator.enums.SqlFiles;
+import com.luksosilva.dbcomparator.enums.SqlPlaceholders;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 
-
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
-
 public class SelectDifferencesBuilder {
-
-
 
     public static String build(ComparedTable comparedTable) {
 
         String tableName = comparedTable.getTableName();
 
-        List<ComparedTableColumn> identifiersComparedColumns = comparedTable.getComparedTableColumns().stream()
+        List<ComparedTableColumn> identifierComparedColumns = comparedTable.getComparedTableColumns().stream()
                 .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isIdentifier())
                 .toList();
 
@@ -28,32 +29,30 @@ public class SelectDifferencesBuilder {
                 .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isComparable())
                 .toList();
 
+        List<ComparedSource> comparedSources = new ArrayList<>(comparedTable.getPerSourceTable().keySet());
 
-        List<ComparedSource> comparedSourceList = new ArrayList<>();
-        comparedTable.getPerSourceTable().forEach((comparedSource, sourceTable) ->
-                comparedSourceList.add(comparedSource));
+        String withClause = buildWithClause(comparedSources, tableName);
 
+        String selectClause = buildSelectClause(comparedSources, identifierComparedColumns, comparableComparedColumns);
 
-        String withClause = buildWithClause(comparedSourceList, tableName);
+        String fromClause = buildFromClause(comparedSources, identifierComparedColumns);
 
-        String selectClause = buildSelectClause(comparedSourceList, identifiersComparedColumns, comparableComparedColumns);
+        String whereClause = buildWhereClause(comparedTable, comparedSources, comparableComparedColumns);
 
-        String fromClause = buildFromClause(comparedSourceList, identifiersComparedColumns);
+        String userFilter = comparedTable.getSqlUserFilter();
 
-        String whereClause = buildWhereClause(comparedSourceList, identifiersComparedColumns, comparableComparedColumns);
+        if (!userFilter.isBlank()) {
+            whereClause = whereClause + "\nAND " + userFilter;
+        }
 
-
-        return SqlFormatter.buildSelectDifferences(withClause, selectClause, fromClause, whereClause);
+        return SqlFormatter.buildSelectDiff(withClause, selectClause, fromClause, whereClause);
     }
-
-
-
-
 
     private static String buildWithClause(List<ComparedSource> comparedSourceList, String tableName) {
         List<String> withClauseList = new ArrayList<>();
+
         for (ComparedSource comparedSource : comparedSourceList) {
-            withClauseList.add(SqlFormatter.buildSDWithClause(comparedSource.getSourceId(), tableName));
+            withClauseList.add(getSQLWithClause(comparedSource.getSourceId(), tableName));
         }
 
         return String.join(",\n", withClauseList);
@@ -63,9 +62,15 @@ public class SelectDifferencesBuilder {
                                             List<ComparedTableColumn> identifiersComparedColumns,
                                             List<ComparedTableColumn> comparableComparedColumns) {
 
-        String coalesceIdentifierColumns = buildCoalesceIdentifierColumns(comparedSourceList, identifiersComparedColumns);
+        String coalesceIdentifierColumns;
 
-        String selectComparableColumns = buildSelectComparableColumns(comparedSourceList, comparableComparedColumns);
+        if (comparedSourceList.size() == 1) {
+            coalesceIdentifierColumns = buildSelectColumns(comparedSourceList, identifiersComparedColumns);
+        } else {
+            coalesceIdentifierColumns = buildSelectCoalesceColumns(comparedSourceList, identifiersComparedColumns);
+        }
+
+        String selectComparableColumns = buildSelectColumns(comparedSourceList, comparableComparedColumns);
 
         if (selectComparableColumns.isEmpty()) {
             return coalesceIdentifierColumns;
@@ -73,46 +78,6 @@ public class SelectDifferencesBuilder {
 
         return String.join(",\n", coalesceIdentifierColumns, selectComparableColumns);
 
-    }
-
-    private static String buildCoalesceIdentifierColumns(List<ComparedSource> comparedSourceList,
-                                                         List<ComparedTableColumn> identifierComparedColumns) {
-
-        List<String> coalesceIdentifierColumns = new ArrayList<>();
-
-        for (ComparedTableColumn identifierComparedColumn : identifierComparedColumns) {
-            String columnName = identifierComparedColumn.getColumnName();
-
-            String allIdentifierColumnsWithSource = comparedSourceList.stream()
-                    .map(comparedSource -> "\"" + comparedSource.getSourceId() + "_data\".\"" + columnName + "\"")
-                    .collect(Collectors.joining(", "));
-
-
-            coalesceIdentifierColumns.add(SqlFormatter.buildSDCoalesceIdentifierColumns(allIdentifierColumnsWithSource, columnName));
-        }
-
-
-        return String.join(",\n", coalesceIdentifierColumns);
-
-    }
-
-    private static String buildSelectComparableColumns (List<ComparedSource> comparedSourceList,
-                                                        List<ComparedTableColumn> comparableComparedColumns) {
-
-        List<String> selectComparableColumns = new ArrayList<>();
-
-        for (ComparedSource comparedSource : comparedSourceList) {
-
-            for (ComparedTableColumn comparableComparedColumn : comparableComparedColumns) {
-
-                selectComparableColumns.add(
-                        SqlFormatter.buildSDSelectComparableColumns(comparedSource.getSourceId(),
-                        comparableComparedColumn.getColumnName()));
-
-            }
-        }
-
-        return selectComparableColumns.isEmpty() ? "" : String.join(",\n", selectComparableColumns);
     }
 
     private static String buildFromClause (List<ComparedSource> comparedSourceList,
@@ -123,7 +88,7 @@ public class SelectDifferencesBuilder {
 
         List<String> joinClauseList = new ArrayList<>();
 
-        //skips first compared source on purpose (first selected item doesn't need join).
+        //skips first because doesn't need join.
         for (int i = 1; i < comparedSourceList.size(); i++) {
 
             joinClauseList.add(buildJoinClause(comparedSourceList, i, identifiersComparedColumns));
@@ -134,125 +99,19 @@ public class SelectDifferencesBuilder {
         String joinClause = joinClauseList.isEmpty() ? "" : String.join("\n", joinClauseList);
 
 
-        return SqlFormatter.buildSDFromClause(firstComparedSource.getSourceId(), joinClause);
+        return getSQLFromClause(firstComparedSource.getSourceId(), joinClause);
     }
 
-
-
-
-    private static String buildJoinClause (List<ComparedSource> comparedSourceList,
-                                           int currentIndex,
-                                           List<ComparedTableColumn> identifiersComparedColumns) {
-
-        ComparedSource currentComparedSource = comparedSourceList.get(currentIndex);
-
-        List<String> onClauseList = new ArrayList<>();
-
-        //loops through all previous compared sources to create all necessary ON clauses.
-        for (int i = 0; i < currentIndex; i++) {
-
-        ComparedSource previousComparedSource = comparedSourceList.get(i);
-
-        onClauseList.add(buildOnClause(currentComparedSource, previousComparedSource, identifiersComparedColumns));
-
-        }
-
-
-        String onClause = onClauseList.isEmpty() ? "" : String.join("\nOR\n", onClauseList);
-
-
-        return SqlFormatter.buildSDJoinClause(currentComparedSource.getSourceId(), onClause);
-    }
-
-    private static String buildOnClause (ComparedSource currentComparedSource,
-                                         ComparedSource previousComparedSource,
-                                         List<ComparedTableColumn> identifiersComparedColumns) {
-
-
-        String currentSourceId = currentComparedSource.getSourceId();
-        String previousSourceId = previousComparedSource.getSourceId();
-
-        String equalsIdentifierColumns = identifiersComparedColumns.stream()
-                .map(comparedTableColumn -> {
-
-                    String columnName = comparedTableColumn.getColumnName();
-
-                    return String.format("\"%s_data\".\"%s\" = \"%s_data\".\"%s\"",
-                            currentSourceId, columnName, previousSourceId, columnName);
-
-                })
-                .collect(Collectors.joining("\nAND "));
-
-
-        return SqlFormatter.buildSDOnClause(equalsIdentifierColumns);
-
-    }
-
-    private static String buildWhereClause(List<ComparedSource> comparedSourceList,
-                                           List<ComparedTableColumn> identifiersComparedColumns,
+    private static String buildWhereClause(ComparedTable comparedTable,
+                                           List<ComparedSource> comparedSourceList,
                                            List<ComparedTableColumn> comparableComparedColumns) {
 
-        String whereComparableColumnIsDifferent = buildWhereComparableColumnIsDifferent(
+        String whereColumnIsDifferent = buildWhereComparableColumnIsDifferent(
                 comparedSourceList, comparableComparedColumns);
 
-        String whereColumnIsFiltered = buildWhereColumnIsFiltered(
-                comparedSourceList, identifiersComparedColumns, comparableComparedColumns);
-
-        return whereComparableColumnIsDifferent + "\n" + whereColumnIsFiltered;
-    }
-
-    private static String buildWhereColumnIsFiltered(List<ComparedSource> comparedSourceList,
-                                                     List<ComparedTableColumn> identifiersComparedColumns,
-                                                     List<ComparedTableColumn> comparableComparedColumns) {
-
-        List<String> whereColumnIsFilteredList = new ArrayList<>();
-
-        List<ComparedTableColumn> allComparedTableColumns = new ArrayList<>();
-        allComparedTableColumns.addAll(identifiersComparedColumns);
-        allComparedTableColumns.addAll(comparableComparedColumns);
-
-        List<ComparedTableColumn> allComparedTableColumnsWithFilter = allComparedTableColumns.stream()
-                .filter(comparedTableColumn -> !comparedTableColumn.getColumnFilters().isEmpty())
-                .toList();
-
-        if (allComparedTableColumnsWithFilter.isEmpty()) {
-            return "";
-        }
-
-        for (ComparedTableColumn comparedTableColumnWithFilter : allComparedTableColumnsWithFilter) {
-
-            String sourceColumnInFilter = comparedSourceList.stream()
-                    .map(comparedSource -> {
-
-                        String base = String.format("\"%s_data\".\"%s\" IN ",
-                                comparedSource.getSourceId(), comparedTableColumnWithFilter.getColumnName());
-
-                        String columnTypeInSource = comparedTableColumnWithFilter
-                                .getPerSourceTableColumn().get(comparedSource).getType();
-
-                        if (shouldQuoteValue(columnTypeInSource)) {
-
-                            String quotedFilters = comparedTableColumnWithFilter.getColumnFilters().stream()
-                                    .map(s -> "\"" + s + "\"")
-                                    .collect(Collectors.joining(", "));
-
-                            //return base + "(" + quotedFilters + ")";
-                            return "temp";
-
-                        }
-                        //return base + "(" + String.join(", ", comparedTableColumnWithFilter.getColumnFilters()) + ")";
-                        return "temp";
-                    })
-                    .collect(Collectors.joining("\nOR "));
 
 
-            whereColumnIsFilteredList.add("(" + sourceColumnInFilter + ")");
-
-        }
-
-        return "AND \n" + String.join("\nAND\n", whereColumnIsFilteredList);
-
-
+        return whereColumnIsDifferent;
     }
 
     private static String buildWhereComparableColumnIsDifferent(List<ComparedSource> comparedSourceList,
@@ -272,7 +131,7 @@ public class SelectDifferencesBuilder {
                         comparableComparedColumns, currentComparedSource, nextComparedSource);
 
                 if (!conditionComparableColumns.isEmpty()){
-                    whereComparableColumnIsDifferentList.add(SqlFormatter.buildSDWhereClause(conditionComparableColumns));
+                    whereComparableColumnIsDifferentList.add(getSQLWhereClause(conditionComparableColumns));
                 }
             }
         }
@@ -301,10 +160,10 @@ public class SelectDifferencesBuilder {
 
             List<String> individualComparisonParts = new ArrayList<>();
 
-            individualComparisonParts.add(SqlFormatter.buildSDCoalesceComparableColumn(
+            individualComparisonParts.add(getSQLCoalesceComparableColumn(
                     currentComparedSource.getSourceId(), columnName, currentSourceDefaultValue));
 
-            individualComparisonParts.add(SqlFormatter.buildSDCoalesceComparableColumn(
+            individualComparisonParts.add(getSQLCoalesceComparableColumn(
                     nextComparedSource.getSourceId(), columnName, nextSourceDefaultValue));
 
             coalesceComparableColumns.add(String.join(" <> ", individualComparisonParts));
@@ -312,6 +171,101 @@ public class SelectDifferencesBuilder {
 
 
         return coalesceComparableColumns.isEmpty() ? "" : String.join("\nOR ", coalesceComparableColumns);
+    }
+
+
+
+
+
+    private static String buildJoinClause (List<ComparedSource> comparedSourceList,
+                                           int currentIndex,
+                                           List<ComparedTableColumn> identifiersComparedColumns) {
+
+        ComparedSource currentComparedSource = comparedSourceList.get(currentIndex);
+
+        List<String> onClauseList = new ArrayList<>();
+
+        //loops through all previous compared sources to create all necessary ON clauses.
+        for (int i = 0; i < currentIndex; i++) {
+
+        ComparedSource previousComparedSource = comparedSourceList.get(i);
+
+        onClauseList.add(buildOnClause(currentComparedSource, previousComparedSource, identifiersComparedColumns));
+
+        }
+
+
+        String onClause = onClauseList.isEmpty() ? "" : String.join("\nOR\n", onClauseList);
+
+
+        return getSQLJoinClause(currentComparedSource.getSourceId(), onClause);
+    }
+
+    private static String buildOnClause (ComparedSource currentComparedSource,
+                                         ComparedSource previousComparedSource,
+                                         List<ComparedTableColumn> identifiersComparedColumns) {
+
+
+        String currentSourceId = currentComparedSource.getSourceId();
+        String previousSourceId = previousComparedSource.getSourceId();
+
+        String equalsIdentifierColumns = identifiersComparedColumns.stream()
+                .map(comparedTableColumn -> {
+
+                    String columnName = comparedTableColumn.getColumnName();
+
+                    return String.format("\"%s_data\".\"%s\" = \"%s_data\".\"%s\"",
+                            currentSourceId, columnName, previousSourceId, columnName);
+
+                })
+                .collect(Collectors.joining("\nAND "));
+
+
+        return getSQLOnClause(equalsIdentifierColumns);
+
+    }
+
+
+
+
+    private static String buildSelectCoalesceColumns(List<ComparedSource> comparedSourceList,
+                                                     List<ComparedTableColumn> identifierComparedColumns) {
+
+        List<String> coalesceColumns = new ArrayList<>();
+
+        for (ComparedTableColumn identifierComparedColumn : identifierComparedColumns) {
+            String columnName = identifierComparedColumn.getColumnName();
+
+            String allColumnsWithSource = comparedSourceList.stream()
+                    .map(comparedSource -> "\"" + comparedSource.getSourceId() + "_data\".\"" + columnName + "\"")
+                    .collect(Collectors.joining(", "));
+
+
+            coalesceColumns.add(getSQLCoalesceColumns(allColumnsWithSource, columnName));
+        }
+
+
+        return String.join(",\n", coalesceColumns);
+
+    }
+
+    private static String buildSelectColumns (List<ComparedSource> comparedSourceList,
+                                                        List<ComparedTableColumn> comparableComparedColumns) {
+
+        List<String> selectComparableColumns = new ArrayList<>();
+
+        for (ComparedSource comparedSource : comparedSourceList) {
+
+            for (ComparedTableColumn comparableComparedColumn : comparableComparedColumns) {
+
+                selectComparableColumns.add(
+                        getSQLSelectColumns(comparedSource.getSourceId(),
+                        comparableComparedColumn.getColumnName()));
+
+            }
+        }
+
+        return selectComparableColumns.isEmpty() ? "" : String.join(",\n", selectComparableColumns);
     }
 
     private static String getDefaultValue(String columnType) {
@@ -327,21 +281,92 @@ public class SelectDifferencesBuilder {
         };
     }
 
-    private static boolean shouldQuoteValue(String columnType) {
 
-        String lowerCaseColumnType = columnType.toLowerCase();
 
-        return !(lowerCaseColumnType.contains("numeric") ||
-                 lowerCaseColumnType.contains("integer") ||
-                 lowerCaseColumnType.contains("real") ||
-                 lowerCaseColumnType.contains("bool"));
+
+    /// SQL
+
+
+    private static String getSQLWithClause(String sourceId, String tableName) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.TABLE_NAME, tableName
+        );
+
+        return SqlFormatter.buildSQL(SqlFiles.SD_WITH_CLAUSE, placeholders);
+    }
+
+    public static String getSQLCoalesceColumns(String identifierColumns, String columnName) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.IDENTIFIER_COLUMNS, identifierColumns,
+                SqlPlaceholders.COLUMN_NAME, columnName
+        );
+
+        return SqlFormatter.buildSQL(SqlFiles.SD_COALESCE_IDENTIFIER_COLUMN, placeholders);
 
     }
 
+    public static String getSQLSelectColumns(String sourceId, String columnName) {
 
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.COLUMN_NAME, columnName
+        );
 
+        return SqlFormatter.buildSQL(SqlFiles.SD_SELECT_COMPARABLE_COLUMNS, placeholders);
+    }
 
+    public static String getSQLFromClause(String sourceId, String joinClause) {
 
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.JOIN_CLAUSE, joinClause
+        );
 
+        return SqlFormatter.buildSQL(SqlFiles.SD_FROM_CLAUSE, placeholders);
+    }
+    public static String getSQLJoinClause(String sourceId, String onClause) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.ON_CLAUSE, onClause
+        );
+
+        return SqlFormatter.buildSQL(SqlFiles.SD_JOIN_CLAUSE, placeholders);
+
+    }
+    public static String getSQLOnClause(String equalsIdentifierColumns) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.EQUALS_IDENTIFIER_COLUMNS, equalsIdentifierColumns
+        );
+
+        return SqlFormatter.buildSQL(SqlFiles.SD_ON_CLAUSE, placeholders);
+
+    }
+
+    public static String getSQLCoalesceComparableColumn(String sourceId, String columnName, String defaultValue) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.SOURCE_ID, sourceId,
+                SqlPlaceholders.COLUMN_NAME, columnName,
+                SqlPlaceholders.DEFAULT_VALUE, defaultValue
+        );
+
+        return SqlFormatter.buildSQL(SqlFiles.SD_COALESCE_COMPARABLE_COLUMN, placeholders);
+
+    }
+
+    public static String getSQLWhereClause(String conditionComparableColumns) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.CONDITION_COMPARABLE_COLUMNS, conditionComparableColumns
+        );
+
+        return SqlFormatter.buildSQL(SqlFiles.SD_WHERE_CLAUSE, placeholders);
+
+    }
 
 }
