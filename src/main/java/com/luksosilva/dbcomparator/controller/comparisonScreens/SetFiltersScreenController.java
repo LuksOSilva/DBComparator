@@ -16,6 +16,7 @@ import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import com.luksosilva.dbcomparator.viewmodel.comparison.compared.ComparedTableViewModel;
 import com.luksosilva.dbcomparator.viewmodel.comparison.customization.FilterViewModel;
+import javafx.animation.FadeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -38,6 +39,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.sqlite.FileException;
 
 import java.io.IOException;
@@ -87,6 +89,7 @@ public class SetFiltersScreenController {
 
     public void init() {
         setupViewModels();
+        setupFilterControls();
         constructAccordion();
     }
 
@@ -209,6 +212,68 @@ public class SetFiltersScreenController {
             comparedTableViewModels.add(new ComparedTableViewModel(comparedTable));
 
         }
+    }
+
+    private void setupFilterControls() {
+        filterTypeComboBox.setItems(FXCollections.observableArrayList("tabela", "coluna"));
+        filterTypeComboBox.setValue("tabela");
+
+
+        searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+
+
+        applyFilter();
+    }
+
+    private void applyFilter() {
+        String filterText = searchTextField.getText().toLowerCase().trim();
+        String filterType = filterTypeComboBox.getValue();
+
+        filteredFilterPanes.setPredicate(pane -> {
+            String tableName = pane.getText();
+            String tableNameLowerCase = tableName.toLowerCase();
+
+            // Filter by text
+            if (!filterText.isEmpty()) {
+                if ("tabela".equalsIgnoreCase(filterType)) {
+                    if (!tableNameLowerCase.contains(filterText)) return false;
+                } else if ("coluna".equalsIgnoreCase(filterType)) {
+
+                    ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+                    if (comparedTable == null) return false;
+
+                    boolean columnMatch = comparedTable.getComparedTableColumns().stream()
+                            .anyMatch(comparedTableColumn -> comparedTableColumn.getColumnName().contains(filterText));
+
+                    if (!columnMatch) return false;
+                }
+            }
+
+            return true;
+        });
+
+        // Atualiza os panes
+        tablesAccordion.getPanes().setAll(filteredFilterPanes);
+
+        // Faz um fade-in suave no accordion
+        fadeInAccordion();
+    }
+
+    private void fadeInAccordion() {
+        tablesAccordion.setOpacity(0);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(250), tablesAccordion);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
+
+    private ComparedTable getComparedTableFromTableName(String tableName) {
+        return comparison.getComparedTables().stream()
+                .filter(ct -> ct.getTableName().equals(tableName))
+                .findFirst()
+                .orElse(null);
     }
 
     /// CONSTRUCTOR METHODS
