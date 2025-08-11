@@ -20,7 +20,7 @@ public class FxmlUtils {
         return new FxLoadResult<>(root, controller);
     }
 
-    public static <T extends Parent, U> FxLoadResult<Stage, U> createNewStage(Stage owner, FxmlFiles fxmlFile, String title) throws IOException {
+    public static <T extends Parent, U> FxLoadResult<Stage, U> createNewStage(FxmlFiles fxmlFile, Modality modality, Stage owner,  String title) throws IOException {
         FXMLLoader loader = new FXMLLoader(FxmlUtils.class.getResource(fxmlFile.getPath()));
 
         Parent root = loader.load();
@@ -30,11 +30,12 @@ public class FxmlUtils {
         newStage.setTitle(title);
         newStage.setScene(new Scene(root));
 
-        newStage.initModality(Modality.APPLICATION_MODAL);
+        newStage.initModality(modality);
         newStage.initOwner(owner);
 
         return new FxLoadResult<>(newStage, controller);
     }
+
 
 
 

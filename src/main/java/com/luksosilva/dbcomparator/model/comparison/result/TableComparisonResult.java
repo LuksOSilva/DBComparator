@@ -8,8 +8,7 @@ import java.util.List;
 
 public class TableComparisonResult {
 
-    private ComparedTable comparedTable;
-    private boolean hasDifferences;
+    private final ComparedTable comparedTable;
 
     private final List<RowDifference> rowDifferences = new ArrayList<>();
 
@@ -21,15 +20,13 @@ public class TableComparisonResult {
         this.rowDifferences.add(rowDifference);
     }
 
-    public boolean hasDifferences() {
-        return hasDifferences;
-    }
-    public void setHasDifferences(boolean hasDifferences){
-        this.hasDifferences = hasDifferences;
-    }
 
     public String getTableName() {
         return comparedTable.getTableName();
+    }
+
+    public ComparedTable getComparedTable() {
+        return comparedTable;
     }
 
     public List<RowDifference> getRowDifferences() {

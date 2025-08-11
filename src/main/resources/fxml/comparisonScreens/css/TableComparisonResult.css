@@ -1,0 +1,90 @@
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #b0b0b0;
+    -fx-border-width: 1;
+    -fx-table-cell-border-color: #d0d0d0; /* visible grid lines */
+    -fx-padding: 0;
+    -fx-selection-bar: #cce5ff; /* light blue highlight */
+    -fx-selection-bar-non-focused: #e6f2ff;
+    -fx-focus-color: transparent;
+}
+
+/* Column Headers */
+.table-view .column-header-background {
+    -fx-background-color: #f2f2f2;
+    -fx-border-color: #b0b0b0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-size: 26px;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: #333;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 6 0 6;
+}
+
+/* Cells */
+.table-cell {
+    -fx-padding: 2px 6px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: #222;
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Normal zebra striping */
+.table-row-cell:odd {
+    -fx-background-color: #fafafa;
+}
+.table-row-cell:even {
+    -fx-background-color: white;
+}
+
+/* Hover row */
+.table-row-cell:hover {
+    -fx-background-color: #e6f2ff;
+}
+
+/* ====== custom look ====== */
+.cell-default {
+    -fx-font-style: normal;
+    -fx-background-color: transparent;
+}
+
+.row-default {
+    -fx-background-color: transparent;
+}
+
+
+.cell-null {
+    -fx-alignment: CENTER;
+    -fx-font-style: italic;
+    -fx-opacity: 0.8;
+}
+
+.row-missing {
+    -fx-background-color: #cce5ff; /* soft blue */
+}
+
+.table-row-cell.row-missing:odd {
+    -fx-background-color: #c7dfff;  /* a slightly darker blue */
+}
+.table-row-cell.row-missing:even {
+    -fx-background-color: #d0e6ff;  /* a lighter blue */
+}
+
+.cell-different {
+    -fx-background-color: #fff1a8; /* yellow */
+}
+
+/* Slightly lighter yellow for even rows */
+.table-row-cell:even .cell-different {
+    -fx-background-color: #fff7c1; /* lighter yellow */
+}
+
+/* Slightly darker yellow for odd rows */
+.table-row-cell:odd .cell-different {
+    -fx-background-color: #ffea8f; /* darker yellow */
+}

@@ -49,6 +49,7 @@ public class ComparisonRepository {
 
                 while (resultSet.next()) {
                     Map<String, Object> row = new LinkedHashMap<>();
+
                     for (int i = 1; i <= columnCount; i++) {
                         String columnName = metaData.getColumnLabel(i);
                         Object value = resultSet.getObject(i);
@@ -56,7 +57,6 @@ public class ComparisonRepository {
                     }
 
                     results.add(row);
-
                 }
             }
 

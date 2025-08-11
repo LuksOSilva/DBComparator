@@ -6,25 +6,26 @@ import java.util.List;
 public class RowDifference {
 
     private final List<IdentifierColumn> identifierColumns = new ArrayList<>();
-    private final List<DifferingColumn> differingColumns = new ArrayList<>();
+    private final List<ComparableColumn> comparableColumns = new ArrayList<>();
 
+    public RowDifference() {}
 
     public List<IdentifierColumn> getIdentifierColumns() {
         return identifierColumns;
     }
 
-    public List<DifferingColumn> getDifferingColumns() {
-        return differingColumns;
+    public List<ComparableColumn> getDifferingColumns() {
+        return comparableColumns;
     }
 
     public void addIdentifierColumn(IdentifierColumn identifierColumn) {
         this.identifierColumns.add(identifierColumn);
     }
-    public void addDifferingColumn(DifferingColumn differingColumn) {
-        this.differingColumns.add(differingColumn);
+    public void addDifferingColumn(ComparableColumn comparableColumn) {
+        this.comparableColumns.add(comparableColumn);
     }
-    public void addAllDifferingColumns(List<DifferingColumn> differingColumnList) {
-        this.differingColumns.addAll(differingColumnList);
+    public void addAllDifferingColumns(List<ComparableColumn> comparableColumnList) {
+        this.comparableColumns.addAll(comparableColumnList);
     }
 
 

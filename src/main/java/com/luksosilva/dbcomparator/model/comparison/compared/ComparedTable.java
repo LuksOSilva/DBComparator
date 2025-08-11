@@ -1,11 +1,11 @@
 package com.luksosilva.dbcomparator.model.comparison.compared;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
 import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
 import com.luksosilva.dbcomparator.model.comparison.customization.validation.FilterValidationResult;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
+import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
 import java.util.*;
 
@@ -39,17 +39,44 @@ public class ComparedTable {
                 .orElse(null);
     }
 
-    @JsonIgnore
+
     public List<ComparedTableColumn> getComparedTableColumns() {
         return comparedTableColumns;
     }
 
-    @JsonIgnore
+    public List<ComparedTableColumn> getOrderedComparedTableColumns() {
+
+        return comparedTableColumns.stream()
+                .sorted((tableColumn1, tableColumn2) -> {
+
+                    // Get minimum sequence for col1
+                    int minSeq1 = tableColumn1.getPerSourceTableColumn().values().stream()
+                            .mapToInt(SourceTableColumn::getSequence)
+                            .min()
+                            .orElse(Integer.MAX_VALUE);
+
+                    // Get minimum sequence for col2
+                    int minSeq2 = tableColumn2.getPerSourceTableColumn().values().stream()
+                            .mapToInt(SourceTableColumn::getSequence)
+                            .min()
+                            .orElse(Integer.MAX_VALUE);
+
+                    // Primary sort: by min sequence
+                    int cmp = Integer.compare(minSeq1, minSeq2);
+                    if (cmp != 0) return cmp;
+
+                    // Secondary sort: by column name (so tie is stable)
+                    return tableColumn1.getColumnName().compareTo(tableColumn2.getColumnName());
+                })
+                .toList();
+    }
+
+
     public Map<ComparedSource, SourceTable> getPerSourceTable() {
         return perSourceTable;
     }
 
-    @JsonIgnore
+
     public String getSqlSelectDifferences() {
         return sqlSelectDifferences;
     }

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="600.0" prefWidth="800.0" styleClass="main-container" stylesheets="@../comparisonScreens/css/Main.css, @../comparisonScreens/css/TableComparisonResult.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.comparisonScreens.TableComparisonResultScreenController">
+    <children>
+      <HBox layoutX="25.0" layoutY="20.0" prefHeight="25.0" prefWidth="200.0" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0">
+         <children>
+      
+              <Label fx:id="titleLabel" prefHeight="25.0" prefWidth="915.0" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="table_name" />
+         </children>
+      </HBox>
+      <HBox layoutX="25.0" layoutY="80.0" prefHeight="25.0" prefWidth="750.0" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="80.0">
+         <children>
+            <ComboBox fx:id="columnsComboBox" prefHeight="25.0" prefWidth="127.0" />
+            <TextField fx:id="searchTextField" promptText="Pesquisar valor...">
+               <HBox.margin>
+                  <Insets left="10.0" />
+               </HBox.margin>
+            </TextField>
+            <Button fx:id="applyFilterButton" mnemonicParsing="false" onAction="#applyFilter" prefHeight="25.0" prefWidth="29.0">
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin>
+            </Button>
+            <Region HBox.hgrow="ALWAYS" />
+            <MenuButton fx:id="visibleColumnsMenuButton" mnemonicParsing="false" text="Colunas Visíveis" />
+         </children>
+      </HBox>
+
+        <TableView fx:id="differencesTableView" layoutX="25.0" layoutY="91.0" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="120.0" VBox.vgrow="ALWAYS" />
+
+        <HBox layoutX="25.0" layoutY="550.0" spacing="10" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0">
+            <Button onAction="#onCopyQueryButtonClicked" text="Copiar query" />
+            <Button onAction="#onExportCsvButtonClicked" text="Exportar CSV" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button onAction="#onCloseButtonClicked" text="Fechar" />
+        </HBox>
+    </children>
+</AnchorPane>

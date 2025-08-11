@@ -13,13 +13,16 @@ public enum FxmlFiles {
     COLUMN_SETTINGS_SCREEN("comparisonScreens/ColumnSettingsScreen"),
     SET_FILTERS_SCREEN("comparisonScreens/SetFiltersScreen"),
     COMPARISON_RESULT_SCREEN("comparisonScreens/ComparisonResultScreen"),
+    TABLE_COMPARISON_RESULT_SCREEN("comparisonScreens/TableComparisonResultScreen"),
 
 
     /// DIALOGS
     COLUMN_SETTINGS_VALIDATION_DIALOG("dialogs/ColumnSettingsValidationDialog"),
     CONFIRMATION_DIALOG("dialogs/ConfirmationDialog"),
-    COMPARE_SCHEMAS_DIALOG("dialogs/CompareSchemasDialog"),
-    ADD_FILTER_DIALOG("dialogs/AddFilterDialog");
+    ADD_FILTER_DIALOG("dialogs/AddFilterDialog"),
+
+    /// OTHERS
+    COMPARE_SCHEMAS_DIALOG("dialogs/CompareSchemasDialog");
 
     private final String fileName;
 

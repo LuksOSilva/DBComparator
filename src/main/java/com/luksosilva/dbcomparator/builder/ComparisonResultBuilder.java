@@ -95,7 +95,6 @@ public class ComparisonResultBuilder {
                 ComparedSource comparedSource =
                         getComparedSourceFromSourceId(sourceId, comparedSourceList);
 
-
                 perComparedColumnSourceValue
                         .computeIfAbsent(comparedTableColumn, k -> new HashMap<>())
                         .put(comparedSource, value);
@@ -103,10 +102,39 @@ public class ComparisonResultBuilder {
             }
 
         }
-        rowDifference.addAllDifferingColumns(buildDifferingColumns(perComparedColumnSourceValue));
+
+        //cleans empty sources:
+
+        // Step 1: Identify all ComparedSources that have only null values across all ComparedTableColumns
+        Set<ComparedSource> sourcesWithOnlyNulls = new HashSet<>();
+
+        for (ComparedSource comparedSource : comparedSourceList) {
+            boolean allNull = true;
+            for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
+                Object val = perSourceValue.get(comparedSource);
+                if (val != null) {
+                    allNull = false;
+                    break;
+                }
+            }
+            if (allNull) {
+                sourcesWithOnlyNulls.add(comparedSource);
+            }
+        }
+
+        // Step 2: Remove those ComparedSources from all perSourceValue maps
+        for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
+            sourcesWithOnlyNulls.forEach(perSourceValue::remove);
+        }
+
+
+
+
+        rowDifference.addAllDifferingColumns(buildComparableColumns(perComparedColumnSourceValue));
 
         return rowDifference;
     }
+
 
 
     private static IdentifierColumn buildIdentifierColumn (ComparedTableColumn comparedTableColumn, Object value) {
@@ -115,26 +143,22 @@ public class ComparisonResultBuilder {
 
     }
 
-    private static List<DifferingColumn> buildDifferingColumns (Map<ComparedTableColumn,
+    private static List<ComparableColumn> buildComparableColumns (Map<ComparedTableColumn,
             Map<ComparedSource, Object>> perComparedColumnSourceValue) {
 
-        List<DifferingColumn> differingColumnList = new ArrayList<>();
+        List<ComparableColumn> comparableColumnList = new ArrayList<>();
 
         for (Map.Entry<ComparedTableColumn, Map<ComparedSource, Object>> entry : perComparedColumnSourceValue.entrySet()) {
 
             ComparedTableColumn comparedTableColumn = entry.getKey();
             Map<ComparedSource, Object> perSourceValue = entry.getValue();
 
-            //adds differingColumn only if there are difference between sources or if there is only 1 source compared.
-            if(perSourceValue.size() == 1 || columnDiffers(perSourceValue)) {
-                differingColumnList.add(new DifferingColumn(comparedTableColumn, perSourceValue));
-            }
 
+            comparableColumnList.add(new ComparableColumn(comparedTableColumn, perSourceValue));
 
         }
 
-
-        return differingColumnList;
+        return comparableColumnList;
     }
 
 
@@ -149,7 +173,7 @@ public class ComparisonResultBuilder {
 
         List<Object> values = new ArrayList<>();
         for (Object value : perSourceValue.values()) {
-            values.add((value == null) ? "NULL" : value);
+            values.add((value == null) ? "" : value);
         }
 
         HashSet<Object> distinctValues = new HashSet<>(values);

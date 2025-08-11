@@ -12,12 +12,13 @@ public class IdentifierColumn {
         this.value = value;
     }
 
-    public String getColumnName() {
-        return comparedTableColumn.getColumnName();
-    }
-
+    public ComparedTableColumn getComparedTableColumn() { return comparedTableColumn; }
 
     public Object getValue() {
         return value;
+    }
+
+    public String getColumnName() {
+        return comparedTableColumn.getColumnName();
     }
 }

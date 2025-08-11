@@ -5,14 +5,14 @@ import java.util.List;
 
 public class ComparisonResult {
 
-    private ComparisonSummary comparisonSummary;
+    private ComparisonResultSummary comparisonResultSummary;
     private final List<TableComparisonResult> tableComparisonResults = new ArrayList<>();
 
     public ComparisonResult() {  }
 
 
-    public ComparisonSummary getComparisonSummary() {
-        return comparisonSummary;
+    public ComparisonResultSummary getComparisonSummary() {
+        return comparisonResultSummary;
     }
 
     public List<TableComparisonResult> getTableComparisonResults() {

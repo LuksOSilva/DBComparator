@@ -512,7 +512,7 @@ public class ColumnSettingsScreenController {
         // Initialize FilteredList based on allTablePanes
         filteredTablePanes = new FilteredList<>(allTablePanes, pane -> true);
 
-        // Set the Accordion's panes to the filtered list.
+        // Set the Accordions panes to the filtered list.
         tablesAccordion.getPanes().setAll(filteredTablePanes);
     }
 

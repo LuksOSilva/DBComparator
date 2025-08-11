@@ -31,6 +31,10 @@ public class SourceTableColumn {
         return type;
     }
 
+    public int getSequence() {
+        return sequence;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

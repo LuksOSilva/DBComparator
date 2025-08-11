@@ -2,13 +2,16 @@ package com.luksosilva.dbcomparator.util;
 
 import com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController;
 import com.luksosilva.dbcomparator.controller.dialogs.ColumnSettingsValidationDialogController;
+import com.luksosilva.dbcomparator.controller.comparisonScreens.TableComparisonResultScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
+import com.luksosilva.dbcomparator.viewmodel.comparison.result.TableComparisonResultViewModel;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -57,7 +60,7 @@ public class DialogUtils {
     public static List<Filter> showAddFilterDialog(Stage ownerStage, List<ComparedTable> comparedTableList) {
         try {
             FxLoadResult<Stage, AddFilterDialogController> loadResult =
-                    FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
+                    FxmlUtils.createNewStage(FxmlFiles.ADD_FILTER_DIALOG, Modality.APPLICATION_MODAL, ownerStage, "Adicionar Filtros");
 
             loadResult.controller.initializeAddDialog(comparedTableList);
             loadResult.controller.setStage(loadResult.node);
@@ -79,7 +82,7 @@ public class DialogUtils {
                                                                   ColumnFilter columnFilter) {
         try {
             FxLoadResult<Stage, AddFilterDialogController> loadResult =
-                    FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
+                    FxmlUtils.createNewStage(FxmlFiles.ADD_FILTER_DIALOG, Modality.APPLICATION_MODAL, ownerStage, "Adicionar Filtros");
 
 
             loadResult.controller.initializeEditDefaultFilterDialog(comparedTableList, columnFilter);
@@ -102,7 +105,7 @@ public class DialogUtils {
                                                                   ComparedTable comparedTable) {
         try {
             FxLoadResult<Stage, AddFilterDialogController> loadResult =
-                    FxmlUtils.createNewStage(ownerStage, FxmlFiles.ADD_FILTER_DIALOG, "Adicionar Filtros");
+                    FxmlUtils.createNewStage(FxmlFiles.ADD_FILTER_DIALOG, Modality.APPLICATION_MODAL, ownerStage, "Adicionar Filtros");
 
 
             loadResult.controller.initializeEditAdvancedFilterDialog(comparedTable);
@@ -124,7 +127,7 @@ public class DialogUtils {
     public static void showInvalidColumnSettingsDialog(Stage ownerStage, List<ComparedTable> invalidTables) {
         try {
             FxLoadResult<Stage, ColumnSettingsValidationDialogController> loadResult =
-                    FxmlUtils.createNewStage(ownerStage, FxmlFiles.COLUMN_SETTINGS_VALIDATION_DIALOG, "Validação de Configurações");
+                    FxmlUtils.createNewStage(FxmlFiles.COLUMN_SETTINGS_VALIDATION_DIALOG, Modality.APPLICATION_MODAL, ownerStage,  "Validação de Configurações");
 
             loadResult.controller.initializeColumnSettingsValidationDialog(invalidTables);
             loadResult.controller.setStage(loadResult.node);
@@ -140,7 +143,7 @@ public class DialogUtils {
     public static void showInvalidFiltersDialog(Stage ownerStage, List<ComparedTable> invalidTables) {
         try {
             FxLoadResult<Stage, ColumnSettingsValidationDialogController> loadResult =
-                    FxmlUtils.createNewStage(ownerStage, FxmlFiles.COLUMN_SETTINGS_VALIDATION_DIALOG, "Validação de Filtros");
+                    FxmlUtils.createNewStage(FxmlFiles.COLUMN_SETTINGS_VALIDATION_DIALOG, Modality.APPLICATION_MODAL, ownerStage, "Validação de Filtros");
 
             loadResult.controller.initializeFiltersValidationDialog(invalidTables);
             loadResult.controller.setStage(loadResult.node);
@@ -151,5 +154,24 @@ public class DialogUtils {
             e.printStackTrace();
             DialogUtils.showError("Erro", "Não foi possível abrir o diálogo.");
         }
+    }
+
+    public static Stage showTableComparisonResultScreen(Stage ownerStage, TableComparisonResultViewModel tableComparisonResultViewModel) {
+        try {
+            FxLoadResult<Stage, TableComparisonResultScreenController> loadResult =
+                    FxmlUtils.createNewStage(FxmlFiles.TABLE_COMPARISON_RESULT_SCREEN, Modality.NONE, ownerStage, "Resultado comparação");
+
+            loadResult.controller.init(tableComparisonResultViewModel);
+            loadResult.controller.setStage(loadResult.node);
+            loadResult.node.show();
+
+            return loadResult.node;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            DialogUtils.showError("Erro", "Não foi possível abrir a tela.");
+        }
+
+        return null;
     }
 }
