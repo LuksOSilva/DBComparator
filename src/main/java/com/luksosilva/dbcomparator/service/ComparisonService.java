@@ -55,7 +55,7 @@ public class ComparisonService {
             comparedTableColumn.getColumnSetting().changeIsIdentifierTo(comparedTableColumnSettings.isIdentifier());
 
         });
-
+        
 
         if (saveSettingsAsDefault) {
 

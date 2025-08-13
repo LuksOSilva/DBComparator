@@ -144,7 +144,7 @@ public class TableComparisonResultScreenController {
         showOnlyWithValues.setOnAction(e -> {
 
             differencesTableView.getColumns()
-                    .forEach(column -> column.setVisible(columnHasValuesIncludingChildren(column)));
+                    .forEach(column -> column.setVisible(column.getColumns().isEmpty() || columnHasDifferences(column)));
 
 
         });
@@ -320,28 +320,24 @@ public class TableComparisonResultScreenController {
 
     /// HELPERS
 
-    private boolean columnHasValuesIncludingChildren(TableColumn<RowDifferenceViewModel, ?> column) {
-        // If it's a parent column, check each leaf child column
-        if (!column.getColumns().isEmpty()) {
-            for (TableColumn<RowDifferenceViewModel, ?> child : column.getColumns()) {
-                if (columnHasValuesIncludingChildren(child)) {
-                    return true;
-                }
-            }
-            return false;
-        }
+    private boolean columnHasDifferences(TableColumn<RowDifferenceViewModel, ?> column) {
+        // Go through each child column
+        String columnName = column.getText();
 
-        // It's a leaf column – check if it has values
+        // Go through each row and check if this column has differences
         for (RowDifferenceViewModel row : differencesTableView.getItems()) {
-            ObservableValue<?> cellValue = column.getCellObservableValue(row);
-            if (cellValue != null) {
-                Object value = cellValue.getValue();
-                if (value != null && !value.toString().isBlank() && !value.toString().equals("NULL")) {
+            for (ComparableColumnViewModel cvm : row.getComparableColumnViewModels()) {
+                // Only check if it matches column
+                if (!cvm.getColumnName().equals(columnName)) continue;
+
+                // Found a difference → parent should be shown
+                if (!cvm.allValuesAreEqual()) {
                     return true;
                 }
             }
         }
 
+        // No differences in any child column
         return false;
     }
 
