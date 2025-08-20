@@ -88,3 +88,113 @@
 .table-row-cell:odd .cell-different {
     -fx-background-color: #ffea8f; /* darker yellow */
 }
+
+/* ==================================
+   NEW NEW NEW NEW
+   ================================== */
+
+/* Main container background */
+.main-container {
+    -fx-pref-width: 960;
+    -fx-pref-height: 600;
+    -fx-background-color: #F0F3FA;
+}
+
+/* Title */
+.title-text {
+    -fx-fill: #505050;
+    -fx-font-size: 30px;
+}
+
+/* Cancel clickable text */
+.cancel-text {
+    -fx-fill: #638ECB;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.cancel-text:hover {
+    -fx-underline: true;
+}
+
+/* Primary button */
+.btn-primary {
+    -fx-pref-width: 120;
+    -fx-pref-height: 32;
+    -fx-background-color: #638ECB;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 5px;
+    -fx-text-fill: #F0F3FA;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #4e7ab2;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #3a6498;
+}
+
+/* Secondary outlined button */
+.btn-secondary {
+    -fx-pref-width: 90;
+    -fx-pref-height: 32;
+    -fx-background-color: transparent;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: #638ECB;
+    -fx-border-width: 2px;
+    -fx-border-color: #638ECB;
+    -fx-border-radius: 5px;
+    -fx-cursor: hand;
+}
+
+
+.btn-secondary:hover {
+    -fx-background-color: #e3e9f4;
+}
+
+.btn-secondary:pressed {
+    -fx-background-color: #ccd7eb;
+}
+
+.btn-secondary-gray {
+    -fx-background-color: #6c757d;      /* medium gray */
+    -fx-border-color: #6c757d;          /* same as background */
+    -fx-text-fill: white;               /* white text for contrast */
+    -fx-font-weight: normal;              /* keeps text readable */
+}
+
+/* Hover effect */
+.btn-secondary-gray:hover {
+    -fx-background-color: #5a6268;      /* darker gray */
+    -fx-border-color: #5a6268;
+}
+
+/* Pressed effect */
+.btn-secondary-gray:pressed {
+    -fx-background-color: #545b62;      /* even darker gray */
+    -fx-border-color: #545b62;
+}
+
+/* Inputs (TextField, ComboBox, MenuButton) */
+.combo-box, .text-field, .menu-button, .gray {
+    -fx-pref-width: 200;
+    -fx-pref-height: 35;
+    -fx-background-color: white;
+    -fx-border-color: #c5c9d6;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 0 10;
+    -fx-font-weight: normal;
+    -fx-font-size: 13px;
+    -fx-text-fill: #505050;
+}
+.combo-box:hover, .text-field:hover, .menu-button:hover {
+    -fx-border-color: #638ECB;
+}
+.combo-box:focused, .text-field:focused, .menu-button:focused {
+    -fx-border-color: #4e7ab2;
+    -fx-background-color: #f7f9fc;
+}

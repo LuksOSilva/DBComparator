@@ -46,6 +46,9 @@ public class RowDifferenceViewModel {
         return false;
     }
 
+
+
+
     private boolean isValuePresent(String v) {
         return v != null && !v.isBlank() && !"NULL".equalsIgnoreCase(v);
     }

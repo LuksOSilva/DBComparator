@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 
 public class TableComparisonResultScreenController {
 
-
-
     private Stage currentStage;
     private Stage columnSelectorStage;
 
@@ -53,6 +51,10 @@ public class TableComparisonResultScreenController {
     public TextField searchTextField;
     @FXML
     public Button applyFilterButton;
+    @FXML
+    public CheckBox showExclusiveRecordsCheckBox;
+    @FXML
+    public CheckBox showDivergingRecordsCheckBox;
 
     @FXML
     public TableView<RowDifferenceViewModel> differencesTableView;
@@ -139,7 +141,7 @@ public class TableComparisonResultScreenController {
         });
         menuActions.add(hideAll);
 
-        /// show only with value
+        /// show only with difference and identifiers.
         MenuItem showOnlyWithValues = new MenuItem("Mostrar apenas colunas com diferença");
         showOnlyWithValues.setOnAction(e -> {
 
@@ -323,7 +325,7 @@ public class TableComparisonResultScreenController {
     private boolean columnHasDifferences(TableColumn<RowDifferenceViewModel, ?> column) {
         // Go through each child column
         String columnName = column.getText();
-
+        
         // Go through each row and check if this column has differences
         for (RowDifferenceViewModel row : differencesTableView.getItems()) {
             for (ComparableColumnViewModel cvm : row.getComparableColumnViewModels()) {
@@ -382,17 +384,26 @@ public class TableComparisonResultScreenController {
         String filterText = searchTextField.getText().toLowerCase().trim();
         String selectedColumnName = columnsComboBox.getValue();
 
+        boolean showDivergingRecords = showDivergingRecordsCheckBox.isSelected();
+        boolean showExclusiveRecords = showExclusiveRecordsCheckBox.isSelected();
 
         filteredDiffRowViewModels.setPredicate(row -> {
+            //if nothing searched and both checkboxes marked, show all
+            if ((selectedColumnName == null || filterText.isBlank()) && showDivergingRecords && showExclusiveRecords) return true;
 
-            if (selectedColumnName == null || filterText.isBlank()) {
-                return true;
-            }
-
-            return row.getIdentifierColumnViewModels().stream()
+            boolean matchesSearch = row.getIdentifierColumnViewModels().stream()
                     .anyMatch(identifierColumnViewModel ->
                             identifierColumnViewModel.getColumnName().equals(selectedColumnName)
                                     && identifierColumnViewModel.getValue().toLowerCase().contains(filterText));
+
+            if (!matchesSearch) return false;
+
+            if (!showExclusiveRecords && row.isMissingInAnySource()) return false;
+
+            //if its not missing from any source, it must have a difference.
+            if (!showDivergingRecords && !row.isMissingInAnySource()) return false;
+
+            return true;
         });
 
         differencesTableView.getItems().setAll(filteredDiffRowViewModels);
@@ -415,7 +426,7 @@ public class TableComparisonResultScreenController {
         if (file == null) return;
 
         List<String> headerColumns = new ArrayList<>();
-
+        
         // Add identifier columns (names)
         List<String> identifierNames = tableComparisonResultViewModel.getModel()
                 .getComparedTable()
