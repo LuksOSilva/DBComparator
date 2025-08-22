@@ -24,7 +24,7 @@ public class ComparedTable {
     private String sqlUserFilter;
     private String sqlSelectDifferences;
 
-
+    private boolean comparisonFailed;
 
 
     public ComparedTable(Map<ComparedSource, SourceTable> perSourceTable) {
@@ -100,8 +100,13 @@ public class ComparedTable {
     public void setFilter(TableFilter filter) {
         this.filter = filter;
     }
+
     public void removeFilter() {
         this.filter = null;
+    }
+
+    public void setComparisonFailed(boolean comparisonFailed) {
+        this.comparisonFailed = comparisonFailed;
     }
 
     public boolean hasSchemaDifference() {
@@ -138,6 +143,16 @@ public class ComparedTable {
         return hasTableFilter() || hasColumnFilter();
     }
 
+    public int getTotalRecordCount() {
+        int totalRecordCount = 0;
+
+        for (SourceTable sourceTable : perSourceTable.values()) {
+            totalRecordCount += sourceTable.getRecordCount();
+        }
+
+        return totalRecordCount;
+
+    }
 
     /// COLUMN SETTINGS VALIDATION
 

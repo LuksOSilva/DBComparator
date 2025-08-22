@@ -40,6 +40,7 @@ public class ComparisonRepository {
 
             attachAllSources(connection, sourcesInfo);
 
+
             try (Statement stmt = connection.createStatement();
                 ResultSet resultSet = stmt.executeQuery(sql)
             ) {

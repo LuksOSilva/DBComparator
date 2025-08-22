@@ -488,10 +488,9 @@ public class ColumnSettingsScreenController {
             return true;
         });
 
-        // Atualiza os panes
+
         tablesAccordion.getPanes().setAll(filteredTablePanes);
 
-        // Faz um fade-in suave no accordion
         fadeInAccordion();
     }
 

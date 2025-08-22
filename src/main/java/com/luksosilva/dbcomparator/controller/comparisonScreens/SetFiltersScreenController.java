@@ -615,7 +615,7 @@ public class SetFiltersScreenController {
 
                 ComparisonService.processFilters(comparison.getComparedTables());
 
-                ComparisonService.compare(comparison);
+                //ComparisonService.compare(comparison);
 
                 FxLoadResult<Parent, ComparisonResultScreenController> screenData =
                         FxmlUtils.loadScreen(FxmlFiles.COMPARISON_RESULT_SCREEN);

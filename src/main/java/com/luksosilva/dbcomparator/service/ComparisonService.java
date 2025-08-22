@@ -3,20 +3,27 @@ package com.luksosilva.dbcomparator.service;
 import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
 import com.luksosilva.dbcomparator.builder.FilterSqlBuilder;
 import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
+import com.luksosilva.dbcomparator.controller.comparisonScreens.ComparisonResultScreenController;
 import com.luksosilva.dbcomparator.model.comparison.*;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.model.comparison.result.TableComparisonResult;
 import com.luksosilva.dbcomparator.model.source.Source;
 import com.luksosilva.dbcomparator.model.source.SourceTable;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
+import javafx.concurrent.Task;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class ComparisonService {
+
+    private static final ExecutorService executor = Executors.newFixedThreadPool(1);
 
     //1
     public static void processSources(Comparison comparison, List<Source> sourceList) {
@@ -79,13 +86,42 @@ public class ComparisonService {
     }
 
     //6
-    public static void compare(Comparison comparison) {
+    public static void compare(ComparedTable comparedTable, ComparisonResultScreenController controller) {
 
-        buildSelectDifferences(comparison.getComparedTables());
+        Task<TableComparisonResult> compareTableTask = new Task<>() {
+            @Override
+            protected TableComparisonResult call() throws Exception {
+                comparedTable.setSqlSelectDifferences(SelectDifferencesBuilder.build(comparedTable));
+                return ComparisonResultBuilder.buildTableComparisonResult(comparedTable);
+            }
+        };
 
-        comparison.setComparisonResult(ComparisonResultBuilder.build(comparison));
+        compareTableTask.setOnSucceeded(event -> {
+            try {
+                TableComparisonResult tableComparisonResult = compareTableTask.getValue();
+
+                comparedTable.setComparisonFailed(false);
+                controller.getComparisonResult().addTableComparisonResult(tableComparisonResult);
+
+                // updates UI
+                controller.setupViewModel(tableComparisonResult);
+                controller.constructComparedTableAccordion();
 
 
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        compareTableTask.setOnFailed(event -> {
+            Throwable ex = compareTableTask.getException();
+            if (ex != null) {
+                ex.printStackTrace();
+            }
+            comparedTable.setComparisonFailed(true);
+        });
+
+        executor.submit(compareTableTask);
     }
 
 

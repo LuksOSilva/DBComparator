@@ -10,16 +10,17 @@ public class TableComparisonResult {
 
     private final ComparedTable comparedTable;
 
-    private final List<RowDifference> rowDifferences = new ArrayList<>();
+    private List<RowDifference> rowDifferences = new ArrayList<>();
 
     public TableComparisonResult(ComparedTable comparedTable) {
         this.comparedTable = comparedTable;
     }
 
+
     public void addRowDifference(RowDifference rowDifference) {
         this.rowDifferences.add(rowDifference);
     }
-
+    public void setRowDifferences(List<RowDifference> rowDifferenceList) {this.rowDifferences = rowDifferenceList; }
 
     public String getTableName() {
         return comparedTable.getTableName();

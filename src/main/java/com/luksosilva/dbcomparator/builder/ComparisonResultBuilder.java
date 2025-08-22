@@ -27,7 +27,7 @@ public class ComparisonResultBuilder {
         return comparisonResult;
     }
 
-    private static TableComparisonResult buildTableComparisonResult(ComparedTable comparedTable) {
+    public static TableComparisonResult buildTableComparisonResult(ComparedTable comparedTable) {
 
         TableComparisonResult tableComparisonResult = new TableComparisonResult(comparedTable);
 
