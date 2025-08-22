@@ -1,17 +1,12 @@
 package com.luksosilva.dbcomparator.builder;
 
-import com.luksosilva.dbcomparator.enums.ColumnFilterType;
 import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.enums.SqlPlaceholders;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,7 +30,8 @@ public class SelectDifferencesBuilder {
 
         String selectClause = buildSelectClause(comparedSources, identifierComparedColumns, comparableComparedColumns);
 
-        String fromClause = buildFromClause(comparedSources, identifierComparedColumns);
+        String fromClause = buildFromClause(comparedSources,
+                identifierComparedColumns.isEmpty() ? comparableComparedColumns : identifierComparedColumns);
 
         String whereClause = buildWhereClause(comparedTable, comparedSources, comparableComparedColumns);
 
@@ -62,18 +58,13 @@ public class SelectDifferencesBuilder {
                                             List<ComparedTableColumn> identifiersComparedColumns,
                                             List<ComparedTableColumn> comparableComparedColumns) {
 
-        String coalesceIdentifierColumns;
 
-        if (comparedSourceList.size() == 1) {
-            coalesceIdentifierColumns = buildSelectColumns(comparedSourceList, identifiersComparedColumns);
-        } else {
-            coalesceIdentifierColumns = buildSelectCoalesceColumns(comparedSourceList, identifiersComparedColumns);
-        }
+        String coalesceIdentifierColumns = buildSelectCoalesceColumns(comparedSourceList, identifiersComparedColumns);
 
         String selectComparableColumns = buildSelectColumns(comparedSourceList, comparableComparedColumns);
 
-        if (selectComparableColumns.isEmpty()) {
-            return coalesceIdentifierColumns;
+        if (coalesceIdentifierColumns.isEmpty()) {
+            return selectComparableColumns;
         }
 
         return String.join(",\n", coalesceIdentifierColumns, selectComparableColumns);
@@ -81,7 +72,7 @@ public class SelectDifferencesBuilder {
     }
 
     private static String buildFromClause (List<ComparedSource> comparedSourceList,
-                                           List<ComparedTableColumn> identifiersComparedColumns) {
+                                           List<ComparedTableColumn> joinersComparedColumns) {
 
 
         ComparedSource firstComparedSource = comparedSourceList.getFirst();
@@ -91,7 +82,7 @@ public class SelectDifferencesBuilder {
         //skips first because doesn't need join.
         for (int i = 1; i < comparedSourceList.size(); i++) {
 
-            joinClauseList.add(buildJoinClause(comparedSourceList, i, identifiersComparedColumns));
+            joinClauseList.add(buildJoinClause(comparedSourceList, i, joinersComparedColumns));
 
         }
 
@@ -179,19 +170,18 @@ public class SelectDifferencesBuilder {
 
     private static String buildJoinClause (List<ComparedSource> comparedSourceList,
                                            int currentIndex,
-                                           List<ComparedTableColumn> identifiersComparedColumns) {
+                                           List<ComparedTableColumn> joinersComparedColumns) {
 
         ComparedSource currentComparedSource = comparedSourceList.get(currentIndex);
 
         List<String> onClauseList = new ArrayList<>();
 
+
+
         //loops through all previous compared sources to create all necessary ON clauses.
         for (int i = 0; i < currentIndex; i++) {
-
-        ComparedSource previousComparedSource = comparedSourceList.get(i);
-
-        onClauseList.add(buildOnClause(currentComparedSource, previousComparedSource, identifiersComparedColumns));
-
+            ComparedSource previousComparedSource = comparedSourceList.get(i);
+            onClauseList.add(buildOnClause(currentComparedSource, previousComparedSource, joinersComparedColumns));
         }
 
 

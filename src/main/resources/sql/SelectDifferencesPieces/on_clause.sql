@@ -1,1 +1,1 @@
-({{equals_identifier_columns}})
+ON ({{equals_identifier_columns}})

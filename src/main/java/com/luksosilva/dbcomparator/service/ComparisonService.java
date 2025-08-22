@@ -92,6 +92,7 @@ public class ComparisonService {
             @Override
             protected TableComparisonResult call() throws Exception {
                 comparedTable.setSqlSelectDifferences(SelectDifferencesBuilder.build(comparedTable));
+                System.out.println(comparedTable.getSqlSelectDifferences());
                 return ComparisonResultBuilder.buildTableComparisonResult(comparedTable);
             }
         };
@@ -182,15 +183,5 @@ public class ComparisonService {
         }
     }
 
-    private static void buildSelectDifferences(List<ComparedTable> comparedTableList) {
-
-        for (ComparedTable comparedTable : comparedTableList) {
-
-            String sql = SelectDifferencesBuilder.build(comparedTable);
-            comparedTable.setSqlSelectDifferences(sql);
-
-        }
-
-    }
 
 }

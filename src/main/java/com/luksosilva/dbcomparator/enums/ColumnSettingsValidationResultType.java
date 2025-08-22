@@ -1,9 +1,9 @@
 package com.luksosilva.dbcomparator.enums;
 
 public enum ColumnSettingsValidationResultType {
-    NO_IDENTIFIER(
-            "As seguintes tabelas não possuem nenhum identificador selecionado",
-            "Cada tabela deve ter pelo menos um campo marcado como identificador para que a comparação funcione corretamente."
+    NO_COMPARABLE(
+            "As seguintes tabelas não possuem nenhum campo comparável selecionado",
+            "Cada tabela deve ter pelo menos um campo marcado como comparável para que a comparação funcione corretamente."
     ),
     AMBIGUOUS_IDENTIFIER(
             "Os identificadores selecionados para as tabelas abaixo resultaram em múltiplos registros nas fontes",

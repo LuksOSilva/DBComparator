@@ -38,22 +38,27 @@ public class ColumnSettingsService {
         }
 
 
+        boolean hasComparable = perComparedTableColumnSettings.values().stream()
+                .anyMatch(ColumnSettings::isComparable);
+
         boolean hasIdentifier = perComparedTableColumnSettings.values().stream()
                 .anyMatch(ColumnSettings::isIdentifier);
 
-        if (!hasIdentifier) {
-            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
+
+        if (!hasComparable) {
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_COMPARABLE);
             return;
         }
 
 
-        List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
+        if (hasIdentifier) {
+            List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
 
-        if (!invalidInSources.isEmpty()) {
-            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
-            return;
+            if (!invalidInSources.isEmpty()) {
+                comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
+                return;
+            }
         }
-
 
         comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.VALID);
     }
@@ -97,10 +102,10 @@ public class ColumnSettingsService {
         boolean isIdentifier;
         boolean isComparable;
 
-        //2. If table doesn't have any PK in any sources, all columns are identifiers.
+        //2. If table doesn't have any PK in any sources, all columns are comparable.
         if (!tableHasPrimaryKey) {
-            isIdentifier = true;
-            isComparable = false;
+            isIdentifier = false;
+            isComparable = true;
         }
         //3. If column is PK in at least 1 source and not in the others, it is an identifier.
         else if (isPkInAnySource && !isPkInAllSources) {
