@@ -4,14 +4,10 @@ import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.*;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class ComparisonRepository {
 
@@ -32,43 +28,79 @@ public class ComparisonRepository {
         return "0001";
     }
 
-    public static List<Map<String, Object>> executeQueryDifferences(Map<String, String> sourcesInfo, String sql) {
+    public static Stream<Map<String, Object>> streamQueryDifferences(
+            Map<String, String> sourcesInfo, String sql) throws SQLException {
 
-        List<Map<String, Object>> results = new ArrayList<>();
+        Connection connection = SQLiteUtils.getDataSource().getConnection();
+        attachAllSources(connection, sourcesInfo);
 
-        try (Connection connection = SQLiteUtils.getDataSource().getConnection()){
+        Statement stmt = connection.createStatement();
+        ResultSet resultSet = stmt.executeQuery(sql);
 
-            attachAllSources(connection, sourcesInfo);
+        Iterator<Map<String, Object>> iterator = getIterator(resultSet);
+
+        Spliterator<Map<String, Object>> spliterator =
+                Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED);
 
 
-            try (Statement stmt = connection.createStatement();
-                ResultSet resultSet = stmt.executeQuery(sql)
-            ) {
+        Stream<Map<String, Object>> stream = StreamSupport.stream(spliterator, false);
 
-                ResultSetMetaData metaData = resultSet.getMetaData();
-                int columnCount = metaData.getColumnCount();
+        return stream.onClose(() -> {
+            try {
+                resultSet.close();
+            } catch (Exception ignored) {}
+            try {
+                stmt.close();
+            } catch (Exception ignored) {}
+            try {
+                detachAllSources(connection, sourcesInfo);
+            } catch (Exception ignored) {}
+            try {
+                connection.close();
+            } catch (Exception ignored) {}
+        });
+    }
 
-                while (resultSet.next()) {
-                    Map<String, Object> row = new LinkedHashMap<>();
+    private static Iterator<Map<String, Object>> getIterator(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
 
-                    for (int i = 1; i <= columnCount; i++) {
-                        String columnName = metaData.getColumnLabel(i);
-                        Object value = resultSet.getObject(i);
-                        row.put(columnName, value);
-                    }
+        Iterator<Map<String, Object>> iterator = new Iterator<>() {
+            boolean hasNext = advance();
 
-                    results.add(row);
+            private boolean advance() {
+                try {
+                    return resultSet.next();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
             }
 
-            detachAllSources(connection, sourcesInfo);
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
 
-            return results;
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+            @Override
+            public Map<String, Object> next() {
+                if (!hasNext) {
+                    throw new NoSuchElementException();
+                }
+                try {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    for (int i = 1; i <= columnCount; i++) {
+                        row.put(metaData.getColumnLabel(i), resultSet.getObject(i));
+                    }
+                    hasNext = advance();
+                    return row;
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        return iterator;
     }
+
 
     private static void attachAllSources(Connection conn, Map<String, String> sourceInfo) {
 

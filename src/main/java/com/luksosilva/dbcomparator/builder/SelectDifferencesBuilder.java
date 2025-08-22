@@ -26,6 +26,9 @@ public class SelectDifferencesBuilder {
 
         List<ComparedSource> comparedSources = new ArrayList<>(comparedTable.getPerSourceTable().keySet());
 
+
+
+
         String withClause = buildWithClause(comparedSources, tableName);
 
         String selectClause = buildSelectClause(comparedSources, identifierComparedColumns, comparableComparedColumns);
@@ -63,8 +66,8 @@ public class SelectDifferencesBuilder {
 
         String selectComparableColumns = buildSelectColumns(comparedSourceList, comparableComparedColumns);
 
-        if (coalesceIdentifierColumns.isEmpty()) {
-            return selectComparableColumns;
+        if (selectComparableColumns.isEmpty()) {
+            return coalesceIdentifierColumns;
         }
 
         return String.join(",\n", coalesceIdentifierColumns, selectComparableColumns);

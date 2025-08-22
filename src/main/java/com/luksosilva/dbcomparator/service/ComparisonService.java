@@ -92,7 +92,6 @@ public class ComparisonService {
             @Override
             protected TableComparisonResult call() throws Exception {
                 comparedTable.setSqlSelectDifferences(SelectDifferencesBuilder.build(comparedTable));
-                System.out.println(comparedTable.getSqlSelectDifferences());
                 return ComparisonResultBuilder.buildTableComparisonResult(comparedTable);
             }
         };

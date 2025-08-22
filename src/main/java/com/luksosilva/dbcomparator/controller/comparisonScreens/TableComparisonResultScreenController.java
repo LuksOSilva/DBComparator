@@ -211,6 +211,43 @@ public class TableComparisonResultScreenController {
             );
         });
 
+        identifierColumn.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                // Clear styles and text every time
+                getTableRow().getStyleClass().removeAll("row-missing");
+                getStyleClass().removeAll("cell-null", "cell-default", "cell-different");
+                setText(null);
+
+                if (empty) {
+                    return;
+                }
+
+                //default
+                setText(item);
+
+                // Italic + centered for NULL values
+                if (item == null || item.isEmpty() || item.equals("NULL")) {
+                    getStyleClass().add("cell-null");
+                }
+
+                // style for row:
+                RowDifferenceViewModel rowVM = getTableView().getItems().get(getIndex());
+
+                // If row missing in any source → apply row style
+                if (rowVM.isMissingInAnySource()) {
+                    getTableRow().getStyleClass().add("row-missing");
+                    return;
+                }
+
+                if (getStyleClass().isEmpty() && getTableRow().getStyleClass().isEmpty()) {
+                    getStyleClass().add("cell-default");
+                }
+            }
+        });
+
         return identifierColumn;
     }
 

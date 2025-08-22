@@ -18,7 +18,8 @@ public class IdentifierColumnViewModel {
         this.model = identifierColumn;
 
         this.columnName.set(model.getColumnName());
-        this.value.set(model.getValue().toString());
+
+        this.value.set(model.getValue() == null ? "NULL" : model.getValue().toString());
     }
 
     public IdentifierColumn getModel() {

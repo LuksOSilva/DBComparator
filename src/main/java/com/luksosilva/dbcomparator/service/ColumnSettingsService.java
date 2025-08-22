@@ -7,10 +7,7 @@ import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn
 import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class ColumnSettingsService {
 
@@ -38,27 +35,24 @@ public class ColumnSettingsService {
         }
 
 
-        boolean hasComparable = perComparedTableColumnSettings.values().stream()
-                .anyMatch(ColumnSettings::isComparable);
 
         boolean hasIdentifier = perComparedTableColumnSettings.values().stream()
                 .anyMatch(ColumnSettings::isIdentifier);
 
 
-        if (!hasComparable) {
-            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_COMPARABLE);
+        if (!hasIdentifier) {
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
             return;
         }
 
 
-        if (hasIdentifier) {
-            List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
+        List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
 
-            if (!invalidInSources.isEmpty()) {
-                comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
-                return;
-            }
+        if (!invalidInSources.isEmpty()) {
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
+            return;
         }
+
 
         comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.VALID);
     }
@@ -102,10 +96,10 @@ public class ColumnSettingsService {
         boolean isIdentifier;
         boolean isComparable;
 
-        //2. If table doesn't have any PK in any sources, all columns are comparable.
+        //2. If table doesn't have any PK in any sources, all columns are identifiers.
         if (!tableHasPrimaryKey) {
-            isIdentifier = false;
-            isComparable = true;
+            isIdentifier = true;
+            isComparable = false;
         }
         //3. If column is PK in at least 1 source and not in the others, it is an identifier.
         else if (isPkInAnySource && !isPkInAllSources) {

@@ -8,7 +8,9 @@ import com.luksosilva.dbcomparator.model.comparison.result.*;
 import com.luksosilva.dbcomparator.repository.ComparisonRepository;
 import com.luksosilva.dbcomparator.util.FileUtils;
 
+import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ComparisonResultBuilder {
 
@@ -27,27 +29,35 @@ public class ComparisonResultBuilder {
         return comparisonResult;
     }
 
+
     public static TableComparisonResult buildTableComparisonResult(ComparedTable comparedTable) {
 
         TableComparisonResult tableComparisonResult = new TableComparisonResult(comparedTable);
 
         Map<String, String> sourcesInfo = new HashMap<>();
         for (ComparedSource comparedSource : comparedTable.getPerSourceTable().keySet()) {
-
-            sourcesInfo.put(comparedSource.getSourceId(), FileUtils.getCanonicalPath(comparedSource.getSource().getPath()));
+            sourcesInfo.put(
+                    comparedSource.getSourceId(),
+                    FileUtils.getCanonicalPath(comparedSource.getSource().getPath())
+            );
         }
 
-        List<Map<String, Object>> rowDataList = ComparisonRepository.executeQueryDifferences(sourcesInfo, comparedTable.getSqlSelectDifferences());
+        try (Stream<Map<String,Object>> rows =
+                     ComparisonRepository.streamQueryDifferences(sourcesInfo, comparedTable.getSqlSelectDifferences())) {
 
-        for (Map<String,Object> rowData : rowDataList) {
+            rows.forEach(row -> {
+                RowDifference rowDifference = buildRowDifference(comparedTable, row);
+                tableComparisonResult.addRowDifference(rowDifference);
+            });
 
-            RowDifference rowDifference = buildRowDifference(comparedTable, rowData);
-
-            tableComparisonResult.addRowDifference(rowDifference);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error while comparing table: " + comparedTable.getTableName(), e);
         }
 
         return tableComparisonResult;
     }
+
 
     private static RowDifference buildRowDifference(ComparedTable comparedTable, Map<String, Object> rowData) {
 

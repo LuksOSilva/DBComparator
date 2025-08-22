@@ -21,7 +21,7 @@ public class ColumnSettingsValidationDialogController {
 
     public void initializeColumnSettingsValidationDialog(List<ComparedTable> invalidTables) {
 
-        title.setText("Validação de Filtros");
+        title.setText("Validação de Configurações");
 
         for (ColumnSettingsValidationResultType type : ColumnSettingsValidationResultType.values()) {
             if (type == ColumnSettingsValidationResultType.VALID) continue;
@@ -50,7 +50,7 @@ public class ColumnSettingsValidationDialogController {
 
     public void initializeFiltersValidationDialog(List<ComparedTable> invalidTables) {
 
-        title.setText("Validação de Configurações");
+        title.setText("Validação de Filtros");
 
         for (FilterValidationResultType filterValidationResultType : FilterValidationResultType.values()) {
             if (filterValidationResultType == FilterValidationResultType.VALID) continue;
