@@ -135,7 +135,7 @@ public class AttachSourcesScreenController {
         }
 
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("SQLite Databases", "*.sqlite", "*.db", "*.s3db", "*.sqlite3", "*.db3", "*.sl3"),
+                new FileChooser.ExtensionFilter("SQLite Databases", "*.sqlite", "*.db", "*.s3db"),
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
@@ -252,10 +252,7 @@ public class AttachSourcesScreenController {
         String name = file.getName().toLowerCase();
         return name.endsWith(".sqlite") ||
                 name.endsWith(".db") ||
-                name.endsWith(".s3db") ||
-                name.endsWith(".sqlite3") ||
-                name.endsWith(".db3") ||
-                name.endsWith(".sl3");
+                name.endsWith(".s3db");
     }
 
 

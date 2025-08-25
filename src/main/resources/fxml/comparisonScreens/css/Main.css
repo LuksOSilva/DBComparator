@@ -59,3 +59,26 @@
 .cancel-text:hover {
     -fx-underline: true;
 }
+
+/* Action button */
+
+.btn-action {
+    -fx-background-color: #6c757d;
+    -fx-border-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-font-weight: normal;
+    -fx-font-size: 13px;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.btn-action:hover {
+    -fx-background-color: #5a6268;
+    -fx-border-color: #5a6268;
+}
+
+.btn-action:pressed {
+    -fx-background-color: #545b62;
+    -fx-border-color: #545b62;
+}

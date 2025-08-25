@@ -481,6 +481,8 @@ public class SetFiltersScreenController {
             Button copyToClipboardButton = new Button("copy");
             copyToClipboardButton.setOnAction(e -> onCopyToClipBoardButtonClicked(tableFilter));
 
+            copyToClipboardButton.getStyleClass().add("btn-action");
+
             actionButtons.add(copyToClipboardButton);
         }
 
@@ -490,8 +492,12 @@ public class SetFiltersScreenController {
         editButton.setOnAction(e -> onEditFilterButtonClicked(filter));
         deleteButton.setOnAction(e -> onDeleteFilterButtonClicked(filter));
 
+        editButton.getStyleClass().add("btn-action");
+        deleteButton.getStyleClass().add("btn-action");
+
         actionButtons.add(editButton);
         actionButtons.add(deleteButton);
+
 
         HBox hbox = new HBox(10);
         hbox.setAlignment(Pos.TOP_RIGHT);

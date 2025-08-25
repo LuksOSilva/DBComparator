@@ -46,9 +46,9 @@
                     <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                             <children>
-                        <Button mnemonicParsing="false" onAction="#onResetSettingsToOriginalForAllTablesButtonClicked" text="Padrão do sistema" />
-                        <Button mnemonicParsing="false" onAction="#onResetSettingsToDefaultForAllTablesButtonClicked" text="Padrão" />
-                        <Button mnemonicParsing="false" onAction="#onSaveSettingsForAllAlteredTablesButtonClicked" text="Salvar Alterados" />
+                        <Button mnemonicParsing="false" onAction="#onResetSettingsToOriginalForAllTablesButtonClicked" text="Padrão do sistema" styleClass="btn-action" />
+                        <Button mnemonicParsing="false" onAction="#onResetSettingsToDefaultForAllTablesButtonClicked" text="Padrão" styleClass="btn-action" />
+                        <Button mnemonicParsing="false" onAction="#onSaveSettingsForAllAlteredTablesButtonClicked" text="Salvar Alterados" styleClass="btn-action" />
 
                                 <Pane HBox.hgrow="ALWAYS" />
 

@@ -198,6 +198,9 @@ public class ComparisonResultScreenController {
         Button showSchemaComparisonButton = new Button("comparar schemas");
         showSchemaComparisonButton.setOnAction(e -> onShowSchemaDifferencesButtonClicked(tableComparisonResultViewModel));
 
+        showComparisonResultButton.getStyleClass().add("btn-action");
+        showSchemaComparisonButton.getStyleClass().add("btn-action");
+
         contentButtons.add(showComparisonResultButton);
         contentButtons.add(showSchemaComparisonButton);
 

@@ -159,24 +159,8 @@
     -fx-background-color: #ccd7eb;
 }
 
-.btn-secondary-gray {
-    -fx-background-color: #6c757d;      /* medium gray */
-    -fx-border-color: #6c757d;          /* same as background */
-    -fx-text-fill: white;               /* white text for contrast */
-    -fx-font-weight: normal;              /* keeps text readable */
-}
 
-/* Hover effect */
-.btn-secondary-gray:hover {
-    -fx-background-color: #5a6268;      /* darker gray */
-    -fx-border-color: #5a6268;
-}
 
-/* Pressed effect */
-.btn-secondary-gray:pressed {
-    -fx-background-color: #545b62;      /* even darker gray */
-    -fx-border-color: #545b62;
-}
 
 /* Inputs (TextField, ComboBox, MenuButton) */
 .combo-box, .text-field, .menu-button, .gray {

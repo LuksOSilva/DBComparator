@@ -437,22 +437,20 @@ public class SelectTablesScreenController {
     }
 
     private HBox buildButtonBox(String tableName) {
-        // Create the button
         Button compareSchemas = new Button("Comparar Schemas");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Put them in an HBox
         HBox buttonBox = new HBox(10, spacer, compareSchemas);
         buttonBox.setAlignment(Pos.CENTER_RIGHT); // Right-aligned
         buttonBox.setPadding(new Insets(10, 0, 0, 0)); // Top padding
 
-        // Add logic for the buttons
         compareSchemas.setOnAction(this::onCompareSchemasButtonClicked);
 
-        // Add user data
         compareSchemas.setUserData(tableName);
+
+        compareSchemas.getStyleClass().add("btn-action");
 
         return buttonBox;
     }

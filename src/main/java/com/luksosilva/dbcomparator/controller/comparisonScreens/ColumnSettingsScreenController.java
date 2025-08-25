@@ -412,9 +412,6 @@ public class ColumnSettingsScreenController {
                 .toList();
     }
 
-    private void changeCursorTo(Cursor cursor) {
-        currentStage.getScene().setCursor(cursor);
-    }
 
     /// Constructor Methods
 
@@ -663,6 +660,11 @@ public class ColumnSettingsScreenController {
         resetToOriginal.setOnAction(this::onResetSettingsToOriginalForTableButtonClicked);
         resetToDefaultBtn.setOnAction(this::onResetSettingsToDefaultForTableButtonClicked);
         saveAsDefaultBtn.setOnAction(this::onSaveSettingsForTableButtonClicked);
+
+        // style
+        resetToOriginal.getStyleClass().add("btn-action");
+        resetToDefaultBtn.getStyleClass().add("btn-action");
+        saveAsDefaultBtn.getStyleClass().add("btn-action");
 
         // Add user data
         resetToOriginal.setUserData(tableName);
