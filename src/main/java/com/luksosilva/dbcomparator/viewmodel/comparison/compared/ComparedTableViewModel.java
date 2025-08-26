@@ -30,16 +30,12 @@ public class ComparedTableViewModel {
 
     /// GETTERS AND SETTERS
 
-    public StringProperty tableNameProperty() {
-        return tableName;
+    public String getTableName() {
+        return tableName.get();
     }
 
     public ObservableList<ComparedTableColumnViewModel> getComparedTableColumnViewModels() {
         return comparedTableColumnViewModels;
-    }
-
-    public BooleanProperty usingTableFilterProperty() {
-        return usingTableFilter;
     }
 
 

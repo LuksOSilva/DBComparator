@@ -6,12 +6,12 @@ import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResult;
 import com.luksosilva.dbcomparator.model.comparison.result.TableComparisonResult;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
+import com.luksosilva.dbcomparator.viewmodel.comparison.compared.ComparedTableViewModel;
 import com.luksosilva.dbcomparator.viewmodel.comparison.result.*;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -19,53 +19,72 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class ComparisonResultScreenController {
 
 
     private Stage currentStage;
     public void setCurrentStage(Stage currentStage) { this.currentStage = currentStage; }
+    private List<Stage> openedStages = new ArrayList<>();
 
     private Comparison comparison;
     private final ComparisonResult comparisonResult = new ComparisonResult();
 
-    public void setComparison(Comparison comparison) { this.comparison = comparison; }
 
-    public ComparisonResult getComparisonResult() {
-        return comparisonResult;
-    }
+    private final List<ComparedTableViewModel> comparedTableViewModels = new ArrayList<>();
+    private final List<TableComparisonResultViewModel> tableComparisonResultViewModels = new ArrayList<>();
 
-    private List<TableComparisonResultViewModel> tableComparisonResultViewModels = new ArrayList<>();
+    private final Map<ComparedTable, TitledPane> perComparedTableResultPane = new HashMap<>();
 
     private final ObservableList<TitledPane> tableComparisonResultPanes = FXCollections.observableArrayList();
     private FilteredList<TitledPane> filteredTableComparisonResultPanes;
 
-    private List<Stage> openedStages = new ArrayList<>();
+
+    public void setComparison(Comparison comparison) { this.comparison = comparison; }
+    public ComparisonResult getComparisonResult() {
+        return comparisonResult;
+    }
+
+
 
 
     @FXML
     public Accordion tablesAccordion;
 
     public void init() {
+        setupComparedTableViewModels();
         setupComparedTablesAccordion();
-
+        constructComparedTableAccordion();
         startComparison();
     }
 
     private void startComparison() {
 
-        List<ComparedTable> sortedComparedTableList = new ArrayList<>(comparison.getComparedTables());
-
-        sortedComparedTableList.sort(Comparator.comparingInt(ComparedTable::getTotalRecordCount));
+        List<ComparedTable> sortedComparedTableList = getSortedComparedTableList(comparison.getComparedTables());
 
         for (ComparedTable comparedTable : sortedComparedTableList) {
             ComparisonService.compare(comparedTable, this);
         }
+    }
+
+
+    public void addComparedTableResult(TableComparisonResult tableComparisonResult) {
+
+        comparisonResult.addTableComparisonResult(tableComparisonResult);
+        TableComparisonResultViewModel tableComparisonResultVM = setupTableResultViewModel(tableComparisonResult);
+
+        ComparedTable comparedTable = tableComparisonResultVM.getModel().getComparedTable();
+        TitledPane titledPane = perComparedTableResultPane.get(comparedTable);
+
+        enableTitledPane(titledPane, tableComparisonResultVM);
+    }
+
+    public void enableTitledPane(TitledPane titledPane, TableComparisonResultViewModel tableComparisonResultVM) {
+
+        constructComparedTableAccordionContent(titledPane, tableComparisonResultVM);
+
+        titledPane.setDisable(false);
     }
 
     /// User actions
@@ -101,14 +120,25 @@ public class ComparisonResultScreenController {
 
     /// setups
 
-    public void setupViewModel(TableComparisonResult tableComparisonResult) {
-        tableComparisonResultViewModels.add(new TableComparisonResultViewModel(tableComparisonResult));
+    public void setupComparedTableViewModels() {
+        for (ComparedTable comparedTable : getSortedComparedTableList(comparison.getComparedTables())) {
+            comparedTableViewModels.add(new ComparedTableViewModel(comparedTable));
+        }
     }
+
+    public TableComparisonResultViewModel setupTableResultViewModel(TableComparisonResult tableComparisonResult) {
+        TableComparisonResultViewModel vm = new TableComparisonResultViewModel(tableComparisonResult);
+        tableComparisonResultViewModels.add(vm);
+
+        return vm;
+    }
+
 
 
     private void setupComparedTablesAccordion() {
         tablesAccordion.getPanes().clear();
         tableComparisonResultPanes.clear();
+        perComparedTableResultPane.clear();
 
         filteredTableComparisonResultPanes = new FilteredList<>(tableComparisonResultPanes, pane -> true);
 
@@ -116,36 +146,24 @@ public class ComparisonResultScreenController {
         Bindings.bindContent(tablesAccordion.getPanes(), filteredTableComparisonResultPanes);
     }
 
-    /// tablesAccordion.getPanes().setAll(filteredFilterPanes);
 
     /// Constructors
 
+
     public void constructComparedTableAccordion() {
-        Set<String> constructedNames = tableComparisonResultPanes.stream()
-                .map(Labeled::getText)
-                .collect(Collectors.toSet());
 
-        List<TableComparisonResultViewModel> notConstructedTableComparisonResultVM =
-                tableComparisonResultViewModels.stream()
-                        .filter(vm -> !constructedNames.contains(vm.getTableName()))
-                        .toList();
-
-        if (notConstructedTableComparisonResultVM.isEmpty()) return;
-
-        for (TableComparisonResultViewModel vm : notConstructedTableComparisonResultVM) {
+        for (ComparedTableViewModel vm : comparedTableViewModels) {
             TitledPane titledPane = new TitledPane();
             titledPane.setText(vm.getTableName());
 
-            titledPane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
-                if (isNowExpanded && titledPane.getUserData() == null) {
-                    constructComparedTableAccordionContent(titledPane, vm);
-                }
-            });
 
-
+            titledPane.setDisable(true);
             tableComparisonResultPanes.add(titledPane);
+            perComparedTableResultPane.put(vm.getModel(), titledPane);
         }
     }
+
+
 
     private void constructComparedTableAccordionContent(TitledPane titledPane, TableComparisonResultViewModel tableComparisonResultViewModel) {
 
@@ -205,6 +223,17 @@ public class ComparisonResultScreenController {
         contentButtons.add(showSchemaComparisonButton);
 
         return contentButtons;
+    }
+
+    /// HELPERS
+
+
+    private List<ComparedTable> getSortedComparedTableList(List<ComparedTable> unsortedComparedTableList) {
+
+        List<ComparedTable> sortedComparedTableList = new ArrayList<>(unsortedComparedTableList);
+        sortedComparedTableList.sort(Comparator.comparingInt(ComparedTable::getTotalRecordCount));
+
+        return sortedComparedTableList;
     }
 
 }

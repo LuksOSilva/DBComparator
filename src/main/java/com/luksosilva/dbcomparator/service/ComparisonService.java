@@ -100,12 +100,8 @@ public class ComparisonService {
             try {
                 TableComparisonResult tableComparisonResult = compareTableTask.getValue();
 
-                comparedTable.setComparisonFailed(false);
-                controller.getComparisonResult().addTableComparisonResult(tableComparisonResult);
-
                 // updates UI
-                controller.setupViewModel(tableComparisonResult);
-                controller.constructComparedTableAccordion();
+                controller.addComparedTableResult(tableComparisonResult);
 
 
             } catch (Exception ex) {
@@ -118,7 +114,7 @@ public class ComparisonService {
             if (ex != null) {
                 ex.printStackTrace();
             }
-            comparedTable.setComparisonFailed(true);
+
         });
 
         executor.submit(compareTableTask);
