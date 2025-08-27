@@ -1,10 +1,12 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison.result;
 
+import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.comparison.result.ComparableColumn;
 import com.luksosilva.dbcomparator.model.comparison.result.IdentifierColumn;
 import com.luksosilva.dbcomparator.model.comparison.result.RowDifference;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RowDifferenceViewModel {
 
@@ -33,7 +35,6 @@ public class RowDifferenceViewModel {
 
     public List<ComparableColumnViewModel> getComparableColumnViewModels() { return comparableColumnViewModels; }
 
-    ///
 
 
     public boolean isMissingInAnySource() {
@@ -47,10 +48,10 @@ public class RowDifferenceViewModel {
     }
 
 
-
-
-    private boolean isValuePresent(String v) {
-        return v != null && !v.isBlank() && !"NULL".equalsIgnoreCase(v);
+    public String getExistsOn() {
+        return model.getExistsOnSources().stream()
+                .map(ComparedSource::getSourceId)
+                .collect(Collectors.joining(", "));
     }
 
 }

@@ -65,6 +65,15 @@ public class ComparableColumnViewModel {
         return true;
     }
 
+    public String getExistsOn() {
+        ComparedTableColumn comparedTableColumn = model.getComparedTableColumn();
+        List<ComparedSource> comparedSourceList = comparedTableColumn.getPerSourceTableColumn().keySet().stream().toList();
+
+        return comparedSourceList.stream()
+                .map(ComparedSource::getSourceId)
+                .collect(Collectors.joining(", "));
+    }
+
     public boolean allValuesAreEqual() {
 
         return perSourceValue.values().stream()

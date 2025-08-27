@@ -75,6 +75,7 @@ public class ComparisonResultBuilder {
                 .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isComparable())
                 .toList();
 
+
         Map<ComparedTableColumn, Map<ComparedSource, Object>> perComparedColumnSourceValue = new HashMap<>();
 
         for (Map.Entry<String, Object> entry : rowData.entrySet()) {
@@ -82,14 +83,18 @@ public class ComparisonResultBuilder {
             String columnName = entry.getKey();
             Object value = entry.getValue();
 
-            if (isColumnIdentifier(columnName, identifiersComparedColumns)) {
+
+            if (columnExistsIn(columnName, identifiersComparedColumns)) {
 
                 ComparedTableColumn comparedTableColumn =
                         getComparedTableColumnFromColumnName(columnName, identifiersComparedColumns);
 
+
                 rowDifference.addIdentifierColumn(buildIdentifierColumn(comparedTableColumn, value));
                 continue;
             }
+
+            // comparable OR if all are identifiers:
 
             int separatorIndex = columnName.indexOf('_');
             if (separatorIndex == -1) continue;
@@ -97,48 +102,26 @@ public class ComparisonResultBuilder {
             String sourceId = columnName.substring(0, separatorIndex);
             String columnNameWithoutSourceId = columnName.substring(separatorIndex +1);
 
-            if (isColumnComparable(columnNameWithoutSourceId, comparableComparedColumns)) {
 
-                ComparedTableColumn comparedTableColumn =
-                        getComparedTableColumnFromColumnName(columnNameWithoutSourceId, comparableComparedColumns);
+            ComparedTableColumn comparedTableColumn =
+                    getComparedTableColumnFromColumnName(columnNameWithoutSourceId, comparedTable.getComparedTableColumns());
 
-                ComparedSource comparedSource =
-                        getComparedSourceFromSourceId(sourceId, comparedSourceList);
+            ComparedSource comparedSource =
+                    getComparedSourceFromSourceId(sourceId, comparedSourceList);
 
+
+            if (columnExistsIn(columnNameWithoutSourceId, comparableComparedColumns)) {
                 perComparedColumnSourceValue
                         .computeIfAbsent(comparedTableColumn, k -> new HashMap<>())
                         .put(comparedSource, value);
-
             }
 
-        }
-
-        //cleans empty sources:
-
-        // Step 1: Identify all ComparedSources that have only null values across all ComparedTableColumns
-        Set<ComparedSource> sourcesWithOnlyNulls = new HashSet<>();
-
-        for (ComparedSource comparedSource : comparedSourceList) {
-            boolean allNull = true;
-            for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
-                Object val = perSourceValue.get(comparedSource);
-                if (val != null) {
-                    allNull = false;
-                    break;
-                }
-            }
-            if (allNull) {
-                sourcesWithOnlyNulls.add(comparedSource);
+            if (value != null) {
+                rowDifference.addExistsOnSource(comparedSource);
             }
         }
 
-        // Step 2: Remove those ComparedSources from all perSourceValue maps
-        for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
-            sourcesWithOnlyNulls.forEach(perSourceValue::remove);
-        }
-
-
-
+        removeEmptySources(comparedSourceList, perComparedColumnSourceValue);
 
         rowDifference.addAllDifferingColumns(buildComparableColumns(perComparedColumnSourceValue));
 
@@ -193,28 +176,15 @@ public class ComparisonResultBuilder {
 
     }
 
-
-    private static boolean isColumnIdentifier(String columnName, List<ComparedTableColumn> identifiersComparedColumns) {
-
-        ComparedTableColumn comparedTableColumn = getComparedTableColumnFromColumnName(columnName, identifiersComparedColumns);
+    private static boolean columnExistsIn (String columnName, List<ComparedTableColumn> columns) {
+        ComparedTableColumn comparedTableColumn = getComparedTableColumnFromColumnName(columnName, columns);
 
         if (comparedTableColumn != null) {
             return true;
         }
         return false;
-
     }
 
-    private static boolean isColumnComparable(String columnName, List<ComparedTableColumn> comparableComparedColumns) {
-
-        ComparedTableColumn comparedTableColumn = getComparedTableColumnFromColumnName(columnName, comparableComparedColumns);
-
-        if (comparedTableColumn != null) {
-            return true;
-        }
-        return false;
-
-    }
 
     private static ComparedTableColumn getComparedTableColumnFromColumnName(String columnName,
                                                                             List<ComparedTableColumn> comparedTableColumnList) {
@@ -240,6 +210,32 @@ public class ComparisonResultBuilder {
         }
 
         return null;
+    }
+
+    private static void removeEmptySources(List<ComparedSource> comparedSourceList,
+                                           Map<ComparedTableColumn, Map<ComparedSource, Object>> perComparedColumnSourceValue) {
+
+        Set<ComparedSource> sourcesWithOnlyNulls = new HashSet<>();
+
+        for (ComparedSource comparedSource : comparedSourceList) {
+            boolean allNull = true;
+            for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
+                Object val = perSourceValue.get(comparedSource);
+                if (val != null) {
+                    allNull = false;
+                    break;
+                }
+            }
+            if (allNull) {
+                sourcesWithOnlyNulls.add(comparedSource);
+            }
+        }
+
+
+        for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
+            sourcesWithOnlyNulls.forEach(perSourceValue::remove);
+        }
+
     }
 
 }

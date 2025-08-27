@@ -176,7 +176,17 @@ public class TableComparisonResultScreenController {
                 .getComparedTable()
                 .getOrderedComparedTableColumns();
 
-        // For each table column, decide if it’s an identifier or data column
+        boolean areAllColumnsIdentifiers = allTableColumns.stream()
+                .noneMatch(comparedTableColumn -> comparedTableColumn.getColumnSetting().isComparable());
+
+        if (areAllColumnsIdentifiers) {
+
+            TableColumn<RowDifferenceViewModel, String> sourceColumn = constructSourceColumn();
+
+            differencesTableView.getColumns().add(sourceColumn);
+        }
+
+        // For each table column, check if it’s an identifier or data column
         for (ComparedTableColumn comparedTableColumn : allTableColumns) {
 
             if (comparedTableColumn.getColumnSetting().isIdentifier()) {
@@ -194,6 +204,19 @@ public class TableComparisonResultScreenController {
             }
         }
 
+    }
+
+    private TableColumn<RowDifferenceViewModel, String> constructSourceColumn() {
+        TableColumn<RowDifferenceViewModel, String> sourceColumn = new TableColumn<>("Fonte");
+
+        sourceColumn.setCellValueFactory(data -> {
+
+            String sources = data.getValue().getExistsOn();
+
+            return new SimpleStringProperty(sources);
+        });
+
+        return sourceColumn;
     }
 
     private TableColumn<RowDifferenceViewModel, String> constructIdentifierColumn(ComparedTableColumn comparedTableColumn) {
@@ -282,24 +305,23 @@ public class TableComparisonResultScreenController {
 
         sourceValueColumn.setCellValueFactory(data -> {
             // Find the differing column view model for this column
-            Optional<ComparableColumnViewModel> diffVmOpt = data.getValue()
+            Optional<ComparableColumnViewModel> comparableVmOpt = data.getValue()
                     .getComparableColumnViewModels()
                     .stream()
                     .filter(vm -> vm.getModel().getComparedTableColumn().equals(comparedTableColumn))
                     .findFirst();
 
 
-
-            String value = diffVmOpt
-                    .map(vm -> {
-                        Map<String, String> map = vm.getPerSourceValue();
-                        if (!map.containsKey(sourceId)) {
-                            return "";
-                        }
-                        String v = map.get(sourceId);
-                        return v != null ? v : "";
-                    })
-                    .orElse("");
+            String value = comparableVmOpt
+                        .map(vm -> {
+                            Map<String, String> map = vm.getPerSourceValue();
+                            if (!map.containsKey(sourceId)) {
+                                return "";
+                            }
+                            String v = map.get(sourceId);
+                            return v != null ? v : "";
+                        })
+                        .orElse("");
 
 
             return new SimpleStringProperty(value);

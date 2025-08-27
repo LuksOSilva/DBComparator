@@ -33,10 +33,10 @@ public class SelectDifferencesBuilder {
 
         String selectClause = buildSelectClause(comparedSources, identifierComparedColumns, comparableComparedColumns);
 
-        String fromClause = buildFromClause(comparedSources,
-                identifierComparedColumns.isEmpty() ? comparableComparedColumns : identifierComparedColumns);
+        String fromClause = buildFromClause(comparedSources, identifierComparedColumns);
 
-        String whereClause = buildWhereClause(comparedTable, comparedSources, comparableComparedColumns);
+        String whereClause = buildWhereClause(comparedTable, comparedSources,
+                comparableComparedColumns.isEmpty() ? identifierComparedColumns : comparableComparedColumns);
 
         String userFilter = comparedTable.getSqlUserFilter();
 
@@ -66,13 +66,15 @@ public class SelectDifferencesBuilder {
 
         String selectComparableColumns = buildSelectColumns(comparedSourceList, comparableComparedColumns);
 
-        if (selectComparableColumns.isEmpty()) {
-            return coalesceIdentifierColumns;
+        // if all columns are identifiers, adds the select for each column so it knows from which source the record is.
+        if (selectComparableColumns.isBlank()) {
+            return String.join(",\n", coalesceIdentifierColumns, buildSelectColumns(comparedSourceList, identifiersComparedColumns));
         }
 
         return String.join(",\n", coalesceIdentifierColumns, selectComparableColumns);
 
     }
+
 
     private static String buildFromClause (List<ComparedSource> comparedSourceList,
                                            List<ComparedTableColumn> joinersComparedColumns) {
@@ -98,11 +100,10 @@ public class SelectDifferencesBuilder {
 
     private static String buildWhereClause(ComparedTable comparedTable,
                                            List<ComparedSource> comparedSourceList,
-                                           List<ComparedTableColumn> comparableComparedColumns) {
+                                           List<ComparedTableColumn> whereColumns) {
 
         String whereColumnIsDifferent = buildWhereComparableColumnIsDifferent(
-                comparedSourceList, comparableComparedColumns);
-
+                comparedSourceList, whereColumns);
 
 
         return whereColumnIsDifferent;

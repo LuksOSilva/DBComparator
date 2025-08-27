@@ -63,7 +63,7 @@ public class ComparedTable {
                     int cmp = Integer.compare(minSeq1, minSeq2);
                     if (cmp != 0) return cmp;
 
-                    // Secondary sort: by column name (so tie is stable)
+                    // Secondary sort: by column name
                     return tableColumn1.getColumnName().compareTo(tableColumn2.getColumnName());
                 })
                 .toList();

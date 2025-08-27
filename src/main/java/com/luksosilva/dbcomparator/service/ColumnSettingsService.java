@@ -39,7 +39,6 @@ public class ColumnSettingsService {
         boolean hasIdentifier = perComparedTableColumnSettings.values().stream()
                 .anyMatch(ColumnSettings::isIdentifier);
 
-
         if (!hasIdentifier) {
             comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
             return;
