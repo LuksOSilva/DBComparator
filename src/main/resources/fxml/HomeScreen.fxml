@@ -2,17 +2,20 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.HomeScreenController">
+<AnchorPane prefHeight="650.0" prefWidth="1000.0" stylesheets="@comparisonScreens/css/Main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.HomeScreenController">
    <children>
 
       <!-- Left Sidebar -->
-      <VBox alignment="CENTER" prefHeight="650.0" prefWidth="235.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox alignment="CENTER" prefHeight="650.0" prefWidth="235.0" style="-fx-background-color: #638ECB;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <ImageView fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
                <VBox.margin>
@@ -21,31 +24,66 @@
             </ImageView>
             <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="25.0" VBox.vgrow="ALWAYS">
                <children>
-                  <Button fx:id="newComparisonBtn" mnemonicParsing="false" onMouseClicked="#newComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" text="Nova Comparação" />
-                  <Button fx:id="importComparisonBtn" mnemonicParsing="false" onMouseClicked="#importComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" text="Importar Comparação" />
-                  <Button fx:id="settingsBtn" mnemonicParsing="false" onMouseClicked="#settingsBtnClick" prefHeight="35.0" prefWidth="180.0" text="Configurações" />
+                  <Button fx:id="newComparisonBtn" mnemonicParsing="false" onMouseClicked="#newComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-action" text="Nova Comparação" />
+                  <Button fx:id="importComparisonBtn" mnemonicParsing="false" onMouseClicked="#importComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-action" text="Importar Comparação" />
+                  <Button fx:id="settingsBtn" mnemonicParsing="false" onMouseClicked="#settingsBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-action" text="Configurações" />
                </children>
             </VBox>
             <Region VBox.vgrow="ALWAYS" />
-            <Button fx:id="exitBtn" mnemonicParsing="false" onMouseClicked="#exitBtnClick" prefHeight="35.0" prefWidth="90.0" text="Sair" />
+            <Button fx:id="exitBtn" mnemonicParsing="false" onMouseClicked="#exitBtnClick" prefHeight="35.0" prefWidth="90.0" styleClass="btn-secondary" text="Sair" />
          </children>
          <padding>
             <Insets bottom="25.0" />
          </padding>
       </VBox>
-
-      <!-- Main Content Area -->
-      <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="235.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <content>
-            <VBox fx:id="comparisonsContainer" prefWidth="765.0" spacing="15">
+      <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="235.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0">
+         <children>
+            <VBox spacing="5.0" styleClass="table-header-container">
                <padding>
-                  <Insets bottom="15" left="15" right="15" top="15" />
+                  <Insets bottom="5" left="5" right="5" top="5" />
                </padding>
-
-               <!-- We will dynamically add comparison cards here -->
+               <children>
+                  <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                     <children>
+                        <TextField fx:id="searchTextField" prefHeight="25.0" prefWidth="243.0" promptText="buscar por..." />
+                     </children>
+                     <padding>
+                        <Insets left="20.0" right="20.0" />
+                     </padding>
+                  </HBox>
+               </children>
             </VBox>
-         </content>
-      </ScrollPane>
+      
+            <!-- Main Content Area -->
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+               <content>
+                  <VBox fx:id="comparisonsContainer" prefWidth="765.0" spacing="15">
+                     <padding>
+                        <Insets bottom="15" left="15" right="15" top="15" />
+                     </padding>
+      
+                     <!-- We will dynamically add comparison cards here -->
+                  </VBox>
+               </content>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </ScrollPane>
+            <HBox alignment="CENTER" spacing="10.0">
+               <children>
+                  <Button fx:id="prevBtn" mnemonicParsing="false" styleClass="btn-action" text="Anterior" />
+                  <Label fx:id="pageLabel" text="Página 000 de 000" />
+                  <Button fx:id="nextBtn" mnemonicParsing="false" styleClass="btn-action" text="Próximo" />
+               </children>
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
 
    </children>
 </AnchorPane>

@@ -1,8 +1,8 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison.compared;
+package com.luksosilva.dbcomparator.viewmodel.live.comparison.compared;
 
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.viewmodel.comparison.customization.ColumnFilterViewModel;
+import com.luksosilva.dbcomparator.viewmodel.live.comparison.customization.ColumnFilterViewModel;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;

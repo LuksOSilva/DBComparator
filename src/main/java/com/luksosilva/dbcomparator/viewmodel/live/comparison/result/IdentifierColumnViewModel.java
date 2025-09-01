@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison.result;
+package com.luksosilva.dbcomparator.viewmodel.live.comparison.result;
 
 import com.luksosilva.dbcomparator.model.live.comparison.result.IdentifierColumn;
 import javafx.beans.property.SimpleStringProperty;

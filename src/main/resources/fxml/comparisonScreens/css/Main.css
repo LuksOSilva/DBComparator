@@ -82,3 +82,73 @@
     -fx-background-color: #545b62;
     -fx-border-color: #545b62;
 }
+
+
+
+.scroll-pane {
+    -fx-background-color: transparent; /* Keep background transparent */
+    -fx-border-color: transparent;     /* Make its border color transparent */
+    -fx-border-width: 0px;             /* Explicitly set border width to 0 */
+    -fx-effect: none;                  /* Ensure no shadow effect is mimicking a border */
+}
+
+/* Also ensure its internal viewport (where content sits) is transparent */
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* --- 1. Overall Scroll Bar Properties --- */
+/* Target the specific ScrollPane if you only want to affect this one */
+#scrollPane .scroll-bar:vertical {
+    -fx-pref-width: 8px; /* Make the vertical scroll bar thinner */
+    -fx-background-color: transparent; /* Makes the background of the scroll bar area transparent */
+}
+
+#scrollPane .scroll-bar:horizontal {
+    -fx-pref-height: 8px; /* Make the horizontal scroll bar thinner */
+    -fx-background-color: transparent;
+}
+
+/* --- 2. Style the Scroll Bar Track (the path the thumb moves on) --- */
+#scrollPane .scroll-bar .track {
+    -fx-background-color: #f0f0f0; /* A very light grey for the track */
+    -fx-background-radius: 5px;    /* Slightly rounded corners for the track */
+    -fx-border-color: transparent; /* No border on the track */
+    -fx-border-width: 0;
+}
+
+/* --- 3. Style the Scroll Bar Thumb (the movable indicator) --- */
+#scrollPane .scroll-bar .thumb {
+    -fx-background-color: #bbbbbb; /* A medium grey for the thumb */
+    -fx-background-radius: 5px;    /* Rounded corners for the thumb */
+    /* Add a small inset to make the thumb appear slightly narrower than the track */
+    -fx-background-insets: 0 1px 0 1px;
+}
+
+/* --- 4. Style the Thumb on Hover --- */
+#scrollPane .scroll-bar .thumb:hover {
+    -fx-background-color: #999999; /* Darker grey when hovered */
+}
+
+/* --- 5. Hide Increment/Decrement Buttons and Arrows (Common in Modern UIs) --- */
+#scrollPane .scroll-bar .increment-button,
+#scrollPane .scroll-bar .decrement-button {
+    -fx-background-color: transparent; /* Make buttons transparent */
+    -fx-padding: 0;                    /* Remove any padding */
+    -fx-pref-width: 0;                 /* Hide buttons by setting width/height to 0 */
+    -fx-pref-height: 0;
+}
+
+#scrollPane .scroll-bar .increment-arrow,
+#scrollPane .scroll-bar .decrement-arrow {
+    -fx-shape: " "; /* Set the shape to empty to hide the arrows */
+    -fx-padding: 0;
+}
+
+/* Target the viewport of your specific ScrollPane (using its fx:id) */
+#scrollPane .viewport {
+    -fx-background-color: transparent; /* Keep this transparent from previous steps */
+    -fx-padding: 0 10px 0 0; /* top right bottom left */
+    /* This adds 10 pixels of padding on the RIGHT side of the content,
+       creating space between the Accordion and the vertical scrollbar. */
+}

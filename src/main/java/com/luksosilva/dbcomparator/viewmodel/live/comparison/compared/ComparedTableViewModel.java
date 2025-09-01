@@ -1,8 +1,8 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison.compared;
+package com.luksosilva.dbcomparator.viewmodel.live.comparison.compared;
 
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.viewmodel.comparison.customization.TableFilterViewModel;
+import com.luksosilva.dbcomparator.viewmodel.live.comparison.customization.TableFilterViewModel;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

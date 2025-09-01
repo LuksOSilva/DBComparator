@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
+import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
@@ -10,8 +11,8 @@ import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
-import com.luksosilva.dbcomparator.viewmodel.comparison.compared.ComparedTableViewModel;
-import com.luksosilva.dbcomparator.viewmodel.comparison.result.*;
+import com.luksosilva.dbcomparator.viewmodel.live.comparison.compared.ComparedTableViewModel;
+import com.luksosilva.dbcomparator.viewmodel.live.comparison.result.TableComparisonResultViewModel;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -324,10 +325,14 @@ public class ComparisonResultScreenController {
         comparisonQueueManager.stop();
 
         try {
-            FxLoadResult<Parent, AttachSourcesScreenController> screenData =
+            FxLoadResult<Parent, HomeScreenController> screenData =
                     FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
 
             Parent root = screenData.node;
+            HomeScreenController controller = screenData.controller;
+
+            controller.setCurrentStage(currentStage);
+            controller.init();
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
             Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());

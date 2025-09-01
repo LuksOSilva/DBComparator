@@ -38,13 +38,18 @@ public class ComparisonDAO {
                  ResultSet rs = stmt.executeQuery(sql)) {
                 List<SavedComparison> list = new ArrayList<>();
                 while (rs.next()) {
+
+                    boolean isImported = rs.getString("IS_IMPORTED").equals("Y");
+
+                    String lastLoadedAtStr = rs.getString("LAST_LOADED_AT");
+
                     list.add(new SavedComparison(
                             rs.getInt("COMPARISON_ID"),
                             rs.getString("DESCRIPTION"),
                             new File(rs.getString("FILE_PATH")),
-                            rs.getBoolean("IS_IMPORTED"),
+                            isImported,
                             LocalDateTime.parse(rs.getString("CREATED_AT"), DATE_TIME_FORMATTER),
-                            LocalDateTime.parse(rs.getString("LAST_LOADED_AT"), DATE_TIME_FORMATTER)
+                            lastLoadedAtStr == null ? null : LocalDateTime.parse(rs.getString("LAST_LOADED_AT"), DATE_TIME_FORMATTER)
                     ));
                 }
                 return list;

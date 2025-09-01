@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
+import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
@@ -793,10 +794,14 @@ public class ColumnSettingsScreenController {
         }
 
         try {
-            FxLoadResult<Parent, AttachSourcesScreenController> screenData =
+            FxLoadResult<Parent, HomeScreenController> screenData =
                     FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
 
             Parent root = screenData.node;
+            HomeScreenController controller = screenData.controller;
+
+            controller.setCurrentStage(currentStage);
+            controller.init();
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
             Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());

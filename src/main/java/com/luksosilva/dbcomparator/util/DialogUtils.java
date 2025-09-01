@@ -8,7 +8,7 @@ import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFil
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
-import com.luksosilva.dbcomparator.viewmodel.comparison.result.TableComparisonResultViewModel;
+import com.luksosilva.dbcomparator.viewmodel.live.comparison.result.TableComparisonResultViewModel;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;

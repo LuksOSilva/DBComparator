@@ -1,4 +1,4 @@
-package com.luksosilva.dbcomparator.viewmodel.comparison.customization;
+package com.luksosilva.dbcomparator.viewmodel.live.comparison.customization;
 
 import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
 import javafx.beans.property.StringProperty;
