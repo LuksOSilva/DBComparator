@@ -1,11 +1,11 @@
 package com.luksosilva.dbcomparator.builder;
 
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.model.comparison.result.*;
-import com.luksosilva.dbcomparator.repository.ComparisonRepository;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.comparison.result.*;
+import com.luksosilva.dbcomparator.persistence.ComparisonQueryExecutor;
 import com.luksosilva.dbcomparator.util.FileUtils;
 
 import java.sql.SQLException;
@@ -21,7 +21,7 @@ public class ComparisonResultBuilder {
 
         for (ComparedTable comparedTable : comparison.getComparedTables()) {
 
-            comparisonResult.addTableComparisonResult(buildTableComparisonResult(comparedTable));
+            comparisonResult.addTableComparisonResult(buildTableComparisonResult(comparedTable, comparison.getComparedSources()));
 
         }
 
@@ -30,12 +30,13 @@ public class ComparisonResultBuilder {
     }
 
 
-    public static TableComparisonResult buildTableComparisonResult(ComparedTable comparedTable) {
+    public static TableComparisonResult buildTableComparisonResult(ComparedTable comparedTable, List<ComparedSource> comparedSourceList) {
 
         TableComparisonResult tableComparisonResult = new TableComparisonResult(comparedTable);
 
         Map<String, String> sourcesInfo = new HashMap<>();
-        for (ComparedSource comparedSource : comparedTable.getPerSourceTable().keySet()) {
+        for (ComparedSource comparedSource : comparedSourceList) {
+
             sourcesInfo.put(
                     comparedSource.getSourceId(),
                     FileUtils.getCanonicalPath(comparedSource.getSource().getPath())
@@ -43,7 +44,7 @@ public class ComparisonResultBuilder {
         }
 
         try (Stream<Map<String,Object>> rows =
-                     ComparisonRepository.streamQueryDifferences(sourcesInfo, comparedTable.getSqlSelectDifferences())) {
+                     ComparisonQueryExecutor.streamQueryDifferences(sourcesInfo, comparedTable.getSqlSelectDifferences())) {
 
             rows.forEach(row -> {
                 RowDifference rowDifference = buildRowDifference(comparedTable, row);
@@ -63,9 +64,9 @@ public class ComparisonResultBuilder {
 
         RowDifference rowDifference = new RowDifference();
 
-        List<ComparedSource> comparedSourceList = new ArrayList<>();
-        comparedTable.getPerSourceTable().forEach((comparedSource, sourceTable) ->
-                comparedSourceList.add(comparedSource));
+        List<String> sourceIdList = new ArrayList<>();
+        comparedTable.getPerSourceTable().forEach((sourceId, sourceTable) ->
+                sourceIdList.add(sourceId));
 
         List<ComparedTableColumn> identifiersComparedColumns = comparedTable.getComparedTableColumns().stream()
                 .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isIdentifier())
@@ -76,7 +77,7 @@ public class ComparisonResultBuilder {
                 .toList();
 
 
-        Map<ComparedTableColumn, Map<ComparedSource, Object>> perComparedColumnSourceValue = new HashMap<>();
+        Map<ComparedTableColumn, Map<String, Object>> perComparedColumnSourceValue = new HashMap<>();
 
         for (Map.Entry<String, Object> entry : rowData.entrySet()) {
 
@@ -106,22 +107,20 @@ public class ComparisonResultBuilder {
             ComparedTableColumn comparedTableColumn =
                     getComparedTableColumnFromColumnName(columnNameWithoutSourceId, comparedTable.getComparedTableColumns());
 
-            ComparedSource comparedSource =
-                    getComparedSourceFromSourceId(sourceId, comparedSourceList);
 
 
             if (columnExistsIn(columnNameWithoutSourceId, comparableComparedColumns)) {
                 perComparedColumnSourceValue
                         .computeIfAbsent(comparedTableColumn, k -> new HashMap<>())
-                        .put(comparedSource, value);
+                        .put(sourceId, value);
             }
 
             if (value != null) {
-                rowDifference.addExistsOnSource(comparedSource);
+                rowDifference.addExistsOnSource(sourceId);
             }
         }
 
-        removeEmptySources(comparedSourceList, perComparedColumnSourceValue);
+        removeEmptySources(sourceIdList, perComparedColumnSourceValue);
 
         rowDifference.addAllDifferingColumns(buildComparableColumns(perComparedColumnSourceValue));
 
@@ -132,22 +131,30 @@ public class ComparisonResultBuilder {
 
     private static IdentifierColumn buildIdentifierColumn (ComparedTableColumn comparedTableColumn, Object value) {
 
-        return new IdentifierColumn(comparedTableColumn, value);
+        IdentifierColumn identifierColumn = new IdentifierColumn();
+        identifierColumn.setComparedTableColumn(comparedTableColumn);
+        identifierColumn.setValue(value);
+
+        return identifierColumn;
 
     }
 
     private static List<ComparableColumn> buildComparableColumns (Map<ComparedTableColumn,
-            Map<ComparedSource, Object>> perComparedColumnSourceValue) {
+            Map<String, Object>> perComparedColumnSourceValue) {
 
         List<ComparableColumn> comparableColumnList = new ArrayList<>();
 
-        for (Map.Entry<ComparedTableColumn, Map<ComparedSource, Object>> entry : perComparedColumnSourceValue.entrySet()) {
+        for (Map.Entry<ComparedTableColumn, Map<String, Object>> entry : perComparedColumnSourceValue.entrySet()) {
 
             ComparedTableColumn comparedTableColumn = entry.getKey();
-            Map<ComparedSource, Object> perSourceValue = entry.getValue();
+            Map<String, Object> perSourceValue = entry.getValue();
 
 
-            comparableColumnList.add(new ComparableColumn(comparedTableColumn, perSourceValue));
+            ComparableColumn comparableColumn = new ComparableColumn();
+            comparableColumn.setComparedTableColumn(comparedTableColumn);
+            comparableColumn.setPerSourceValue(perSourceValue);
+
+            comparableColumnList.add(comparableColumn);
 
         }
 
@@ -212,27 +219,27 @@ public class ComparisonResultBuilder {
         return null;
     }
 
-    private static void removeEmptySources(List<ComparedSource> comparedSourceList,
-                                           Map<ComparedTableColumn, Map<ComparedSource, Object>> perComparedColumnSourceValue) {
+    private static void removeEmptySources(List<String> sourceIdList,
+                                           Map<ComparedTableColumn, Map<String, Object>> perComparedColumnSourceValue) {
 
-        Set<ComparedSource> sourcesWithOnlyNulls = new HashSet<>();
+        Set<String> sourcesWithOnlyNulls = new HashSet<>();
 
-        for (ComparedSource comparedSource : comparedSourceList) {
+        for (String sourceId : sourceIdList) {
             boolean allNull = true;
-            for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
-                Object val = perSourceValue.get(comparedSource);
+            for (Map<String, Object> perSourceValue : perComparedColumnSourceValue.values()) {
+                Object val = perSourceValue.get(sourceId);
                 if (val != null) {
                     allNull = false;
                     break;
                 }
             }
             if (allNull) {
-                sourcesWithOnlyNulls.add(comparedSource);
+                sourcesWithOnlyNulls.add(sourceId);
             }
         }
 
 
-        for (Map<ComparedSource, Object> perSourceValue : perComparedColumnSourceValue.values()) {
+        for (Map<String, Object> perSourceValue : perComparedColumnSourceValue.values()) {
             sourcesWithOnlyNulls.forEach(perSourceValue::remove);
         }
 

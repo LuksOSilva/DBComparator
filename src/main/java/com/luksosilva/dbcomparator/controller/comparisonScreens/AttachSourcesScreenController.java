@@ -1,9 +1,9 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.model.source.Source;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.FileUtils;
@@ -110,9 +110,6 @@ public class AttachSourcesScreenController {
     private void setupToolTips() {
         attachPaneToolTip = new Tooltip("Adicionar banco de dados");
         detachPaneToolTip = new Tooltip("Remover banco de dados");
-
-        attachPaneToolTip.setShowDelay(Duration.millis(200));
-        detachPaneToolTip.setShowDelay(Duration.millis(200));
 
         Tooltip.install(attachSourceA, attachPaneToolTip);
         Tooltip.install(attachSourceB, attachPaneToolTip);
@@ -464,7 +461,7 @@ public class AttachSourcesScreenController {
             Parent root = screenData.node;
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, currentStage.getWidth(), currentStage.getHeight());
+            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
             stage.setScene(scene);
             stage.show();
 

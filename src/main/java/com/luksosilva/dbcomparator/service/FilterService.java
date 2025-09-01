@@ -2,14 +2,14 @@ package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.builder.FilterSqlBuilder;
 import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
-import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
-import com.luksosilva.dbcomparator.model.comparison.customization.validation.FilterValidationResult;
-import com.luksosilva.dbcomparator.repository.SchemaRepository;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.validation.FilterValidationResult;
+import com.luksosilva.dbcomparator.persistence.FilterValidator;
 import com.luksosilva.dbcomparator.util.FileUtils;
 
 
@@ -18,15 +18,8 @@ import java.util.Map;
 
 public class FilterService {
 
-    public static void generateSqlForTable(ComparedTable comparedTable) {
 
-        String filterSql = FilterSqlBuilder.build(comparedTable);
-
-        comparedTable.setSqlUserFilter(filterSql);
-
-    }
-
-    public static void validateFilters(List<ComparedTable> comparedTableList) {
+    public static void validateFilters(List<ComparedTable> comparedTableList, List<ComparedSource> comparedSourceList) {
 
         for (ComparedTable comparedTable : comparedTableList) {
 
@@ -42,13 +35,16 @@ public class FilterService {
                 continue;
             }
 
-            for (ComparedSource comparedSource : comparedTable.getPerSourceTable().keySet()) {
+            for (String sourceId : comparedTable.getPerSourceTable().keySet()) {
+
+                ComparedSource comparedSource = comparedSourceList.stream().filter(cs -> cs.getSourceId().equals(sourceId)).findFirst().orElse(null);
+                if (comparedSource == null) continue;
 
                 String filterSql = FilterSqlBuilder.build(comparedTable, comparedSource);
 
                 // Run the test query
-                FilterValidationResult result = SchemaRepository.selectValidateFilter(
-                        comparedSource.getSourceId(),
+                FilterValidationResult result = FilterValidator.selectValidateFilter(
+                        sourceId,
                         FileUtils.getCanonicalPath(comparedSource.getSource().getPath()),
                         comparedTable.getTableName(),
                         filterSql

@@ -1,6 +1,6 @@
 package com.luksosilva.dbcomparator.exception;
 
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 
 import java.util.List;
 

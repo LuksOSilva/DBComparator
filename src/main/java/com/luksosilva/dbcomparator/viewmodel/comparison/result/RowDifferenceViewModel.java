@@ -1,12 +1,10 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison.result;
 
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.result.ComparableColumn;
-import com.luksosilva.dbcomparator.model.comparison.result.IdentifierColumn;
-import com.luksosilva.dbcomparator.model.comparison.result.RowDifference;
+import com.luksosilva.dbcomparator.model.live.comparison.result.ComparableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.result.IdentifierColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.result.RowDifference;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class RowDifferenceViewModel {
 
@@ -23,7 +21,7 @@ public class RowDifferenceViewModel {
         for (IdentifierColumn identifierColumn : model.getIdentifierColumns()) {
             identifierColumnViewModels.add(new IdentifierColumnViewModel(identifierColumn));
         }
-        for (ComparableColumn comparableColumn : model.getDifferingColumns()) {
+        for (ComparableColumn comparableColumn : model.getComparableColumns()) {
             comparableColumnViewModels.add(new ComparableColumnViewModel(comparableColumn));
         }
     }
@@ -49,9 +47,7 @@ public class RowDifferenceViewModel {
 
 
     public String getExistsOn() {
-        return model.getExistsOnSources().stream()
-                .map(ComparedSource::getSourceId)
-                .collect(Collectors.joining(", "));
+        return String.join(", ", model.getExistsOnSources());
     }
 
 }

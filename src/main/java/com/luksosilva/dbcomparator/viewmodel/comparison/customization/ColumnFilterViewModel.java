@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison.customization;
 
 import com.luksosilva.dbcomparator.enums.ColumnFilterType;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;

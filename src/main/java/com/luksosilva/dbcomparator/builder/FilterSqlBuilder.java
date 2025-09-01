@@ -1,24 +1,23 @@
 package com.luksosilva.dbcomparator.builder;
 
 import com.luksosilva.dbcomparator.enums.ColumnFilterType;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
-import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.TableFilter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FilterSqlBuilder {
 
-
-    public static String build(ComparedTable comparedTable) {
+    public static String build(ComparedTable comparedTable, List<ComparedSource> comparedSourceList) {
 
 
         // CASE 1: table filter
@@ -41,7 +40,12 @@ public class FilterSqlBuilder {
 
             // Build per-source filter strings (OR between sources)
             String sourceColumnInFilter = comparedTable.getPerSourceTable().keySet().stream()
-                    .map(comparedSource -> buildPerSourceCondition(comparedSource, comparedTableColumn))
+                    .map(sourceId -> {
+                        return buildPerSourceCondition(Objects.requireNonNull(comparedSourceList.stream()
+                                .filter(comparedSource -> comparedSource.getSourceId().equals(sourceId))
+                                .findFirst()
+                                .orElse(null)), comparedTableColumn);
+                    })
                     .collect(Collectors.joining("\nOR ")); // multiple sources → OR
 
             whereColumnIsFilteredList.add("(" + sourceColumnInFilter + ")");
@@ -95,7 +99,7 @@ public class FilterSqlBuilder {
 
         String columnTypeInSource = comparedTableColumn
                 .getPerSourceTableColumn()
-                .get(comparedSource)
+                .get(comparedSource.getSourceId())
                 .getType();
 
         return comparedTableColumn.getColumnFilters().stream()

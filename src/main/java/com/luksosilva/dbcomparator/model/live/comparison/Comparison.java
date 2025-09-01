@@ -1,0 +1,51 @@
+package com.luksosilva.dbcomparator.model.live.comparison;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.result.ComparisonResult;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class Comparison {
+
+
+    private List<ComparedSource> comparedSources = new ArrayList<>();
+    private List<ComparedTable> comparedTables = new ArrayList<>();
+
+    private ComparisonResult comparisonResult;
+
+    public Comparison() {}
+
+    @JsonCreator
+    public Comparison(
+            @JsonProperty("comparedSources") List<ComparedSource> comparedSources,
+            @JsonProperty("comparedTables") List<ComparedTable> comparedTables,
+            @JsonProperty("comparisonResult") ComparisonResult comparisonResult) {
+        this.comparedSources = comparedSources;
+        this.comparedTables = comparedTables;
+        this.comparisonResult = comparisonResult;
+    }
+
+
+    public List<ComparedSource> getComparedSources() {
+        return comparedSources;
+    }
+
+    public List<ComparedTable> getComparedTables() {
+        return comparedTables;
+    }
+
+    public ComparisonResult getComparisonResult() {
+        return comparisonResult;
+    }
+
+    public void setComparisonResult(ComparisonResult comparisonResult) {
+        this.comparisonResult = comparisonResult;
+    }
+
+}

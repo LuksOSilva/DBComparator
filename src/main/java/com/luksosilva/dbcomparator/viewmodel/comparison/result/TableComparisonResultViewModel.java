@@ -1,9 +1,9 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison.result;
 
 
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.result.RowDifference;
-import com.luksosilva.dbcomparator.model.comparison.result.TableComparisonResult;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.result.RowDifference;
+import com.luksosilva.dbcomparator.model.live.comparison.result.TableComparisonResult;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -49,9 +49,10 @@ public class TableComparisonResultViewModel {
     public String getPerSourceRecordCount() {
         ComparedTable comparedTable = model.getComparedTable();
 
+
         StringBuilder perSourceRecordCount = new StringBuilder();
-        comparedTable.getPerSourceTable().forEach((comparedSource, sourceTable) -> {
-            perSourceRecordCount.append(comparedSource.getSourceId())
+        comparedTable.getPerSourceTable().forEach((sourceId, sourceTable) -> {
+            perSourceRecordCount.append(sourceId)
                                 .append(": ")
                                 .append(sourceTable.getRecordCount())
                                 .append("\n");

@@ -1,11 +1,15 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
-import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResult;
-import com.luksosilva.dbcomparator.model.comparison.result.TableComparisonResult;
+import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.result.ComparisonResult;
+import com.luksosilva.dbcomparator.model.live.comparison.result.TableComparisonResult;
+import com.luksosilva.dbcomparator.queue.ComparisonQueueManager;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
+import com.luksosilva.dbcomparator.util.FxmlUtils;
+import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.viewmodel.comparison.compared.ComparedTableViewModel;
 import com.luksosilva.dbcomparator.viewmodel.comparison.result.*;
 import javafx.beans.binding.Bindings;
@@ -15,10 +19,16 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class ComparisonResultScreenController {
@@ -31,6 +41,8 @@ public class ComparisonResultScreenController {
     private Comparison comparison;
     private final ComparisonResult comparisonResult = new ComparisonResult();
 
+    private boolean isComparisonSaved = false;
+    private boolean isComparisonImported = false;
 
     private final List<ComparedTableViewModel> comparedTableViewModels = new ArrayList<>();
     private final List<TableComparisonResultViewModel> tableComparisonResultViewModels = new ArrayList<>();
@@ -39,6 +51,8 @@ public class ComparisonResultScreenController {
 
     private final ObservableList<TitledPane> tableComparisonResultPanes = FXCollections.observableArrayList();
     private FilteredList<TitledPane> filteredTableComparisonResultPanes;
+
+    private ComparisonQueueManager comparisonQueueManager = new ComparisonQueueManager(); // or 1 for sequential
 
 
     public void setComparison(Comparison comparison) { this.comparison = comparison; }
@@ -51,6 +65,19 @@ public class ComparisonResultScreenController {
 
     @FXML
     public Accordion tablesAccordion;
+    @FXML
+    public Button saveBtn;
+    @FXML
+    public Button leaveBtn;
+
+    public void init(Comparison comparison) {
+        saveBtn.setVisible(false);
+        saveBtn.setManaged(false);
+
+        this.comparison = comparison;
+        isComparisonImported = true;
+        init();
+    }
 
     public void init() {
         setupComparedTableViewModels();
@@ -61,13 +88,28 @@ public class ComparisonResultScreenController {
 
     private void startComparison() {
 
+        if (isComparisonImported) {
+            for (TableComparisonResult tableComparisonResult : comparison.getComparisonResult().getTableComparisonResults()) {
+                addComparedTableResult(tableComparisonResult);
+            }
+            return;
+        }
+
         List<ComparedTable> sortedComparedTableList = getSortedComparedTableList(comparison.getComparedTables());
 
+        // add tables to the queue
         for (ComparedTable comparedTable : sortedComparedTableList) {
-            ComparisonService.compare(comparedTable, this);
+            comparisonQueueManager.add(comparedTable);
         }
+
+        // start the queue processor
+        comparisonQueueManager.start(comparison.getComparedSources(), this);
+
     }
 
+    private boolean isComparisonFinished() {
+        return comparison.getComparedTables().size() == comparisonResult.getTableComparisonResults().size();
+    }
 
     public void addComparedTableResult(TableComparisonResult tableComparisonResult) {
 
@@ -157,9 +199,10 @@ public class ComparisonResultScreenController {
             titledPane.setText(vm.getTableName());
 
 
-            titledPane.setDisable(true);
             tableComparisonResultPanes.add(titledPane);
             perComparedTableResultPane.put(vm.getModel(), titledPane);
+
+            titledPane.setDisable(true);
         }
     }
 
@@ -236,4 +279,64 @@ public class ComparisonResultScreenController {
         return sortedComparedTableList;
     }
 
+    public void saveComparisonBtnClicked(MouseEvent mouseEvent) {
+        if (!isComparisonFinished()) {
+            DialogUtils.showWarning(
+                    "Comparação ainda não finalizada",
+                    "Você deve aguardar todas as tabelas serem comparadas para salvar"
+            );
+            return;
+        }
+
+        comparison.setComparisonResult(comparisonResult);
+
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Salvar Comparação");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("DBC Files", "*.dbc", "*.json"));
+
+            File file = fileChooser.showSaveDialog(currentStage);
+            if (file == null) return;
+
+            ComparisonService.saveComparison(comparison, file);
+        }
+        catch (Exception e) {
+            DialogUtils.showError(
+                    "Erro ao salvar comparação",
+                    e.getMessage()
+            );
+            return;
+        }
+
+        DialogUtils.showInfo("Sucesso!", "Comparação salva.");
+        isComparisonSaved = true;
+    }
+
+    public void leaveComparisonBtnClicked(MouseEvent mouseEvent) {
+        String message = "Deseja realmente sair dessa comparação? "
+                + ((isComparisonImported || isComparisonSaved) ? "" : "Nenhuma informação será salva.");
+
+        boolean confirmCancel = DialogUtils.askConfirmation("Sair", message);
+        if (!confirmCancel) {
+            return;
+        }
+
+        comparisonQueueManager.stop();
+
+        try {
+            FxLoadResult<Parent, AttachSourcesScreenController> screenData =
+                    FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
+
+            Parent root = screenData.node;
+
+            Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (IOException e) {
+            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

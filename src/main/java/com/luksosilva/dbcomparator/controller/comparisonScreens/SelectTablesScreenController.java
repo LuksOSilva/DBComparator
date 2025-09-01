@@ -1,10 +1,10 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.model.source.SourceTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
@@ -47,7 +47,7 @@ public class SelectTablesScreenController {
 
 
     private Comparison comparison;
-    private Map<String, Map<ComparedSource, SourceTable>> groupedTables;
+    private Map<String, Map<String, SourceTable>> groupedTables;
     private List<String> selectedTableNames = new ArrayList<>();
 
     private ObservableList<TitledPane> allTablePanes = FXCollections.observableArrayList();
@@ -219,7 +219,7 @@ public class SelectTablesScreenController {
                 if ("tabela".equalsIgnoreCase(filterType)) {
                     if (!tableName.contains(filterText)) return false;
                 } else if ("coluna".equalsIgnoreCase(filterType)) {
-                    Map<ComparedSource, SourceTable> sourceTableMap = groupedTables.get(pane.getText());
+                    Map<String, SourceTable> sourceTableMap = groupedTables.get(pane.getText());
                     if (sourceTableMap == null) return false;
 
                     boolean columnMatch = sourceTableMap.values().stream()
@@ -237,7 +237,7 @@ public class SelectTablesScreenController {
 
             // show only different record count filter
             if (showDiffRecordCountOnlyCheckBox.isSelected()) {
-                Map<ComparedSource, SourceTable> perSource = groupedTables.get(pane.getText());
+                Map<String, SourceTable> perSource = groupedTables.get(pane.getText());
                 if (perSource == null) return false;
 
                 Set<Integer> rowCounts = new HashSet<>();
@@ -250,7 +250,7 @@ public class SelectTablesScreenController {
             // show only different schema
             if (showOnlySchemaDiffersCheckBox.isSelected()) {
                 int totalSources = comparison.getComparedSources().size();
-                Map<ComparedSource, SourceTable> perSource = groupedTables.get(pane.getText());
+                Map<String, SourceTable> perSource = groupedTables.get(pane.getText());
                 if (perSource == null) return false;
 
                 // only checks for schema difference if table exists in all sources.
@@ -397,7 +397,7 @@ public class SelectTablesScreenController {
         final double TABLE_ROW_HEIGHT = 28.0;
         final double TABLE_HEADER_HEIGHT = 30.0;
 
-        Map<ComparedSource, SourceTable> perSourceTable = groupedTables.get(tableName);
+        Map<String, SourceTable> perSourceTable = groupedTables.get(tableName);
 
         TableView<TableSourceStats> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -417,15 +417,14 @@ public class SelectTablesScreenController {
         ObservableList<TableSourceStats> tableStats = FXCollections.observableArrayList();
 
         if (perSourceTable != null) {
-            for (Map.Entry<ComparedSource, SourceTable> entry : perSourceTable.entrySet()) {
-                ComparedSource comparedSource = entry.getKey();
+            for (Map.Entry<String, SourceTable> entry : perSourceTable.entrySet()) {
+                String sourceId = entry.getKey();
                 SourceTable sourceTable = entry.getValue();
 
-                String sourceName = comparedSource.getSourceId();
                 int rowCount = sourceTable.getRecordCount();
                 int columnCount = sourceTable.getSourceTableColumns().size();
 
-                tableStats.add(new TableSourceStats(sourceName, rowCount, columnCount));
+                tableStats.add(new TableSourceStats(sourceId, rowCount, columnCount));
             }
         }
         tableView.setItems(tableStats);
@@ -457,8 +456,8 @@ public class SelectTablesScreenController {
 
 
 
-    private Map<String, Map<ComparedSource, SourceTable>> getGroupedTables () {
-        Map<String, Map<ComparedSource, SourceTable>> groupedTables = new HashMap<>();
+    private Map<String, Map<String, SourceTable>> getGroupedTables () {
+        Map<String, Map<String, SourceTable>> groupedTables = new HashMap<>();
 
         if (comparison != null && comparison.getComparedSources() != null) {
             for (ComparedSource comparedSource : comparison.getComparedSources()) {
@@ -468,7 +467,7 @@ public class SelectTablesScreenController {
 
                         groupedTables
                                 .computeIfAbsent(tableName, k -> new HashMap<>())
-                                .put(comparedSource, sourceTable);
+                                .put(comparedSource.getSourceId(), sourceTable);
                     }
                 }
             }
@@ -553,7 +552,7 @@ public class SelectTablesScreenController {
                 comparison.getComparedTables()
                         .removeIf(comparedTable -> !selectedTableNames.contains(comparedTable.getTableName()));
 
-                Map<String, Map<ComparedSource, SourceTable>> notProcessedSelectedGroupedTables =
+                Map<String, Map<String, SourceTable>> notProcessedSelectedGroupedTables =
                         groupedTables.entrySet().stream()
                                 .filter(groupedTable -> comparison.getComparedTables().stream()
                                         .noneMatch(comparedTable -> comparedTable.getTableName().equals(groupedTable.getKey())))
@@ -652,7 +651,7 @@ public class SelectTablesScreenController {
             Parent root = screenData.node;
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, currentStage.getWidth(), currentStage.getHeight());
+            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
             stage.setScene(scene);
             stage.show();
 

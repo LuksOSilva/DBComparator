@@ -3,14 +3,45 @@ package com.luksosilva.dbcomparator.util;
 import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.enums.SqlPlaceholders;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SqlFormatter {
+
+    public static String buildUpdateLastLoaded(String lastLoadedAt, String filePath) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.LAST_LOADED_AT, lastLoadedAt,
+                SqlPlaceholders.FILE_PATH, filePath
+        );
+
+        return buildSQL(SqlFiles.UPDATE_LAST_LOADED0, placeholders);
+
+    }
+
+    public static String buildSelectDBCComparison(String filePath) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.FILE_PATH, filePath
+        );
+
+        return buildSQL(SqlFiles.SELECT_DBC_COMPARISON, placeholders);
+
+    }
+
+    public static String buildInsertDBCComparisons(String description, String filePath, String isImported, String createdAt) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.DESCRIPTION, description,
+                SqlPlaceholders.FILE_PATH, filePath,
+                SqlPlaceholders.IS_IMPORTED, isImported,
+                SqlPlaceholders.CREATED_AT, createdAt
+        );
+
+        return buildSQL(SqlFiles.INSERT_DBC_COMPARISONS, placeholders);
+
+    }
 
     public static String buildSelectValidateFilter(String sourceId, String tableName, String filterSql) {
 
@@ -52,7 +83,7 @@ public class SqlFormatter {
                 SqlPlaceholders.IS_IDENTIFIER, strIsIdentifier
         );
 
-        return buildSQL(SqlFiles.REPLACE_COLUMN_SETTINGS, placeholders);
+        return buildSQL(SqlFiles.REPLACE_COLUMN_DEFAULTS, placeholders);
 
     }
 
@@ -62,7 +93,7 @@ public class SqlFormatter {
                 SqlPlaceholders.LIST_TABLE_NAMES, listTableNames
         );
 
-        return buildSQL(SqlFiles.SELECT_MAP_COLUMN_SETTINGS, placeholders);
+        return buildSQL(SqlFiles.SELECT_COLUMN_DEFAULTS, placeholders);
     }
 
     public static String buildPragmaTableInfo(String sourceId, String tableName) {

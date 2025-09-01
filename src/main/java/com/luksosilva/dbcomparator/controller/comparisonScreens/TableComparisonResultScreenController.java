@@ -1,7 +1,6 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.util.CsvExporter;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.viewmodel.comparison.result.ComparableColumnViewModel;
@@ -9,25 +8,20 @@ import com.luksosilva.dbcomparator.viewmodel.comparison.result.IdentifierColumnV
 import com.luksosilva.dbcomparator.viewmodel.comparison.result.RowDifferenceViewModel;
 import com.luksosilva.dbcomparator.viewmodel.comparison.result.TableComparisonResultViewModel;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TableComparisonResultScreenController {
 
@@ -279,14 +273,11 @@ public class TableComparisonResultScreenController {
         TableColumn<RowDifferenceViewModel, String> comparableColumn = new TableColumn<>(comparedTableColumn.getColumnName());
 
         // Get all source IDs for this table
-        Set<String> sourceIds = tableComparisonResultViewModel
+        Set<String> sourceIds = new LinkedHashSet<>(tableComparisonResultViewModel
                 .getModel()
                 .getComparedTable()
                 .getPerSourceTable()
-                .keySet()
-                .stream()
-                .map(ComparedSource::getSourceId)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .keySet());
 
         for (String sourceId : sourceIds) {
 
@@ -508,7 +499,6 @@ public class TableComparisonResultScreenController {
         // Get sourceIds in order
         List<String> sourceIds = new ArrayList<>(tableComparisonResultViewModel.getModel().getComparedTable().getPerSourceTable().keySet())
                 .stream()
-                .map(ComparedSource::getSourceId)
                 .toList();
 
         List<String> headers = new ArrayList<>();

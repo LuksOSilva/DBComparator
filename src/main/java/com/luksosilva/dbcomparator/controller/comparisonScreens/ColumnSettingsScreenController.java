@@ -2,12 +2,11 @@ package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
-import com.luksosilva.dbcomparator.model.comparison.*;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
-import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.service.ColumnSettingsService;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
@@ -27,7 +26,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -87,7 +85,7 @@ public class ColumnSettingsScreenController {
         }
 
         public String getPrimaryKeyCountText() {
-            Map<ComparedSource, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
+            Map<String, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
 
             long pkCount = map.values().stream().filter(SourceTableColumn::isPk).count();
             int totalSources = comparison.getComparedSources().size();
@@ -333,7 +331,7 @@ public class ColumnSettingsScreenController {
 
         List<ComparedTable> comparedTableList = new ArrayList<>();
         comparedTableList.add(comparedTable);
-        ComparisonService.setTableColumnsSettings(comparedTableList, loadFromDb);
+        ComparisonService.setTableColumnsSettings(comparedTableList, comparison.getComparedSources(), loadFromDb);
 
 
         comparedTableColumnViewModelList.forEach(ComparedTableColumnViewModel::setProperties);
@@ -355,7 +353,7 @@ public class ColumnSettingsScreenController {
                         ));
 
         //validate column setting
-        ColumnSettingsService.validateColumnSettings(comparedTable, perComparedTableColumnSettings);
+        ColumnSettingsService.validateColumnSettings(comparedTable, perComparedTableColumnSettings, comparison.getComparedSources());
         if (comparedTable.isColumnSettingsInvalid()) return;
 
         //saves default
@@ -801,7 +799,7 @@ public class ColumnSettingsScreenController {
             Parent root = screenData.node;
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, currentStage.getWidth(), currentStage.getHeight());
+            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
             stage.setScene(scene);
             stage.show();
 

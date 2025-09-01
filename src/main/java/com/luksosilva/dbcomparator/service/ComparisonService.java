@@ -1,21 +1,20 @@
 package com.luksosilva.dbcomparator.service;
 
-import com.luksosilva.dbcomparator.builder.ComparisonResultBuilder;
 import com.luksosilva.dbcomparator.builder.FilterSqlBuilder;
-import com.luksosilva.dbcomparator.builder.SelectDifferencesBuilder;
-import com.luksosilva.dbcomparator.controller.comparisonScreens.ComparisonResultScreenController;
-import com.luksosilva.dbcomparator.model.comparison.*;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
-import com.luksosilva.dbcomparator.model.comparison.result.TableComparisonResult;
-import com.luksosilva.dbcomparator.model.source.Source;
-import com.luksosilva.dbcomparator.model.source.SourceTable;
-import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
-import javafx.concurrent.Task;
+import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.model.live.source.Source;
+import com.luksosilva.dbcomparator.model.live.source.SourceTable;
+import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
+import com.luksosilva.dbcomparator.util.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +31,7 @@ public class ComparisonService {
     }
 
     //2
-    public static void processTables(Comparison comparison, Map<String, Map<ComparedSource, SourceTable>> groupedTables) {
+    public static void processTables(Comparison comparison, Map<String, Map<String, SourceTable>> groupedTables) {
         setComparedTables(comparison, groupedTables);
         setComparedTableColumns(comparison.getComparedTables());
 
@@ -48,7 +47,8 @@ public class ComparisonService {
         });
 
 
-        setTableColumnsSettings(comparedTablesWithoutColumnSettings, true); //TODO: create config to set default 'loadFromDb'
+        setTableColumnsSettings(comparedTablesWithoutColumnSettings,
+               comparison.getComparedSources(), true); //TODO: create config to set default 'loadFromDb'
     }
 
     //4
@@ -75,56 +75,50 @@ public class ComparisonService {
 
 
     //5
-    public static void processFilters(List<ComparedTable> comparedTableList) {
+    public static void processFilters(List<ComparedTable> comparedTableList, List<ComparedSource> comparedSourceList) {
 
         for (ComparedTable comparedTable : comparedTableList) {
-            String filterSql = FilterSqlBuilder.build(comparedTable);
+            String filterSql = FilterSqlBuilder.build(comparedTable, comparedSourceList);
 
             comparedTable.setSqlUserFilter(filterSql);
         }
 
     }
 
-    //6
-    public static void compare(ComparedTable comparedTable, ComparisonResultScreenController controller) {
+    public static void saveComparison(Comparison comparison, File file) throws Exception {
+        try {
 
-        Task<TableComparisonResult> compareTableTask = new Task<>() {
-            @Override
-            protected TableComparisonResult call() throws Exception {
-                comparedTable.setSqlSelectDifferences(SelectDifferencesBuilder.build(comparedTable));
-                return ComparisonResultBuilder.buildTableComparisonResult(comparedTable);
-            }
-        };
+            JsonUtils.saveComparisonAsJson(comparison, file);
 
-        compareTableTask.setOnSucceeded(event -> {
-            try {
-                TableComparisonResult tableComparisonResult = compareTableTask.getValue();
+            ComparisonDAO.saveCreatedComparison(file);
 
-                // updates UI
-                controller.addComparedTableResult(tableComparisonResult);
-
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-
-        compareTableTask.setOnFailed(event -> {
-            Throwable ex = compareTableTask.getException();
-            if (ex != null) {
-                ex.printStackTrace();
-            }
-
-        });
-
-        executor.submit(compareTableTask);
+        } catch (IOException e) {
+            throw new IOException(e);
+        }
     }
+
+    public static Comparison loadComparison(File file) throws Exception {
+        try {
+
+            Comparison loadedComparison = JsonUtils.loadComparisonFromJson(file);
+
+            ComparisonDAO.saveLoadedComparison(file);
+
+            return loadedComparison;
+
+        } catch (IOException e) {
+            throw new IOException(e);
+        }
+    }
+
 
 
     /// HELPERS
 
-    public static void setTableColumnsSettings(List<ComparedTable> comparedTableList, boolean loadFromDb) {
-        SchemaService.loadColumnsSettings(comparedTableList, loadFromDb);
+    public static void setTableColumnsSettings(List<ComparedTable> comparedTableList,
+                                               List<ComparedSource> comparedSourceList,
+                                               boolean loadFromDb) {
+        SchemaService.loadColumnsSettings(comparedTableList, comparedSourceList, loadFromDb);
     }
 
 
@@ -141,9 +135,9 @@ public class ComparisonService {
         }
     }
 
-    private static void setComparedTables(Comparison comparison, Map<String, Map<ComparedSource, SourceTable>> groupedTables) {
+    private static void setComparedTables(Comparison comparison, Map<String, Map<String, SourceTable>> groupedTables) {
 
-        for (Map<ComparedSource, SourceTable> perSourceTable : groupedTables.values()) {
+        for (Map<String, SourceTable> perSourceTable : groupedTables.values()) {
             ComparedTable comparedTable = new ComparedTable(perSourceTable);
             comparison.getComparedTables().add(comparedTable);
         }
@@ -156,10 +150,10 @@ public class ComparisonService {
             if (!comparedTable.getComparedTableColumns().isEmpty()) continue;
 
 
-            Map<String, Map<ComparedSource, SourceTableColumn>> groupedColumns = new HashMap<>();
+            Map<String, Map<String, SourceTableColumn>> groupedColumns = new HashMap<>();
 
-            for (Map.Entry<ComparedSource, SourceTable> entry : comparedTable.getPerSourceTable().entrySet()) {
-                ComparedSource comparedSource = entry.getKey();
+            for (Map.Entry<String, SourceTable> entry : comparedTable.getPerSourceTable().entrySet()) {
+                String sourceId = entry.getKey();
                 SourceTable sourceTable = entry.getValue();
 
                 for (SourceTableColumn sourceTableColumn : sourceTable.getSourceTableColumns()) {
@@ -167,11 +161,11 @@ public class ComparisonService {
 
                     groupedColumns
                             .computeIfAbsent(columnName, k -> new HashMap<>())
-                            .put(comparedSource, sourceTableColumn);
+                            .put(sourceId, sourceTableColumn);
                 }
             }
 
-            for (Map<ComparedSource, SourceTableColumn> perSourceTableColumn : groupedColumns.values()) {
+            for (Map<String, SourceTableColumn> perSourceTableColumn : groupedColumns.values()) {
                 ComparedTableColumn comparedTableColumn = new ComparedTableColumn(comparedTable, perSourceTableColumn);
                 comparedTable.getComparedTableColumns().add(comparedTableColumn);
             }

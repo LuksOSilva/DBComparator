@@ -1,7 +1,7 @@
 package com.luksosilva.dbcomparator.util;
 
 import com.luksosilva.dbcomparator.enums.SqlFiles;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;

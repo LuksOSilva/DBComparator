@@ -1,11 +1,11 @@
 package com.luksosilva.dbcomparator.controller.dialogs;
 
 import com.luksosilva.dbcomparator.enums.ColumnFilterType;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
-import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.TableFilter;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;

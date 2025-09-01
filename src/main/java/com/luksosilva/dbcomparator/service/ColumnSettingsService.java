@@ -1,18 +1,19 @@
 package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
-import com.luksosilva.dbcomparator.model.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 
 import java.util.*;
 
 public class ColumnSettingsService {
 
     public static void validateColumnSettings(ComparedTable comparedTable,
-                                              Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings) {
+                                              Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings,
+                                              List<ComparedSource> comparedSourceList) {
 
         //checks if table was validated before.
         if (comparedTable.isColumnSettingsValid()) {
@@ -45,7 +46,8 @@ public class ColumnSettingsService {
         }
 
 
-        List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable, perComparedTableColumnSettings);
+        List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable,
+                perComparedTableColumnSettings, comparedSourceList);
 
         if (!invalidInSources.isEmpty()) {
             comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
@@ -59,12 +61,10 @@ public class ColumnSettingsService {
     public static ColumnSettings getColumnSettings
             (ComparedTable comparedTable,
              ComparedTableColumn comparedTableColumn,
+             List<ComparedSource> comparedSourceList,
              Optional<Map<ComparedTable, Map<ComparedTableColumn, ColumnSettings>>> optionalPerComparedTableColumnSetting) {
 
 
-        List<ComparedSource> comparedSourceList = new ArrayList<>();
-        comparedTable.getPerSourceTable().forEach((comparedSource, sourceTable) ->
-                comparedSourceList.add(comparedSource));
 
         boolean existsInAllSources = getExistsInAllSources(comparedTableColumn, comparedSourceList);
         //1. If column doesn't exist in all sources, it is neither identifier nor comparable.

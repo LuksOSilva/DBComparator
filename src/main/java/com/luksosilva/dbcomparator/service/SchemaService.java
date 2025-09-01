@@ -1,10 +1,11 @@
 package com.luksosilva.dbcomparator.service;
 
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnSettings;
-import com.luksosilva.dbcomparator.repository.SchemaRepository;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.persistence.ColumnSettingsDAO;
+import com.luksosilva.dbcomparator.persistence.SchemaLoader;
 import com.luksosilva.dbcomparator.util.FileUtils;
 
 import java.util.ArrayList;
@@ -17,22 +18,23 @@ public class SchemaService {
 
     public static void mapComparedSources (List<ComparedSource> comparedSourceList) {
         for (ComparedSource comparedSource : comparedSourceList) {
-            SchemaRepository.mapSourceTable(comparedSource);
+            SchemaLoader.mapSourceTable(comparedSource);
         }
     }
 
     public static void loadColumnsSettings(List<ComparedTable> comparedTableList,
+                                           List<ComparedSource> comparedSourceList,
                                            boolean loadFromDb) {
 
         Optional<Map<ComparedTable, Map<ComparedTableColumn, ColumnSettings>>> optionalPerComparedTableColumnSetting =
-                loadFromDb ? SchemaRepository.loadTableColumnsSettingsFromDb(comparedTableList)
+                loadFromDb ? ColumnSettingsDAO.loadTableColumnsSettingsFromDb(comparedTableList)
                         : Optional.empty();
 
         for (ComparedTable comparedTable : comparedTableList) {
             for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
 
                 comparedTableColumn.setColumnSetting(ColumnSettingsService.getColumnSettings
-                        (comparedTable, comparedTableColumn, optionalPerComparedTableColumnSetting));
+                        (comparedTable, comparedTableColumn, comparedSourceList, optionalPerComparedTableColumnSetting));
 
             }
         }
@@ -42,18 +44,16 @@ public class SchemaService {
         for (ComparedTable comparedTable : comparedTableList) {
             for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
 
-                SchemaRepository.saveTableColumnsSettings(comparedTable, comparedTableColumn);
+                ColumnSettingsDAO.saveTableColumnsSettings(comparedTable, comparedTableColumn);
 
             }
         }
     }
 
     public static List<String> validateIdentifiers(ComparedTable comparedTable,
-                                           Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings) {
+                                                   Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings,
+                                                   List<ComparedSource> comparedSourceList) {
 
-        List<ComparedSource> comparedSourceList = new ArrayList<>();
-        comparedTable.getPerSourceTable().forEach((comparedSource, sourceTable) ->
-                comparedSourceList.add(comparedSource));
 
         List<String> identifiersComparedColumns = perComparedTableColumnSettings.keySet().stream()
                 .filter(comparedTableColumn -> perComparedTableColumnSettings.get(comparedTableColumn).isIdentifier())
@@ -65,7 +65,7 @@ public class SchemaService {
         for (ComparedSource comparedSource : comparedSourceList) {
 
             invalidInSources.addAll(
-                    SchemaRepository.selectValidateColumnSettings(comparedSource.getSourceId(),
+                    ColumnSettingsDAO.selectValidateColumnSettings(comparedSource.getSourceId(),
                             FileUtils.getCanonicalPath(comparedSource.getSource().getPath()),
                             comparedTable.getTableName(), identifiersComparedColumns));
 

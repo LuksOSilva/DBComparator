@@ -2,13 +2,12 @@ package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.exception.FilterException;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.Comparison;
-import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
-import com.luksosilva.dbcomparator.model.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.TableFilter;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.service.FilterService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
@@ -40,7 +39,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.sqlite.FileException;
 
 import java.io.IOException;
 import java.util.*;
@@ -610,7 +608,7 @@ public class SetFiltersScreenController {
 
                 FilterService.validateFilters(comparison.getComparedTables().stream()
                         .filter(comparedTable -> !comparedTable.getFilterValidationResult().isValid())
-                        .toList());
+                        .toList(), comparison.getComparedSources());
 
                 if (hasAnyInvalidFilter()) {
                     throw new FilterException(
@@ -619,7 +617,7 @@ public class SetFiltersScreenController {
                                     .toList());
                 }
 
-                ComparisonService.processFilters(comparison.getComparedTables());
+                ComparisonService.processFilters(comparison.getComparedTables(), comparison.getComparedSources());
 
                 //ComparisonService.compare(comparison);
 
@@ -701,7 +699,7 @@ public class SetFiltersScreenController {
             Parent root = screenData.node;
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
             stage.setScene(scene);
             stage.show();
 

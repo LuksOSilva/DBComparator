@@ -46,14 +46,22 @@
                   </HBox>
                </children>
             </VBox>
-            <ScrollPane fx:id="scrollPane" fitToWidth="true" prefHeight="339.0" prefWidth="916.0">
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" prefHeight="339.0" prefWidth="916.0" VBox.vgrow="ALWAYS">
                <content>
                   <Accordion fx:id="tablesAccordion" />
                </content>
             </ScrollPane>
          </children>
       </VBox>
-        <Button fx:id="nextStepBtn" layoutX="783.0" layoutY="535.0" mnemonicParsing="false" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="SALVAR" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="22.0" />
-        <Button fx:id="previousStepBtn" layoutX="651.0" layoutY="535.0" mnemonicParsing="false" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="SAIR" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="199.0" />
+      <Pane prefHeight="80.0" prefWidth="960.0" style="-fx-background-color: #E8EBF3;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+      <HBox alignment="CENTER_RIGHT" layoutX="38.0" layoutY="486.0" prefHeight="41.0" prefWidth="960.0" spacing="15.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+         <children>
+              <Button fx:id="leaveBtn" mnemonicParsing="false" onMouseClicked="#leaveComparisonBtnClicked" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="SAIR" />
+              <Button fx:id="saveBtn" mnemonicParsing="false" onMouseClicked="#saveComparisonBtnClicked" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="SALVAR" />
+         </children>
+         <padding>
+            <Insets right="25.0" />
+         </padding>
+      </HBox>
     </children>
 </AnchorPane>

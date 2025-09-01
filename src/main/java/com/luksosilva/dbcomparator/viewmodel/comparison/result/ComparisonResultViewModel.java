@@ -1,8 +1,7 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison.result;
 
-import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResult;
-import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResultSummary;
-import com.luksosilva.dbcomparator.model.comparison.result.TableComparisonResult;
+import com.luksosilva.dbcomparator.model.live.comparison.result.ComparisonResult;
+import com.luksosilva.dbcomparator.model.live.comparison.result.TableComparisonResult;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison.result;
 
-import com.luksosilva.dbcomparator.model.comparison.result.ComparisonResultSummary;
+import com.luksosilva.dbcomparator.model.live.comparison.result.ComparisonResultSummary;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 

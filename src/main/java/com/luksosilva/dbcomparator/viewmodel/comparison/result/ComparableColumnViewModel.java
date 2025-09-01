@@ -1,8 +1,7 @@
 package com.luksosilva.dbcomparator.viewmodel.comparison.result;
 
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.comparison.result.ComparableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.result.ComparableColumn;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -28,7 +27,7 @@ public class ComparableColumnViewModel {
         perSourceValue = model.getPerSourceValue().entrySet()
                 .stream()
                 .collect(Collectors.toMap(
-                        entry -> entry.getKey().getSourceId(),
+                        Map.Entry::getKey,
                         entry -> entry.getValue() == null ? "NULL" : entry.getValue().toString()
                 ));
     }
@@ -55,24 +54,16 @@ public class ComparableColumnViewModel {
 
     public boolean existsOnAllSources() {
         ComparedTableColumn comparedTableColumn = model.getComparedTableColumn();
-        List<ComparedSource> comparedSourceList = comparedTableColumn.getPerSourceTableColumn().keySet().stream().toList();
+        List<String> sourceIdList = comparedTableColumn.getPerSourceTableColumn().keySet().stream().toList();
 
-        for (ComparedSource comparedSource : comparedSourceList) {
-            if (!perSourceValue.containsKey(comparedSource.getSourceId())) {
+        for (String sourceId : sourceIdList) {
+            if (!perSourceValue.containsKey(sourceId)) {
                 return false;
             }
         }
         return true;
     }
 
-    public String getExistsOn() {
-        ComparedTableColumn comparedTableColumn = model.getComparedTableColumn();
-        List<ComparedSource> comparedSourceList = comparedTableColumn.getPerSourceTableColumn().keySet().stream().toList();
-
-        return comparedSourceList.stream()
-                .map(ComparedSource::getSourceId)
-                .collect(Collectors.joining(", "));
-    }
 
     public boolean allValuesAreEqual() {
 

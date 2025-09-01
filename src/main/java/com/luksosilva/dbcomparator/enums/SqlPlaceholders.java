@@ -2,6 +2,12 @@ package com.luksosilva.dbcomparator.enums;
 
 public enum SqlPlaceholders {
 
+    DESCRIPTION("{{description}}"),
+    FILE_PATH("{{file_path}}"),
+    IS_IMPORTED("{{is_imported}}"),
+    CREATED_AT("{{created_at}}"),
+    LAST_LOADED_AT("{{last_loaded_at}}"),
+
     SOURCE_ID("{{source_id}}"),
     TABLE_NAME("{{table_name}}"),
     COLUMN_NAME("{{column_name}}"),

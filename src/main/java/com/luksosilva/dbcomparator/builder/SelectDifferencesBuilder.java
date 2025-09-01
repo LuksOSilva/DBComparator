@@ -2,9 +2,9 @@ package com.luksosilva.dbcomparator.builder;
 
 import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.enums.SqlPlaceholders;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
 
 import java.util.*;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class SelectDifferencesBuilder {
 
-    public static String build(ComparedTable comparedTable) {
+    public static String build(ComparedTable comparedTable, List<ComparedSource> comparedSourceList) {
 
         String tableName = comparedTable.getTableName();
 
@@ -24,18 +24,16 @@ public class SelectDifferencesBuilder {
                 .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isComparable())
                 .toList();
 
-        List<ComparedSource> comparedSources = new ArrayList<>(comparedTable.getPerSourceTable().keySet());
 
 
 
+        String withClause = buildWithClause(comparedSourceList, tableName);
 
-        String withClause = buildWithClause(comparedSources, tableName);
+        String selectClause = buildSelectClause(comparedSourceList, identifierComparedColumns, comparableComparedColumns);
 
-        String selectClause = buildSelectClause(comparedSources, identifierComparedColumns, comparableComparedColumns);
+        String fromClause = buildFromClause(comparedSourceList, identifierComparedColumns);
 
-        String fromClause = buildFromClause(comparedSources, identifierComparedColumns);
-
-        String whereClause = buildWhereClause(comparedTable, comparedSources,
+        String whereClause = buildWhereClause(comparedTable, comparedSourceList,
                 comparableComparedColumns.isEmpty() ? identifierComparedColumns : comparableComparedColumns);
 
         String userFilter = comparedTable.getSqlUserFilter();
@@ -145,9 +143,9 @@ public class SelectDifferencesBuilder {
             String columnName = comparableComparedColumn.getColumnName();
 
             String currentSourceColumnType =
-                    comparableComparedColumn.getPerSourceTableColumn().get(currentComparedSource).getType();
+                    comparableComparedColumn.getPerSourceTableColumn().get(currentComparedSource.getSourceId()).getType();
             String nextSourceColumnType =
-                    comparableComparedColumn.getPerSourceTableColumn().get(nextComparedSource).getType();
+                    comparableComparedColumn.getPerSourceTableColumn().get(nextComparedSource.getSourceId()).getType();
 
 
             String currentSourceDefaultValue = getDefaultValue(currentSourceColumnType);

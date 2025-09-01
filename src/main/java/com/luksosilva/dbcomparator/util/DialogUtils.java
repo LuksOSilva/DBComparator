@@ -4,9 +4,9 @@ import com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController;
 import com.luksosilva.dbcomparator.controller.dialogs.ColumnSettingsValidationDialogController;
 import com.luksosilva.dbcomparator.controller.comparisonScreens.TableComparisonResultScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.comparison.customization.ColumnFilter;
-import com.luksosilva.dbcomparator.model.comparison.compared.ComparedTable;
-import com.luksosilva.dbcomparator.model.comparison.customization.Filter;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.viewmodel.comparison.result.TableComparisonResultViewModel;
 import javafx.scene.control.Alert;
@@ -21,10 +21,20 @@ import java.util.Optional;
 
 public class DialogUtils {
 
+    public static void showInfo(String headerText, String contentText) {
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Atenção");
+        alert.setHeaderText(headerText);
+        alert.setContentText(contentText);
+
+        alert.showAndWait();
+
+    }
 
     public static void showWarning(String headerText, String contentText) {
 
-        Alert alert = new Alert(Alert.AlertType.WARNING); // Or WARNING, or ERROR
+        Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Atenção");
         alert.setHeaderText(headerText);
         alert.setContentText(contentText);
