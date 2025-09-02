@@ -11,16 +11,52 @@ public class JsonUtils {
 
     public static Comparison loadComparisonFromJson(File file) throws IOException {
         try {
-            if (!isFileExtensionValid(file)) throw new IOException("extensão do arquivo deve ser .dbc ou .json");
+            if (!file.exists() || !file.isFile()) {
+                throw new IOException("O arquivo não existe: " + file.getCanonicalPath());
+            }
+            if (!isFileExtensionValid(file)) {
+                throw new IOException("extensão do arquivo deve ser .dbc ou .json");
+            }
 
             ObjectMapper mapper = new ObjectMapper();
+            Comparison comparison;
 
-            return mapper.readValue(file, Comparison.class);
+            try {
+
+                comparison = mapper.readValue(file, Comparison.class);
+
+            } catch (IOException e) {
+                throw new IOException("Esse arquivo não parece ser uma comparação.");
+            }
+
+            // Validate the contents
+            validateComparison(comparison);
+
+            return comparison;
 
         }
         catch (IOException e) {
-            throw new IOException("Erro ao ler arquivo: " + e.getMessage());
+            throw new IOException(e.getMessage());
         }
+    }
+
+    private static void validateComparison(Comparison comparison) throws IOException {
+        if (comparison == null) {
+            throw new IOException("O JSON está vazio ou não corresponde à uma comparação válida.");
+        }
+
+        // Example: assuming Comparison has a name and a list of sources
+        if (comparison.getComparedTables() == null || comparison.getComparedTables().isEmpty()) {
+            throw new IOException("Não foi possível ler as informações das tabelas comparadas.");
+        }
+        if (comparison.getComparedSources() == null || comparison.getComparedSources().isEmpty()) {
+            throw new IOException("Não foi possível ler as informações das fontes comparadas.");
+        }
+        if (comparison.getComparisonResult() == null
+                || comparison.getComparisonResult().getTableComparisonResults().isEmpty()) {
+            throw new IOException("Não foi possível ler as informações do resultado da comparação.");
+        }
+
     }
 
     public static void saveComparisonAsJson(Comparison comparison, File file) throws IOException {
@@ -40,7 +76,7 @@ public class JsonUtils {
     private static boolean isFileExtensionValid(File file) {
         String extension = getFileExtension(file);
 
-        return !extension.isBlank() || (!extension.equals("json") && !extension.equals("dbc"));
+        return !extension.isBlank() && (!extension.equals(".json") && !extension.equals(".dbc"));
     }
 
     private static String getFileExtension(File file) {

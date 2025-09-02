@@ -8,6 +8,7 @@ public enum SqlFiles {
     INSERT_DBC_COMPARISONS("insert_dbc_comparisons"),
     SELECT_DBC_COMPARISON("select_dbc_comparison"),
     UPDATE_LAST_LOADED0("update_last_loaded"),
+    DELETE_DBC_COMPARISON("delete_dbc_comparison"),
 
 
     PRAGMA_TABLE_LIST("comparison\\pragma_table_list"),

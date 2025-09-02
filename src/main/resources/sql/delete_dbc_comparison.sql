@@ -1,0 +1,4 @@
+DELETE
+FROM DBC_COMPARISONS
+WHERE
+    COMPARISON_ID = '{{comparison_id}}';

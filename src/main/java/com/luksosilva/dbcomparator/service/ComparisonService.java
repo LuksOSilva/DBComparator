@@ -9,6 +9,7 @@ import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSet
 import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
 import com.luksosilva.dbcomparator.util.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -107,7 +108,17 @@ public class ComparisonService {
             return loadedComparison;
 
         } catch (IOException e) {
-            throw new IOException(e);
+            throw new IOException("Erro ao ler arquivo: " + e.getMessage());
+        }
+    }
+
+    public static void deleteSavedComparison(SavedComparison savedComparison) throws Exception {
+        try {
+
+            ComparisonDAO.deleteSavedComparison(savedComparison);
+
+        } catch (Exception e) {
+            throw new IOException("Erro ao excluir: " + e.getMessage());
         }
     }
 

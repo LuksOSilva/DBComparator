@@ -90,6 +90,30 @@
 }
 
 
+.lbl-title {
+    -fx-font-size: 20px;
+    -fx-text-fill: #666;           /* softer gray */
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;     /* a bit more space between letters */
+}
+
+.txt-search {
+    -fx-background-color: #f5f5f5;      /* light background */
+    -fx-background-radius: 15px;        /* circular corners */
+    -fx-border-radius: 15px;            /* border matches background radius */
+    -fx-border-color: #cccccc;          /* subtle gray border */
+    -fx-border-width: 1px;
+    -fx-padding: 4px 8px;               /* inner padding for text */
+    -fx-font-size: 14px;                /* clean font size */
+    -fx-text-fill: #333333;             /* text color */
+}
+
+.txt-search:focused {
+    -fx-border-color: #4a90e2;          /* highlight color when focused */
+    -fx-background-color: #ffffff;      /* white background when focused */
+}
+
+
 
 .scroll-pane {
     -fx-background-color: transparent; /* Keep background transparent */

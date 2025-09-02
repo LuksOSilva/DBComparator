@@ -25,7 +25,7 @@
             <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="25.0" VBox.vgrow="ALWAYS">
                <children>
                   <Button fx:id="newComparisonBtn" mnemonicParsing="false" onMouseClicked="#newComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-primary" text="Nova Comparação" />
-                  <Button fx:id="importComparisonBtn" mnemonicParsing="false" onMouseClicked="#importComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-primary" text="Importar Comparação" />
+                  <Button fx:id="importComparisonBtn" mnemonicParsing="false" onMouseClicked="#importComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-primary" text="Abrir Comparação" />
                   <Button fx:id="settingsBtn" mnemonicParsing="false" onMouseClicked="#settingsBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-primary" text="Configurações" />
                </children>
             </VBox>
@@ -43,9 +43,11 @@
                   <Insets bottom="5" left="5" right="5" top="5" />
                </padding>
                <children>
-                  <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
                      <children>
-                        <TextField fx:id="searchTextField" prefHeight="25.0" prefWidth="243.0" promptText="buscar por..." />
+                        <Label text="Histórico" styleClass="lbl-title" />
+                        <Region prefHeight="0.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                        <TextField fx:id="searchTextField" styleClass="txt-search" prefHeight="25.0" prefWidth="243.0" promptText="buscar por..." />
                      </children>
                      <padding>
                         <Insets left="20.0" right="20.0" />

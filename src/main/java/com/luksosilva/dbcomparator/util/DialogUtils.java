@@ -93,7 +93,14 @@ public class DialogUtils {
             loadResult.controller.initializeAddDialog(comparedTableList);
             loadResult.controller.setStage(loadResult.node);
             loadResult.node.setResizable(false);
-            showInCenter(ownerStage, loadResult.node);
+
+            loadResult.node.setOnShown(stage -> {
+                Window window = loadResult.node.getScene().getWindow();
+                window.setX(ownerStage.getX() + (ownerStage.getWidth() - window.getWidth()) / 2);
+                window.setY(ownerStage.getY() + (ownerStage.getHeight() - window.getHeight()) / 2);
+            });
+
+            loadResult.node.showAndWait();
 
 
             return loadResult.controller.getAddedFilters();

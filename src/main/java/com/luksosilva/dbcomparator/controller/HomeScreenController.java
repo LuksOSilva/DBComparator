@@ -11,14 +11,11 @@ import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
 import com.luksosilva.dbcomparator.viewmodel.persistence.SavedComparisonViewModel;
-import com.sun.source.tree.NewArrayTree;
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -34,9 +31,9 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class HomeScreenController {
 
@@ -47,8 +44,7 @@ public class HomeScreenController {
     private int currentPage = 0;
     private static final int ITEMS_PER_PAGE = 10;
     private final List<SavedComparisonViewModel> savedComparisonViewModelList = new ArrayList<>();
-    private final ObservableList<HBox> ObservableSavedComparisonHBox = FXCollections.observableArrayList();
-    private FilteredList<HBox> filteredSavedComparisonHBox;
+
 
     @FXML
     public Button newComparisonBtn;
@@ -77,8 +73,6 @@ public class HomeScreenController {
 
             setupComparisonsHistory();
 
-            //constructComparisonHistoryHBox();
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -101,8 +95,9 @@ public class HomeScreenController {
     public void loadComparisonBtnClick(SavedComparison savedComparison) {
         loadComparison(savedComparison.getFile());
     }
-    public void deleteComparisonBtnClick(SavedComparison savedComparison) {
 
+    public void deleteComparisonBtnClick(SavedComparison savedComparison) {
+        deleteComparison(savedComparison);
     }
 
     //
@@ -122,6 +117,8 @@ public class HomeScreenController {
             renderCurrentPage();
         });
     }
+
+
 
     private void renderCurrentPage() {
         comparisonsContainer.getChildren().clear();
@@ -148,6 +145,20 @@ public class HomeScreenController {
                     !vm.getDescription().toLowerCase().contains(lower));
         }
 
+        if (filtered.isEmpty()) {
+            if (filter != null && !filter.isBlank()) {
+                if (filter.length() > 50) {
+                    showEmptyMessage(getTooLongMessage());
+                    return;
+                }
+
+                showEmptyMessage("Nenhuma comparação encontrada para \"" + filter + "\".");
+            } else {
+                showEmptyMessage("Suas comparações aparecerão aqui.");
+            }
+            return;
+        }
+
 
         int fromIndex = currentPage * ITEMS_PER_PAGE;
         int toIndex;
@@ -170,6 +181,8 @@ public class HomeScreenController {
 
             HBox.setHgrow(infoBox, Priority.ALWAYS);
             card.getChildren().addAll(infoBox, actionButtons);
+
+            card.setUserData(savedComparisonVM.getModel());
 
             comparisonsContainer.getChildren().add(card);
         }
@@ -202,8 +215,29 @@ public class HomeScreenController {
             nextBtn.setDisable(true);
         }
 
-        pageLabel.setText("Página " + (currentPage + 1) + " de " +
-                (int) Math.ceil(filtered.size() / (double) ITEMS_PER_PAGE));
+
+        int totalPages = (int) Math.ceil(filtered.size() / (double) ITEMS_PER_PAGE);
+        if (totalPages == 0) totalPages = 1;
+        pageLabel.setText("Página " + (currentPage + 1) + " de " + totalPages);
+    }
+
+    private void showEmptyMessage(String message) {
+        comparisonsContainer.getChildren().clear();
+
+        Label emptyLabel = new Label(message);
+        emptyLabel.setStyle("-fx-text-fill: #777; -fx-font-size: 14px; -fx-font-style: italic;");
+
+        // Center it nicely
+        VBox wrapper = new VBox(emptyLabel);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setPadding(new Insets(20));
+
+        comparisonsContainer.getChildren().add(wrapper);
+
+        // Disable pagination controls since no items to paginate
+        prevBtn.setDisable(true);
+        nextBtn.setDisable(true);
+        pageLabel.setText("Página 1 de 1");
     }
 
 
@@ -306,10 +340,63 @@ public class HomeScreenController {
         }
     }
 
+    private void deleteComparison(SavedComparison savedComparison) {
+        boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
+                "Deletar comparação",
+                "Deseja deletar essa comparação? O arquivo continuará salvo na sua máquina");;
+        if (!confirmCancel) return;
+
+        try {
+            ComparisonService.deleteSavedComparison(savedComparison);
+
+            for (SavedComparisonViewModel savedComparisonViewModel : savedComparisonViewModelList) {
+                if (savedComparisonViewModel.getModel().equals(savedComparison)) {
+                    savedComparisonViewModelList.remove(savedComparisonViewModel);
+                    break;
+                }
+            }
+
+            for (Node card : comparisonsContainer.getChildren()) {
+                if (card.getUserData().equals(savedComparison)) {
+                    comparisonsContainer.getChildren().remove(card);
+                    break;
+                }
+            }
+
+            renderCurrentPage();
+
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao excluir comparação",
+                    e.getMessage());
+        }
+    }
+
 
     public void settingsBtnClick(MouseEvent mouseEvent) {
     }
 
     public void exitBtnClick(MouseEvent mouseEvent) {
+        Platform.exit();
+        System.exit(0);
+    }
+
+    private String getTooLongMessage() {
+        Random random = new Random();
+        int number = random.nextInt(10);
+
+        return switch (number) {
+            case 0 -> "Tá procurando uma comparação ou escrevendo uma redação?";
+            case 1 -> "O Word é pra lá >";
+            case 2 -> "Continua digitando... alguma hora deve aparecer alguma coisa, né?";
+            case 3 -> "Tá difícil assim achar o que precisa?";
+            case 4 -> "Se ainda não apareceu não é agora que vai aparecer...";
+            case 5 -> "Dormiu no teclado?";
+            case 6 -> "Se eu ganhasse 1 real por letra digitada...";
+            case 7 -> "Iniciando autodestruição em 3...";
+            case 8 -> "Tá se divertindo?";
+            case 9 -> "Eu devia ter colocado um limite de caracteres..";
+            default -> "Essa mensagem não deveria aparecer...";
+        };
     }
 }

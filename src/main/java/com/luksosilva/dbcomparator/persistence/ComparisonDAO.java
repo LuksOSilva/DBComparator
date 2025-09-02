@@ -58,6 +58,20 @@ public class ComparisonDAO {
         }
     }
 
+    public static void deleteSavedComparison(SavedComparison savedComparison) throws Exception {
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String sql = SqlFormatter.buildDeleteDBCComparison(String.valueOf(savedComparison.getComparisonId()));
+
+            try (Statement statement = connection.createStatement()) {
+                statement.execute(sql);
+            }
+
+        }
+    }
+
+
+    ///
 
     private static void saveComparison(File file, boolean isLoaded) throws Exception {
         if (isLoaded && isComparisonSaved(file)) {

@@ -9,6 +9,16 @@ import java.util.stream.Collectors;
 
 public class SqlFormatter {
 
+    public static String buildDeleteDBCComparison(String comparisonId) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.COMPARISON_ID, comparisonId
+        );
+
+        return buildSQL(SqlFiles.DELETE_DBC_COMPARISON, placeholders);
+
+    }
+
     public static String buildUpdateLastLoaded(String lastLoadedAt, String filePath) {
 
         Map<SqlPlaceholders, String> placeholders = Map.of(
