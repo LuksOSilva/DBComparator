@@ -168,7 +168,8 @@ public class ColumnSettingsScreenController {
         toggleFilters(filterToggleButton.isSelected());
     }
     public void onSaveSettingsForAllAlteredTablesButtonClicked(ActionEvent event) {
-        boolean confirm = DialogUtils.askConfirmation("Salvar Alterados?",
+        boolean confirm = DialogUtils.askConfirmation(currentStage,
+                "Salvar Alterados?",
                 "Todas as tabelas que foram alteradas serão salvas. Salvamentos prévios serão perdidos.");
         if (!confirm) {
             return;
@@ -183,7 +184,8 @@ public class ColumnSettingsScreenController {
         }
     }
     public void onResetSettingsToDefaultForAllTablesButtonClicked(ActionEvent event) {
-        boolean confirm = DialogUtils.askConfirmation("Alterar todas para padrão?",
+        boolean confirm = DialogUtils.askConfirmation(currentStage,
+                "Alterar todas para padrão?",
                 "As configurações de todas as tabelas serão alteradas para o padrão. Configurações não salvas serão perdidas.");
         if (!confirm) {
             return;
@@ -194,7 +196,8 @@ public class ColumnSettingsScreenController {
         resetSettingsForAllTables(loadFromDb);
     }
     public void onResetSettingsToOriginalForAllTablesButtonClicked(ActionEvent event) {
-        boolean confirm = DialogUtils.askConfirmation("Alterar todas para padrão do sistema?",
+        boolean confirm = DialogUtils.askConfirmation(currentStage,
+                "Alterar todas para padrão do sistema?",
                 "As configurações de todas as tabelas serão alteradas para o padrão do sistema. Configurações não salvas serão perdidas.");
         if (!confirm) {
             return;
@@ -208,7 +211,8 @@ public class ColumnSettingsScreenController {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
 
-        boolean confirm = DialogUtils.askConfirmation("Salvar Configurações?",
+        boolean confirm = DialogUtils.askConfirmation(currentStage,
+                "Salvar Configurações?",
                 "As configurações da tabela " + tableName + " serão salvas. Se houver um salvamento prévio, será perdido.");
         if (!confirm) {
             return;
@@ -227,7 +231,8 @@ public class ColumnSettingsScreenController {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
 
-        boolean confirm = DialogUtils.askConfirmation("Alterar para padrão?",
+        boolean confirm = DialogUtils.askConfirmation(currentStage,
+                "Alterar para padrão?",
                 "As configurações da tabela "+ tableName +" serão alteradas para o padrão. Alterações não salvas serão perdidas.");
         if (!confirm) {
             return;
@@ -241,7 +246,8 @@ public class ColumnSettingsScreenController {
         Button clickedButton = (Button) event.getSource();
         String tableName = (String) clickedButton.getUserData();
 
-        boolean confirm = DialogUtils.askConfirmation("Alterar para padrão?",
+        boolean confirm = DialogUtils.askConfirmation(currentStage,
+                "Alterar para padrão?",
                 "As configurações da tabela "+ tableName +" serão alteradas para o padrão do sistema. Alterações não salvas serão perdidas.");
         if (!confirm) {
             return;
@@ -702,7 +708,9 @@ public class ColumnSettingsScreenController {
             currentStage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -751,7 +759,9 @@ public class ColumnSettingsScreenController {
 
 
             } catch (Exception e) {
-                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
+                DialogUtils.showError(currentStage,
+                        "Erro de Transição",
+                        "Não foi possível exibir a próxima tela: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -767,7 +777,8 @@ public class ColumnSettingsScreenController {
                 return;
             }
 
-            DialogUtils.showError("Erro de Processamento",
+            DialogUtils.showError(currentStage,
+                    "Erro de Processamento",
                     "Ocorreu um erro inesperado: " + exception.getMessage());
             exception.printStackTrace();
         });
@@ -787,7 +798,8 @@ public class ColumnSettingsScreenController {
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
-        boolean confirmCancel = DialogUtils.askConfirmation("Cancelar comparação",
+        boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
+                "Cancelar comparação",
                 "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");
         if (!confirmCancel) {
             return;
@@ -809,7 +821,9 @@ public class ColumnSettingsScreenController {
             stage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela inicial: " + e.getMessage());
             e.printStackTrace();
         }
     }

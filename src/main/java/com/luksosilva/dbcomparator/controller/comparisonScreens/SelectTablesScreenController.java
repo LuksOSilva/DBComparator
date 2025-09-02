@@ -512,7 +512,9 @@ public class SelectTablesScreenController {
 
 
         if (selectedTableNames.isEmpty()) {
-            DialogUtils.showWarning("Nenhuma tabela selecionada.", "Selecione ao menos uma tabela para prosseguir com a comparação.");
+            DialogUtils.showWarning(currentStage,
+                    "Nenhuma tabela selecionada.",
+                    "Selecione ao menos uma tabela para prosseguir com a comparação.");
             return;
         }
 
@@ -538,7 +540,9 @@ public class SelectTablesScreenController {
             currentStage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -593,14 +597,18 @@ public class SelectTablesScreenController {
                 currentStage.setScene(nextScreenScene);
 
             } catch (Exception e) {
-                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
+                DialogUtils.showError(currentStage,
+                        "Erro de Transição",
+                        "Não foi possível exibir a próxima tela: " + e.getMessage());
                 e.printStackTrace();
             }
         });
 
 
         processTablesTask.setOnFailed(event -> {
-            DialogUtils.showError("Erro de Processamento", "Ocorreu um erro durante o processamento: " + processTablesTask.getException().getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Processamento",
+                    "Ocorreu um erro durante o processamento: " + processTablesTask.getException().getMessage());
             processTablesTask.getException().printStackTrace();
 
             try {
@@ -613,7 +621,9 @@ public class SelectTablesScreenController {
                 currentStage.setScene(currentScreenScene);
 
             } catch (IOException e) {
-                DialogUtils.showError("Erro de Recuperação", "Não foi possível recarregar a tela anterior: " + e.getMessage());
+                DialogUtils.showError(currentStage,
+                        "Erro de Recuperação",
+                        "Não foi possível recarregar a tela anterior: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -639,7 +649,8 @@ public class SelectTablesScreenController {
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
-        boolean confirmCancel = DialogUtils.askConfirmation("Cancelar comparação",
+        boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
+                "Cancelar comparação",
                 "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");
         if (!confirmCancel) {
             return;
@@ -661,7 +672,9 @@ public class SelectTablesScreenController {
             stage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela inicial: " + e.getMessage());
             e.printStackTrace();
         }
     }

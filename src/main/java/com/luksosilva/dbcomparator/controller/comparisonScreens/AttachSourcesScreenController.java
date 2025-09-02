@@ -143,7 +143,7 @@ public class AttachSourcesScreenController {
         boolean isValid = isSelectedFileValid(selectedFile);
         if (!isValid) return;
 
-        System.out.println("File selected: " + selectedFile.getAbsolutePath());
+
         perPaneSource.put(clickedPane, new Source(selectedFile));
         changePaneToAttached(clickedPane);
 
@@ -151,7 +151,9 @@ public class AttachSourcesScreenController {
 
 
     public void detachSource(MouseEvent mouseEvent) {
-        boolean confirm = DialogUtils.askConfirmation("Remover banco.", "Deseja remover esse banco anexado?");
+        boolean confirm = DialogUtils.askConfirmation(currentStage,
+                "Remover banco.",
+                "Deseja remover esse banco anexado?");
         if (!confirm) {
             return;
         }
@@ -214,7 +216,8 @@ public class AttachSourcesScreenController {
                         success = true;
                     } else {
                         // Pane already has a source, ask if should replace
-                        boolean confirmReplace = DialogUtils.askConfirmation("Substituir arquivo?",
+                        boolean confirmReplace = DialogUtils.askConfirmation(currentStage,
+                                "Substituir arquivo?",
                                 "Já existe um arquivo aqui. Deseja substituí-lo?");
                         if (confirmReplace) {
                             perPaneSource.put(pane, newSource);
@@ -257,13 +260,15 @@ public class AttachSourcesScreenController {
 
     private boolean isSelectedFileValid(File selectedFile) {
         if (!isValidExtension(selectedFile)) {
-            DialogUtils.showWarning("Arquivo não é um banco de dados.",
+            DialogUtils.showWarning(currentStage,
+                    "Arquivo não é um banco de dados.",
                     "Apenas arquivos de extensão .s3db ou .db podem ser adicionados.");
             return false;
         }
 
         if (FilenameUtils.removeExtension(selectedFile.getName()).equalsIgnoreCase("main")) {
-            DialogUtils.showWarning("Nome inválido.",
+            DialogUtils.showWarning(currentStage,
+                    "Nome inválido.",
                     "O nome " + FilenameUtils.removeExtension(selectedFile.getName()) + " não pode ser utilizado.");
             return false;
         }
@@ -272,13 +277,15 @@ public class AttachSourcesScreenController {
 
                 if (FileUtils.areFilesEqual(source.getPath(), selectedFile)) {
 
-                    DialogUtils.showWarning("Arquivo já selecionado.",
+                    DialogUtils.showWarning(currentStage,
+                            "Arquivo já selecionado.",
                             "O arquivo " + selectedFile.getName() + " já foi selecionado.");
                     return false;
                 }
                 if (FileUtils.areFileNamesEqual(source.getPath(), selectedFile)) {
 
-                    DialogUtils.showWarning("Nome já utilizado.",
+                    DialogUtils.showWarning(currentStage,
+                            "Nome já utilizado.",
                             "Um arquivo de nome " + FilenameUtils.removeExtension(selectedFile.getName()) + " já foi selecionado.");
                     return false;
                 }
@@ -334,7 +341,9 @@ public class AttachSourcesScreenController {
 
     public void nextStep(MouseEvent mouseEvent) {
         if (perPaneSource.isEmpty()) {
-            DialogUtils.showWarning("Fontes Faltantes", "Você deve anexar ao menos uma fonte para prosseguir.");
+            DialogUtils.showWarning(currentStage,
+                    "Fontes Faltantes",
+                    "Você deve anexar duas fontes para prosseguir.");
             return;
         }
 
@@ -363,7 +372,9 @@ public class AttachSourcesScreenController {
             currentStage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -411,14 +422,18 @@ public class AttachSourcesScreenController {
                 currentStage.setScene(nextScreenScene);
 
             } catch (Exception e) {
-                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
+                DialogUtils.showError(currentStage,
+                        "Erro de Transição",
+                        "Não foi possível exibir a próxima tela: " + e.getMessage());
                 e.printStackTrace();
             }
         });
 
 
         processSourcesTask.setOnFailed(event -> {
-            DialogUtils.showError("Erro de Processamento", "Ocorreu um erro durante o processamento: " + processSourcesTask.getException().getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Processamento",
+                    "Ocorreu um erro durante o processamento: " + processSourcesTask.getException().getMessage());
             processSourcesTask.getException().printStackTrace();
 
             try {
@@ -432,7 +447,9 @@ public class AttachSourcesScreenController {
                 currentStage.setScene(currentScreenScene);
 
             } catch (IOException e) {
-                DialogUtils.showError("Erro de Recuperação", "Não foi possível recarregar a tela anterior: " + e.getMessage());
+                DialogUtils.showError(currentStage,
+                        "Erro de Recuperação",
+                        "Não foi possível recarregar a tela anterior: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -449,7 +466,8 @@ public class AttachSourcesScreenController {
 
     public void cancelComparison(MouseEvent mouseEvent) {
 
-        boolean confirmCancel = DialogUtils.askConfirmation("Cancelar comparação",
+        boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
+                "Cancelar comparação",
                 "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");;
         if (!confirmCancel) {
             return;
@@ -471,7 +489,9 @@ public class AttachSourcesScreenController {
             stage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela inicial: " + e.getMessage());
             e.printStackTrace();
             return;
         }

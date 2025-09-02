@@ -11,11 +11,11 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650.0" prefWidth="1000.0" stylesheets="@comparisonScreens/css/Main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.HomeScreenController">
+<AnchorPane prefHeight="650.0" prefWidth="1000.0" styleClass="main-container" stylesheets="@comparisonScreens/css/Main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.HomeScreenController">
    <children>
 
       <!-- Left Sidebar -->
-      <VBox alignment="CENTER" prefHeight="650.0" prefWidth="235.0" style="-fx-background-color: #638ECB;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox alignment="CENTER" prefHeight="650.0" prefWidth="235.0" styleClass="side-container" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <ImageView fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
                <VBox.margin>
@@ -24,9 +24,9 @@
             </ImageView>
             <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="25.0" VBox.vgrow="ALWAYS">
                <children>
-                  <Button fx:id="newComparisonBtn" mnemonicParsing="false" onMouseClicked="#newComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-action" text="Nova Comparação" />
-                  <Button fx:id="importComparisonBtn" mnemonicParsing="false" onMouseClicked="#importComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-action" text="Importar Comparação" />
-                  <Button fx:id="settingsBtn" mnemonicParsing="false" onMouseClicked="#settingsBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-action" text="Configurações" />
+                  <Button fx:id="newComparisonBtn" mnemonicParsing="false" onMouseClicked="#newComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-primary" text="Nova Comparação" />
+                  <Button fx:id="importComparisonBtn" mnemonicParsing="false" onMouseClicked="#importComparisonBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-primary" text="Importar Comparação" />
+                  <Button fx:id="settingsBtn" mnemonicParsing="false" onMouseClicked="#settingsBtnClick" prefHeight="35.0" prefWidth="180.0" styleClass="btn-primary" text="Configurações" />
                </children>
             </VBox>
             <Region VBox.vgrow="ALWAYS" />

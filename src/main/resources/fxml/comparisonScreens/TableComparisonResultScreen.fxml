@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="600.0" prefWidth="960.0" styleClass="main-container" stylesheets="@../comparisonScreens/css/Main.css, @../comparisonScreens/css/TableComparisonResult.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.comparisonScreens.TableComparisonResultScreenController">
+<AnchorPane prefHeight="600.0" prefWidth="850.0" styleClass="main-container" stylesheets="@../comparisonScreens/css/Main.css, @../comparisonScreens/css/TableComparisonResult.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.comparisonScreens.TableComparisonResultScreenController">
     <children>
 
         <!-- Title -->

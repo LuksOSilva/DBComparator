@@ -560,7 +560,8 @@ public class AddFilterDialogController {
         boolean anyColumnHasFilter = selectedComparedTable.getComparedTableColumns().stream()
                 .anyMatch(comparedTableColumn -> !comparedTableColumn.getColumnFilters().isEmpty());
         if (anyColumnHasFilter) {
-            boolean confirm = DialogUtils.askConfirmation("Os filtros das colunas serão apagados.",
+            boolean confirm = DialogUtils.askConfirmation(stage,
+                    "Os filtros das colunas serão apagados.",
                     "Essa tabela possui filtros aplicados em colunas individuais. Eles serão removidos ao aplicar um filtro avançado. Deseja continuar?");
             if (!confirm) {
                 return;
@@ -589,7 +590,8 @@ public class AddFilterDialogController {
 
         boolean tableHasAdvancedFilter = selectedComparedTable.getFilter() != null;
         if (tableHasAdvancedFilter) {
-            boolean confirm = DialogUtils.askConfirmation("O filtro avançado será apagado.",
+            boolean confirm = DialogUtils.askConfirmation(stage,
+                    "O filtro avançado será apagado.",
                     "Essa tabela possui filtro avançado aplicado. Ele será removido ao aplicar um filtro padrão. Deseja continuar?");
             if (!confirm) {
                 return;
@@ -752,21 +754,21 @@ public class AddFilterDialogController {
     }
 
     private void showMissingFieldsWarning() {
-        DialogUtils.showWarning(
+        DialogUtils.showWarning(stage,
                 "Preencha todos os campos.",
                 "Todos os campos devem ser preenchidos para prosseguir."
         );
     }
 
     private void showInvalidFieldWarning() {
-        DialogUtils.showWarning(
+        DialogUtils.showWarning(stage,
                 "Valor inválido",
                 "Filtro informado não é válido para o tipo do campo."
         );
     }
 
     private void showInvalidBetweenValuesWarning() {
-        DialogUtils.showWarning(
+        DialogUtils.showWarning(stage,
                 "Valores inválidos",
                 "Informe sempre o menor valor primeiro seguido pelo maior valor."
         );

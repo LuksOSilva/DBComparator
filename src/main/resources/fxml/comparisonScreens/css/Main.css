@@ -4,6 +4,10 @@
     -fx-background-color: #F0F3FA;
 }
 
+.side-container {
+    -fx-background-color: #E8EBF3;
+}
+
 /* Title text */
 .title-text {
     -fx-fill: #505050;
@@ -18,6 +22,7 @@
     -fx-font-weight: bold;
     -fx-background-radius: 5px;
     -fx-text-fill: #F0F3FA;
+    -fx-cursor: hand;
 }
 
 .btn-primary:hover {
@@ -38,6 +43,7 @@
     -fx-border-width: 2px;
     -fx-border-color: #638ECB;
     -fx-border-radius: 5px;
+    -fx-cursor: hand;
 }
 
 .btn-secondary:hover {

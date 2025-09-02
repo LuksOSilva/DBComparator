@@ -34,6 +34,7 @@ public class ComparisonDAO {
 
             String sql = "SELECT * FROM DBC_COMPARISONS";
 
+
             try (Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
                 List<SavedComparison> list = new ArrayList<>();

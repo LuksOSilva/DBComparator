@@ -134,7 +134,8 @@ public class SetFiltersScreenController {
     }
 
     public void onDeleteFilterButtonClicked(Filter filter) {
-        boolean confirmed = DialogUtils.askConfirmation("Apagar filtro?",
+        boolean confirmed = DialogUtils.askConfirmation(currentStage,
+                "Apagar filtro?",
                 "Deseja realmente apagar esse filtro? Essa ação não poderá ser desfeita.");
 
         if (!confirmed) return;
@@ -596,7 +597,9 @@ public class SetFiltersScreenController {
             currentStage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -648,7 +651,9 @@ public class SetFiltersScreenController {
 
 
             } catch (Exception e) {
-                DialogUtils.showError("Erro de Transição", "Não foi possível exibir a próxima tela: " + e.getMessage());
+                DialogUtils.showError(currentStage,
+                        "Erro de Transição",
+                        "Não foi possível exibir a próxima tela: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -664,7 +669,8 @@ public class SetFiltersScreenController {
                 return;
             }
 
-            DialogUtils.showError("Erro de Processamento",
+            DialogUtils.showError(currentStage,
+                    "Erro de Processamento",
                     "Ocorreu um erro inesperado: " + exception.getMessage());
             exception.printStackTrace();
         });
@@ -687,7 +693,8 @@ public class SetFiltersScreenController {
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
-        boolean confirmCancel = DialogUtils.askConfirmation("Cancelar comparação",
+        boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
+                "Cancelar comparação",
                 "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");
         if (!confirmCancel) {
             return;
@@ -709,7 +716,9 @@ public class SetFiltersScreenController {
             stage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela inicial: " + e.getMessage());
             e.printStackTrace();
         }
     }

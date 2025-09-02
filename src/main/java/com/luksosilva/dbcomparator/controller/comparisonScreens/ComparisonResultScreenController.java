@@ -139,7 +139,7 @@ public class ComparisonResultScreenController {
                 .orElse(null);
 
         if (previouslyOpenedStage != null) {
-            previouslyOpenedStage.show();
+            DialogUtils.showInCenter(currentStage, previouslyOpenedStage);
             previouslyOpenedStage.toFront();
             previouslyOpenedStage.requestFocus();
 
@@ -282,7 +282,7 @@ public class ComparisonResultScreenController {
 
     public void saveComparisonBtnClicked(MouseEvent mouseEvent) {
         if (!isComparisonFinished()) {
-            DialogUtils.showWarning(
+            DialogUtils.showWarning(currentStage,
                     "Comparação ainda não finalizada",
                     "Você deve aguardar todas as tabelas serem comparadas para salvar"
             );
@@ -302,14 +302,14 @@ public class ComparisonResultScreenController {
             ComparisonService.saveComparison(comparison, file);
         }
         catch (Exception e) {
-            DialogUtils.showError(
+            DialogUtils.showError(currentStage,
                     "Erro ao salvar comparação",
                     e.getMessage()
             );
             return;
         }
 
-        DialogUtils.showInfo("Sucesso!", "Comparação salva.");
+        DialogUtils.showInfo(currentStage, "Sucesso!", "Comparação salva.");
         isComparisonSaved = true;
     }
 
@@ -317,7 +317,8 @@ public class ComparisonResultScreenController {
         String message = "Deseja realmente sair dessa comparação? "
                 + ((isComparisonImported || isComparisonSaved) ? "" : "Nenhuma informação será salva.");
 
-        boolean confirmCancel = DialogUtils.askConfirmation("Sair", message);
+        boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
+                "Sair", message);
         if (!confirmCancel) {
             return;
         }
@@ -340,7 +341,9 @@ public class ComparisonResultScreenController {
             stage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError("Erro de Carregamento", "Não foi possível carregar a tela inicial: " + e.getMessage());
+            DialogUtils.showError(currentStage,
+                    "Erro de Carregamento",
+                    "Não foi possível carregar a tela inicial: " + e.getMessage());
             e.printStackTrace();
         }
     }

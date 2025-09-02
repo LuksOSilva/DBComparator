@@ -273,7 +273,7 @@ public class HomeScreenController {
             currentStage.show();
 
         } catch (IOException e) {
-            DialogUtils.showError(
+            DialogUtils.showError(currentStage,
                     "Erro ao carregar página",
                     e.getMessage());
         }
@@ -300,7 +300,7 @@ public class HomeScreenController {
             currentStage.show();
 
         } catch (Exception e) {
-            DialogUtils.showError(
+            DialogUtils.showError(currentStage,
                     "Erro ao carregar comparação",
                     e.getMessage());
         }

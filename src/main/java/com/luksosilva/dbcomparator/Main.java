@@ -20,6 +20,9 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
+        stage.setMinWidth(1000.0);
+        stage.setMinHeight(650.0);
+
         FxLoadResult<Parent, HomeScreenController> screenData =
                 FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
 

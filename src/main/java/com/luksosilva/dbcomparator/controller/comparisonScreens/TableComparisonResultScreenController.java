@@ -425,8 +425,7 @@ public class TableComparisonResultScreenController {
             columnSelectorStage = null;
         });
 
-
-        dialogStage.show();
+        DialogUtils.showInCenter(currentStage, dialogStage);
     }
 
     @FXML
@@ -540,7 +539,8 @@ public class TableComparisonResultScreenController {
         try {
             exporter.exportToFile(file);
         } catch (IOException e) {
-            DialogUtils.showWarning("Erro ao exportar CSV", e.getMessage());
+            DialogUtils.showWarning(currentStage,
+                    "Erro ao exportar CSV", e.getMessage());
         }
     }
 

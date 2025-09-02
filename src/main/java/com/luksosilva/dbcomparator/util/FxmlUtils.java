@@ -31,7 +31,9 @@ public class FxmlUtils {
         newStage.setScene(new Scene(root));
 
         newStage.initModality(modality);
-        newStage.initOwner(owner);
+        if (modality != Modality.NONE) {
+            newStage.initOwner(owner);
+        }
 
         return new FxLoadResult<>(newStage, controller);
     }
