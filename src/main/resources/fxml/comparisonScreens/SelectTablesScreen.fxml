@@ -50,9 +50,9 @@
 
                                 <Pane HBox.hgrow="ALWAYS" />
 
-                                <ComboBox fx:id="filterTypeComboBox" prefHeight="20.0" prefWidth="144.0" />
+                                <ComboBox fx:id="filterTypeComboBox" styleClass="cmb-search" prefHeight="20.0" prefWidth="144.0" />
 
-                                <TextField fx:id="searchTextField" prefWidth="200.0" promptText="buscar tabela..." />
+                                <TextField fx:id="searchTextField" styleClass="txt-search" prefWidth="200.0" promptText="buscar tabela..." />
 
                                 <ToggleButton fx:id="filterToggleButton" mnemonicParsing="false" onMouseClicked="#onFilterButtonClicked" prefHeight="25.0" prefWidth="25.0" />
 

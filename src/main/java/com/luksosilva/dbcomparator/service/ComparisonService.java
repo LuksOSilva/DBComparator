@@ -1,16 +1,19 @@
 package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.builder.FilterSqlBuilder;
+import com.luksosilva.dbcomparator.enums.ConfigKeys;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
+import com.luksosilva.dbcomparator.persistence.ConfigurationDAO;
 import com.luksosilva.dbcomparator.util.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -25,14 +28,18 @@ public class ComparisonService {
 
     private static final ExecutorService executor = Executors.newFixedThreadPool(1);
 
+
     //1
     public static void processSources(Comparison comparison, List<Source> sourceList) {
         setComparedSources(comparison, sourceList);
-        SchemaService.mapComparedSources(comparison.getComparedSources());
+        SchemaService.mapComparedSources(comparison.getComparedSources(), comparison.getConfigRegistry());
     }
 
     //2
-    public static void processTables(Comparison comparison, Map<String, Map<String, SourceTable>> groupedTables) {
+    public static void processTables(Comparison comparison,
+                                     ConfigRegistry configRegistry,
+                                     Map<String, Map<String, SourceTable>> groupedTables) {
+
         setComparedTables(comparison, groupedTables);
         setComparedTableColumns(comparison.getComparedTables());
 
@@ -48,8 +55,12 @@ public class ComparisonService {
         });
 
 
+        boolean prioritizeUserColumnSettings =
+                configRegistry.getConfigValueOf(ConfigKeys.DBC_PRIORITIZE_USER_COLUMN_SETTINGS);
+
         setTableColumnsSettings(comparedTablesWithoutColumnSettings,
-               comparison.getComparedSources(), true); //TODO: create config to set default 'loadFromDb'
+               comparison.getComparedSources(), prioritizeUserColumnSettings);
+
     }
 
     //4
@@ -136,7 +147,7 @@ public class ComparisonService {
     /// privates
 
     private static void setComparedSources(Comparison comparison, List<Source> sourceList) {
-        for (int i = 0; i < sourceList.size(); i++){
+        for (int i = 0; i < sourceList.size(); i++) {
 
             String sourceName = sourceList.get(i).getPath().getName();
             String sourceId = FilenameUtils.removeExtension(sourceName);

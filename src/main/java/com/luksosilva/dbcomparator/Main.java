@@ -12,6 +12,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.util.List;
+
 public class Main extends Application {
     public static void main(String[] args) {
         Application.launch(args);
@@ -32,12 +35,19 @@ public class Main extends Application {
         controller.setCurrentStage(stage);
         controller.init();
 
+        //checks if file was opened
+        List<String> args = getParameters().getRaw();
+        if (!args.isEmpty()) {
+            String filePath = args.getFirst();
+            File file = new File(filePath);
+            if (file.exists()) {
+                controller.loadComparison(file);
+            }
+        }
+
 
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
-
-
-
     }
 }

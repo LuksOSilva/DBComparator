@@ -7,6 +7,7 @@ import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
 import com.luksosilva.dbcomparator.service.ComparisonService;
+import com.luksosilva.dbcomparator.service.ConfigurationService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
@@ -92,6 +93,8 @@ public class HomeScreenController {
         loadComparison(file);
     }
 
+    public void settingsBtnClick(MouseEvent mouseEvent) { openConfigScreen(); }
+
     public void loadComparisonBtnClick(SavedComparison savedComparison) {
         loadComparison(savedComparison.getFile());
     }
@@ -99,6 +102,8 @@ public class HomeScreenController {
     public void deleteComparisonBtnClick(SavedComparison savedComparison) {
         deleteComparison(savedComparison);
     }
+
+
 
     //
 
@@ -291,8 +296,18 @@ public class HomeScreenController {
     //
 
     private void startNewComparison() {
-        try {
 
+        Comparison newComparison = new Comparison();
+
+        try {
+            newComparison.setConfigRegistry(ConfigurationService.getConfigRegistry());
+        } catch (Exception e) {
+            DialogUtils.showWarning(currentStage,
+                    "Erro ao carregar configurações",
+                    "O padrão de todas as configurações será considerado, porque: " + e.getMessage());
+        }
+
+        try {
             FxLoadResult<Parent, AttachSourcesScreenController> screenData =
                     FxmlUtils.loadScreen(FxmlFiles.ATTACH_SOURCES_SCREEN);
 
@@ -300,7 +315,7 @@ public class HomeScreenController {
             AttachSourcesScreenController controller = screenData.controller;
 
             controller.setCurrentStage(currentStage);
-            controller.setComparison(new Comparison());
+            controller.setComparison(newComparison);
 
             Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
             currentStage.setScene(scene);
@@ -308,16 +323,15 @@ public class HomeScreenController {
 
         } catch (IOException e) {
             DialogUtils.showError(currentStage,
-                    "Erro ao carregar página",
+                    "Erro ao Iniciar uma nova comparação",
                     e.getMessage());
         }
     }
 
-    private void loadComparison(File file) {
+    public void loadComparison(File file) {
         try {
 
             Comparison loadedComparison = ComparisonService.loadComparison(file);
-
 
             FxLoadResult<Parent, ComparisonResultScreenController> screenData =
                     FxmlUtils.loadScreen(FxmlFiles.COMPARISON_RESULT_SCREEN);
@@ -373,7 +387,25 @@ public class HomeScreenController {
     }
 
 
-    public void settingsBtnClick(MouseEvent mouseEvent) {
+    private void openConfigScreen() {
+        try {
+
+            FxLoadResult<Parent, ConfigScreenController> screenData =
+                    FxmlUtils.loadScreen(FxmlFiles.CONFIG_SCREEN);
+
+            Parent root = screenData.node;
+            ConfigScreenController controller = screenData.controller;
+
+            controller.init(currentStage, ConfigurationService.getConfigRegistry());
+
+
+            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
+            currentStage.setScene(scene);
+            currentStage.show();
+
+        } catch (Exception e) {
+
+        }
     }
 
     public void exitBtnClick(MouseEvent mouseEvent) {

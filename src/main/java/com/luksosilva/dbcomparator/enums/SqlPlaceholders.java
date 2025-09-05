@@ -9,6 +9,9 @@ public enum SqlPlaceholders {
     CREATED_AT("{{created_at}}"),
     LAST_LOADED_AT("{{last_loaded_at}}"),
 
+    CONFIG_VALUE("{{config_value}}"),
+    CONFIG_KEY("{{config_key}}"),
+
     SOURCE_ID("{{source_id}}"),
     TABLE_NAME("{{table_name}}"),
     COLUMN_NAME("{{column_name}}"),

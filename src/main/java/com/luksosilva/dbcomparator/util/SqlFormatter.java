@@ -9,6 +9,17 @@ import java.util.stream.Collectors;
 
 public class SqlFormatter {
 
+    public static String buildUpdateDBCComparisonConfig(String configKey, String configValue) {
+
+        Map<SqlPlaceholders, String> placeholders = Map.of(
+                SqlPlaceholders.CONFIG_KEY, configKey,
+                SqlPlaceholders.CONFIG_VALUE, configValue
+        );
+
+        return buildSQL(SqlFiles.UPDATE_DBC_CONFIG, placeholders);
+
+    }
+
     public static String buildDeleteDBCComparison(String comparisonId) {
 
         Map<SqlPlaceholders, String> placeholders = Map.of(

@@ -63,6 +63,6 @@ public class TableComparisonResultViewModel {
     }
 
     public String hasSchemaDifference() {
-        return model.getComparedTable().hasSchemaDifference() ? "Y" : "N";
+        return model.getComparedTable().hasSchemaDifference() ? "Sim" : "Não";
     }
 }

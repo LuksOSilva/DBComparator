@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
@@ -24,20 +25,20 @@
 
                     <!-- Filters -->
         <!-- Filters -->
-        <HBox alignment="BASELINE_CENTER" spacing="10" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="80">
+        <HBox alignment="BOTTOM_RIGHT" spacing="10" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="80">
             <VBox prefHeight="33.0" prefWidth="546.0" spacing="10">
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <children>
-                            <ComboBox fx:id="columnsComboBox" promptText="Coluna" />
-                            <TextField fx:id="searchTextField" promptText="Pesquisar por..." HBox.hgrow="ALWAYS" />
+                            <ComboBox fx:id="columnsComboBox" promptText="Coluna" styleClass="cmb-search" />
+                            <TextField fx:id="searchTextField" promptText="Pesquisar por..." styleClass="txt-search" HBox.hgrow="ALWAYS" />
                             <Button fx:id="applyFilterButton" onAction="#applyFilter" styleClass="btn-action" text="Pesquisar" />
                         </children>
                     </HBox>
                <HBox alignment="CENTER_LEFT" spacing="10">
                   <children>
-                     <CheckBox fx:id="showExclusiveRecordsCheckBox" onAction="#applyFilter" selected="true" mnemonicParsing="false" text="Mostrar registros exclusivos de uma fonte" />
-                     <CheckBox fx:id="showDivergingRecordsCheckBox" onAction="#applyFilter" selected="true" mnemonicParsing="false" text="Mostrar registros com diferença" />
+                     <CheckBox fx:id="showExclusiveRecordsCheckBox" mnemonicParsing="false" onAction="#applyFilter" selected="true" text="Mostrar registros exclusivos de uma fonte" />
+                     <CheckBox fx:id="showDivergingRecordsCheckBox" mnemonicParsing="false" onAction="#applyFilter" selected="true" text="Mostrar registros com diferença" />
                   </children>
                </HBox>
                 </children>
@@ -45,7 +46,10 @@
 
                         <Region HBox.hgrow="ALWAYS" />
 
-                        <MenuButton fx:id="visibleColumnsMenuButton" styleClass="btn-secondary" text="Colunas Visíveis" />
+                        <MenuButton fx:id="visibleColumnsMenuButton" styleClass="cmb-search" text="Colunas Visíveis">
+            <HBox.margin>
+               <Insets />
+            </HBox.margin></MenuButton>
         </HBox>
 
                        <!-- Table -->

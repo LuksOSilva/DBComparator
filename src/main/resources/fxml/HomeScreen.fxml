@@ -38,7 +38,7 @@
       </VBox>
       <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="235.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0">
          <children>
-            <VBox spacing="5.0" styleClass="table-header-container">
+            <VBox spacing="5.0">
                <padding>
                   <Insets bottom="5" left="5" right="5" top="5" />
                </padding>

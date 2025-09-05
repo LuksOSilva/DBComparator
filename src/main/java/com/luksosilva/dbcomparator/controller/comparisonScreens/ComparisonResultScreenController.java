@@ -13,26 +13,32 @@ import com.luksosilva.dbcomparator.util.FxmlUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.viewmodel.live.comparison.compared.ComparedTableViewModel;
 import com.luksosilva.dbcomparator.viewmodel.live.comparison.result.TableComparisonResultViewModel;
+import javafx.animation.FadeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public class ComparisonResultScreenController {
+
 
 
     private Stage currentStage;
@@ -51,7 +57,7 @@ public class ComparisonResultScreenController {
     private final Map<ComparedTable, TitledPane> perComparedTableResultPane = new HashMap<>();
 
     private final ObservableList<TitledPane> tableComparisonResultPanes = FXCollections.observableArrayList();
-    private FilteredList<TitledPane> filteredTableComparisonResultPanes;
+    private FilteredList<TitledPane> filteredTableComparisonResultPanes = new FilteredList<>(tableComparisonResultPanes, s -> true);
 
     private ComparisonQueueManager comparisonQueueManager = new ComparisonQueueManager(); // or 1 for sequential
 
@@ -61,8 +67,10 @@ public class ComparisonResultScreenController {
         return comparisonResult;
     }
 
-
-
+    @FXML
+    public TextField searchTextField;
+    @FXML
+    public ComboBox<String> filterTypeComboBox;
 
     @FXML
     public Accordion tablesAccordion;
@@ -84,6 +92,8 @@ public class ComparisonResultScreenController {
         setupComparedTableViewModels();
         setupComparedTablesAccordion();
         constructComparedTableAccordion();
+        setupFilterControls();
+
         startComparison();
     }
 
@@ -160,8 +170,66 @@ public class ComparisonResultScreenController {
 
     }
 
+    private void applyFilter() {
+        String filterText = searchTextField.getText().toLowerCase().trim();
+        String filterType = filterTypeComboBox.getValue();
+
+        filteredTableComparisonResultPanes.setPredicate(pane -> {
+            String tableName = pane.getText();
+            String tableNameLowerCase = tableName.toLowerCase();
+
+            // Filter by text
+            if (!filterText.isEmpty()) {
+
+                if ("tabela".equalsIgnoreCase(filterType)) {
+
+                    if (!tableNameLowerCase.contains(filterText)) return false;
+
+                } else if ("coluna".equalsIgnoreCase(filterType)) {
+
+                    ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+                    if (comparedTable == null) return false;
+
+                    boolean columnMatch = comparedTable.getComparedTableColumns().stream()
+                            .anyMatch(comparedTableColumn -> comparedTableColumn.getColumnName().contains(filterText));
+
+                    if (!columnMatch) return false;
+                }
+
+            }
+
+            return true;
+        });
+
+
+        tablesAccordion.getPanes().setAll(filteredTableComparisonResultPanes);
+
+
+        fadeInAccordion();
+    }
+
+    private void fadeInAccordion() {
+        tablesAccordion.setOpacity(0);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(250), tablesAccordion);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
 
     /// setups
+
+    private void setupFilterControls() {
+        filterTypeComboBox.setItems(FXCollections.observableArrayList("tabela", "coluna"));
+        filterTypeComboBox.setValue("tabela");
+
+
+        searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+
+
+        applyFilter();
+    }
 
     public void setupComparedTableViewModels() {
         for (ComparedTable comparedTable : getSortedComparedTableList(comparison.getComparedTables())) {
@@ -207,70 +275,66 @@ public class ComparisonResultScreenController {
         }
     }
 
+    private void constructComparedTableAccordionContent(TitledPane titledPane, TableComparisonResultViewModel vm) {
 
+        // --- LABELS ---
+        VBox labelsBox = getLabelsVBox(vm);
 
-    private void constructComparedTableAccordionContent(TitledPane titledPane, TableComparisonResultViewModel tableComparisonResultViewModel) {
+        // --- BUTTONS ---
+        VBox buttonsBox = getActionButtonsVBox(vm);
 
-        List<Node> contentLabels = getContentLabels(tableComparisonResultViewModel);
-        List<Node> contentButtons = getContentActionButtons(tableComparisonResultViewModel);
-
-        List<Node> content = new ArrayList<>();
-        content.addAll(contentLabels);
-        content.addAll(contentButtons);
-
-        // Combine the table and buttons in a VBox
-        VBox contentContainer = new VBox(10);
-        contentContainer.getChildren().addAll(content);
-
+        // --- MAIN CONTAINER ---
+        HBox contentContainer = new HBox(20);
         contentContainer.setPadding(new Insets(10));
-        contentContainer.setFillWidth(true);
+        contentContainer.getChildren().addAll(labelsBox, buttonsBox);
+        HBox.setHgrow(labelsBox, Priority.ALWAYS);
 
         titledPane.setContent(contentContainer);
         titledPane.setUserData(true);
     }
 
 
-
     /// Constructor helpers
 
-    private List<Node> getContentLabels(TableComparisonResultViewModel tableComparisonResultViewModel) {
-        List<Node> contentLabels = new ArrayList<>();
+    private VBox getLabelsVBox(TableComparisonResultViewModel vm) {
+        VBox labelsBox = new VBox(6);
+        labelsBox.setAlignment(Pos.TOP_LEFT);
 
-        Label recordCountLabel = new Label();
-        Label diffRecordCountLabel = new Label();
-        Label diffSchemaLabel = new Label();
+        Label recordCountLabel = new Label("Número de registros: \n" + vm.getPerSourceRecordCount());
+        Label diffRecordCountLabel = new Label("Registros com diferença: " + vm.getDiffRecordCount());
+        Label diffSchemaLabel = new Label("Diferença no schema: " + vm.hasSchemaDifference());
 
-        recordCountLabel.setText("Número de registros:\n" + tableComparisonResultViewModel.getPerSourceRecordCount());
-        diffRecordCountLabel.setText("Registros com diferença:\n" + tableComparisonResultViewModel.getDiffRecordCount());
-        diffSchemaLabel.setText("Possui diferença no schema:\n" + tableComparisonResultViewModel.hasSchemaDifference());
+        recordCountLabel.setStyle("-fx-font-weight: bold;");
+        labelsBox.getChildren().addAll(recordCountLabel, diffRecordCountLabel, diffSchemaLabel);
 
-        contentLabels.add(recordCountLabel);
-        contentLabels.add(diffRecordCountLabel);
-        contentLabels.add(diffSchemaLabel);
-
-        return contentLabels;
+        return labelsBox;
     }
 
-    private List<Node> getContentActionButtons(TableComparisonResultViewModel tableComparisonResultViewModel) {
-        List<Node> contentButtons = new ArrayList<>();
+    private VBox getActionButtonsVBox(TableComparisonResultViewModel vm) {
+        VBox buttonsBox = new VBox(10);
+        buttonsBox.setAlignment(Pos.CENTER);
 
-        Button showComparisonResultButton = new Button("comparar registros");
-        showComparisonResultButton.setOnAction(e -> onShowComparisonResultButtonClicked(tableComparisonResultViewModel));
+        Button compareRecordsButton = new Button("Comparar registros");
+        compareRecordsButton.getStyleClass().add("btn-action");
+        compareRecordsButton.setOnAction(e -> onShowComparisonResultButtonClicked(vm));
 
-        Button showSchemaComparisonButton = new Button("comparar schemas");
-        showSchemaComparisonButton.setOnAction(e -> onShowSchemaDifferencesButtonClicked(tableComparisonResultViewModel));
+        Button compareSchemaButton = new Button("Comparar schemas");
+        compareSchemaButton.getStyleClass().add("btn-action");
+        compareSchemaButton.setOnAction(e -> onShowSchemaDifferencesButtonClicked(vm));
 
-        showComparisonResultButton.getStyleClass().add("btn-action");
-        showSchemaComparisonButton.getStyleClass().add("btn-action");
+        buttonsBox.getChildren().addAll(compareRecordsButton, compareSchemaButton);
 
-        contentButtons.add(showComparisonResultButton);
-        contentButtons.add(showSchemaComparisonButton);
-
-        return contentButtons;
+        return buttonsBox;
     }
 
     /// HELPERS
 
+    private ComparedTable getComparedTableFromTableName(String tableName) {
+        return comparison.getComparedTables().stream()
+                .filter(ct -> ct.getTableName().equals(tableName))
+                .findFirst()
+                .orElse(null);
+    }
 
     private List<ComparedTable> getSortedComparedTableList(List<ComparedTable> unsortedComparedTableList) {
 

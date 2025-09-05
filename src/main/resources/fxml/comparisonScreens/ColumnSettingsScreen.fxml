@@ -46,15 +46,15 @@
                     <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                             <children>
-                        <Button mnemonicParsing="false" onAction="#onResetSettingsToOriginalForAllTablesButtonClicked" styleClass="btn-action" text="Padrão do sistema" />
-                        <Button mnemonicParsing="false" onAction="#onResetSettingsToDefaultForAllTablesButtonClicked" styleClass="btn-action" text="Padrão" />
-                        <Button mnemonicParsing="false" onAction="#onSaveSettingsForAllAlteredTablesButtonClicked" styleClass="btn-action" text="Salvar Alterados" />
+                        <Button mnemonicParsing="false" onAction="#onResetSettingsToOriginalForAllTablesButtonClicked" styleClass="btn-menu" text="Padrão do sistema" />
+                        <Button mnemonicParsing="false" onAction="#onResetSettingsToDefaultForAllTablesButtonClicked" styleClass="btn-menu" text="Padrão" />
+                        <Button mnemonicParsing="false" onAction="#onSaveSettingsForAllAlteredTablesButtonClicked" styleClass="btn-menu" text="Salvar Alterados" />
 
                                 <Pane HBox.hgrow="ALWAYS" />
 
-                                <ComboBox fx:id="filterTypeComboBox" prefHeight="20.0" prefWidth="144.0" />
+                                <ComboBox fx:id="filterTypeComboBox" styleClass="cmb-search" prefHeight="20.0" prefWidth="144.0" />
 
-                                <TextField fx:id="searchTextField" prefWidth="200.0" promptText="buscar tabela..." />
+                                <TextField fx:id="searchTextField" styleClass="txt-search" prefWidth="200.0" promptText="buscar tabela..." />
 
                                 <ToggleButton fx:id="filterToggleButton" mnemonicParsing="false" onMouseClicked="#onFilterButtonClicked" prefHeight="25.0" prefWidth="25.0" />
 

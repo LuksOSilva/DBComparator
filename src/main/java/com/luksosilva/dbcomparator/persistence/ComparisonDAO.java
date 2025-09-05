@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.persistence;
 
+import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
@@ -32,8 +33,7 @@ public class ComparisonDAO {
     public static List<SavedComparison> loadAllComparisons() throws Exception {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
-            String sql = "SELECT * FROM DBC_COMPARISONS";
-
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_DBC_COMPARISONS);
 
             try (Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {

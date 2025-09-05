@@ -33,7 +33,7 @@
     -fx-background-color: #3a6498;
 }
 
-/* Secondary outlined button */
+/* Secondary button */
 .btn-secondary {
     -fx-pref-width: 110;
     -fx-pref-height: 40;
@@ -66,6 +66,31 @@
     -fx-underline: true;
 }
 
+/* Header Menu Button*/
+
+.btn-menu {
+    -fx-background-color: #f8f9fa;      /* very light background */
+    -fx-border-color: #d0d7de;          /* soft border */
+    -fx-text-fill: #495057;             /* dark gray text for readability */
+    -fx-font-weight: normal;
+    -fx-font-size: 13px;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;         /* match border radius */
+    -fx-cursor: hand;
+    -fx-padding: 6px 12px;              /* comfortable click area */
+}
+
+.btn-menu:hover {
+    -fx-background-color: #e9ecef;      /* slightly darker background on hover */
+    -fx-border-color: #c0c7ce;          /* subtle border change */
+}
+
+.btn-menu:pressed {
+    -fx-background-color: #dee2e6;      /* pressed effect — slightly darker */
+    -fx-border-color: #b0b7be;
+}
+
 /* Action button */
 
 .btn-action {
@@ -89,6 +114,7 @@
     -fx-border-color: #545b62;
 }
 
+/* TITLE LABEL */
 
 .lbl-title {
     -fx-font-size: 20px;
@@ -97,23 +123,214 @@
     -fx-letter-spacing: 0.5px;     /* a bit more space between letters */
 }
 
+/* TEXT FIELD */
+
 .txt-search {
-    -fx-background-color: #f5f5f5;      /* light background */
-    -fx-background-radius: 15px;        /* circular corners */
-    -fx-border-radius: 15px;            /* border matches background radius */
-    -fx-border-color: #cccccc;          /* subtle gray border */
+    -fx-background-color: white;      /* lighter, warmer background */
+    -fx-background-radius: 5px;        /* circular corners */
+    -fx-border-radius: 5px;            /* border matches background radius */
+    -fx-border-color: #e0e0e0;          /* softer, less harsh gray border */
     -fx-border-width: 1px;
-    -fx-padding: 4px 8px;               /* inner padding for text */
+    -fx-padding: 6px 10px;              /* slightly more padding for comfort */
     -fx-font-size: 14px;                /* clean font size */
-    -fx-text-fill: #333333;             /* text color */
+    -fx-text-fill: #444444;             /* slightly darker text for readability */
 }
 
 .txt-search:focused {
-    -fx-border-color: #4a90e2;          /* highlight color when focused */
-    -fx-background-color: #ffffff;      /* white background when focused */
+    -fx-border-color: #638ECB;          /* bright blue highlight */
+    -fx-background-color: #f7f9fc;      /* white background when focused */
+    -fx-effect: dropshadow(gaussian, rgba(74,144,226,0.25), 8, 0, 0, 2); /* subtle shadow glow */
+}
+
+/* COMBO BOX & MENU BUTTON */
+
+.cmb-search {
+    -fx-pref-width: 150;
+    -fx-pref-height: 35;
+    -fx-background-color: white;
+    -fx-border-color: #c5c9d6;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 0 10;
+    -fx-font-weight: normal;
+    -fx-font-size: 13px;
+    -fx-text-fill: #505050;
+}
+.cmb-search:hover {
+    -fx-border-color: #638ECB;
+}
+.cmb-search:focused {
+    -fx-border-color: #4e7ab2;
+    -fx-background-color: #f7f9fc;
+    -fx-effect: dropshadow(gaussian, rgba(74,144,226,0.25), 8, 0, 0, 2);
+}
+
+/* CHECK BOX */
+
+
+/* Styling the CheckBox's Box (the square outline) */
+.check-box .box {
+    -fx-background-color: #f0f0f0; /* Light gray background */
+    -fx-border-color: #cccccc; /* Light gray border */
+    -fx-border-width: 1px;
+    -fx-background-radius: 4px; /* Slightly rounded corners */
+    -fx-border-radius: 4px;
+    -fx-padding: 3px; /* Padding inside the box */
+    -fx-effect: null; /* Remove any default shadows or effects */
+}
+
+/* Hover state for the Box */
+.check-box:hover .box {
+    -fx-border-color: #999999; /* Slightly darker border on hover */
+    -fx-background-color: #e0e0e0; /* Slightly darker background on hover */
+}
+
+/* Focused state for the Box (when navigating with keyboard) */
+.check-box:focused .box {
+    -fx-border-color: #5b9bd5; /* A subtle blue focus indicator */
+    -fx-background-color: #e6f2fa; /* Light blue background */
+    -fx-effect: null;
+}
+
+/* Styling the Checkmark (the check symbol itself) */
+.check-box .mark {
+    -fx-background-color: transparent; /* Default transparent */
+    -fx-shape: "M4.59,18.06 L0,13.47 L1.62,11.85 L4.59,14.83 L12.38,7.04 L14,8.66 L4.59,18.06 Z";
+}
+
+/* Styling the Box when the CheckBox is SELECTED */
+.check-box:selected .box {
+    -fx-background-color: #849FC4; /* A pleasant blue for selected state */
+    -fx-border-color: #849FC4; /* Match border color */
+}
+
+/* Styling the Mark when the CheckBox is SELECTED */
+.check-box:selected .mark {
+    -fx-background-color: white; /* White checkmark when selected */
+}
+
+/* Disabled state */
+.check-box:disabled {
+    -fx-opacity: 0.6; /* Slightly fade out when disabled */
+}
+
+.check-box:disabled .box {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #e0e0e0;
+}
+
+.check-box:disabled .mark {
+    -fx-background-color: #aaaaaa;
+}
+
+/* Indeterminate state for Select All checkbox */
+.check-box:indeterminate .box {
+    -fx-background-color: #849FC4; /* Same blue as selected or outro tom se quiser diferenciar */
+    -fx-border-color: #849FC4;
+}
+
+/* The mark (the dash) for indeterminate state */
+.check-box:indeterminate .mark {
+    -fx-background-color: white;
+    -fx-shape: "M2,8 L10,8 L10,10 L2,10 Z"; /* Horizontal dash */
+    -fx-padding: 5.5px;
+}
+
+.check-box:disabled > .box > .mark {
+    -fx-opacity: 0; /* hide the checkmark only if selected AND disabled */
+}
+
+/* TABLE VIEW */
+
+
+/* ACCORDION HEADER */
+
+.table-header-container {
+    -fx-background-color: #D5DEEF;      /* Light gray background like a table header */
+    -fx-border-color: #e0e0e0;          /* Light gray bottom border */
+    -fx-border-width: 0px;        /* Only bottom border */
+    -fx-padding: 7px 10px 7px 20px;              /* Internal spacing (top/right/bottom/left) */
+    -fx-spacing: 10px;                  /* Space between children inside (if you put children directly inside VBox) */
+    -fx-background-radius: 5px;
+}
+
+/* ACCORDION */
+
+.accordion {
+    -fx-background-color: #F0F3FA;
+    -fx-border-color: transparent;
+     -fx-border-width: 0px;             /* Explicitly set border width to 0 */
+     -fx-border-radius: 0px;            /* Remove any rounding that might imply a boundary */
+     -fx-spacing: 0px;                  /* Keep spacing between headers controlled by TitledPane insets */
+     -fx-effect: none;                  /* Ensure no shadow effect is mimicking a border */
 }
 
 
+.titled-pane {
+    -fx-font-family: "Arial";
+    -fx-font-size: 14px;
+}
+
+/* Styling the header area of a TitledPane */
+.titled-pane > .title {
+    -fx-background-color: #F9F9F9; /* header background */
+    -fx-background-radius: 5px;
+    -fx-border-radius: 0px;
+    -fx-padding: 10px 10px;
+    -fx-background-insets: 0px 4px 4px 0px; /* Creates a 5px transparent border at the bottom */
+
+}
+
+/* Styling the text inside the TitledPane header */
+.titled-pane > .title > .text {
+    -fx-fill: black;
+    -fx-font-weight: bold;
+}
+
+/* Styling the header when hovered */
+.titled-pane > .title:hover {
+    -fx-background-color: #e9eef7;
+    -fx-cursor: hand;
+}
+
+/* Styling the header when expanded */
+.titled-pane:expanded > .title {
+    -fx-background-color: #D5DEEF;
+    -fx-background-insets: 0px 4px 0px 0px;
+    -fx-border-radius: 10px 10px 0 0; /* Rounded only at top when expanded */
+
+
+}
+
+/* Styling the content area of a TitledPane */
+.titled-pane > .content {
+    -fx-background-color: #ffffff; /* White background for content */
+    -fx-border-color: #dddddd;
+    -fx-border-width: 1px 0 0 0; /* Only a top border for separation */
+    -fx-background-insets: 0px 4px 4px 0px;
+    -fx-padding: 10px;
+}
+
+/* Styling the arrow button */
+.titled-pane > .title > .arrow-button {
+    -fx-background-color: transparent; /* Make background transparent */
+    -fx-padding: 0;
+}
+
+/* Styling the arrow glyph (the actual triangle) */
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: transparent; /* transparent arrow */
+    -fx-shape: "M 0.0 0.0 L 4.0 4.0 L 8.0 0.0 z"; /* Custom arrow shape (down triangle) */
+    -fx-rotate: 0;
+}
+
+
+/* Rotate arrow when expanded */
+.titled-pane:expanded > .title > .arrow-button > .arrow {
+    -fx-rotate: 180; /* Point down when expanded */
+}
+
+/* SCROLL PANE */
 
 .scroll-pane {
     -fx-background-color: transparent; /* Keep background transparent */

@@ -568,7 +568,9 @@ public class SelectTablesScreenController {
                                 ));
 
 
-                ComparisonService.processTables(comparison, notProcessedSelectedGroupedTables);
+                ComparisonService.processTables(comparison,
+                        comparison.getConfigRegistry(),
+                        notProcessedSelectedGroupedTables);
 
 
                 FxLoadResult<Parent, ColumnSettingsScreenController> screenData =

@@ -4,6 +4,7 @@ package com.luksosilva.dbcomparator.enums;
 public enum FxmlFiles {
 
     HOME_SCREEN("HomeScreen"),
+    CONFIG_SCREEN("ConfigScreen"),
 
     /// COMPARISON
     LOADING_SCREEN("comparisonScreens/LoadingScreen"),

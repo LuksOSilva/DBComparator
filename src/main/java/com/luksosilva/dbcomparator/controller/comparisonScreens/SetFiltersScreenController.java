@@ -253,10 +253,9 @@ public class SetFiltersScreenController {
             return true;
         });
 
-        // Atualiza os panes
+
         tablesAccordion.getPanes().setAll(filteredFilterPanes);
 
-        // Faz um fade-in suave no accordion
         fadeInAccordion();
     }
 
@@ -478,7 +477,7 @@ public class SetFiltersScreenController {
         List<Node> actionButtons = new ArrayList<>();
 
         if (filter instanceof TableFilter tableFilter) {
-            Button copyToClipboardButton = new Button("copy");
+            Button copyToClipboardButton = new Button("Copiar");
             copyToClipboardButton.setOnAction(e -> onCopyToClipBoardButtonClicked(tableFilter));
 
             copyToClipboardButton.getStyleClass().add("btn-action");
@@ -486,8 +485,8 @@ public class SetFiltersScreenController {
             actionButtons.add(copyToClipboardButton);
         }
 
-        Button editButton = new Button("edit");
-        Button deleteButton = new Button("del");
+        Button editButton = new Button("Editar");
+        Button deleteButton = new Button("Excluir");
 
         editButton.setOnAction(e -> onEditFilterButtonClicked(filter));
         deleteButton.setOnAction(e -> onDeleteFilterButtonClicked(filter));

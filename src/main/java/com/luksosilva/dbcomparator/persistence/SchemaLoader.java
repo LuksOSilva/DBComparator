@@ -1,6 +1,8 @@
 package com.luksosilva.dbcomparator.persistence;
 
+import com.luksosilva.dbcomparator.enums.ConfigKeys;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
@@ -13,12 +15,12 @@ import java.sql.Statement;
 public class SchemaLoader {
 
 
-    public static void mapSourceTable(ComparedSource comparedSource) {
+    public static void mapSourceTable(ComparedSource comparedSource, ConfigRegistry configRegistry) {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
             SQLiteUtils.attachSource(connection, comparedSource);
 
-            loadTableNames(connection, comparedSource);
+            loadTableNames(connection, comparedSource, configRegistry);
             loadRecordCounts(connection, comparedSource);
             loadTableColumns(connection, comparedSource);
 
@@ -32,7 +34,9 @@ public class SchemaLoader {
 
     //
 
-    private static void loadTableNames(Connection conn, ComparedSource comparedSource) throws Exception {
+    private static void loadTableNames(Connection conn, ComparedSource comparedSource, ConfigRegistry configRegistry) throws Exception {
+        boolean considerSqliteTables = configRegistry.getConfigValueOf(ConfigKeys.DBC_CONSIDER_SQLITE_TABLES);
+
         try (Statement stmt = conn.createStatement();
              ResultSet resultSet = stmt.executeQuery(
                      SqlFormatter.buildPragmaTableList(comparedSource.getSourceId()))
@@ -41,11 +45,14 @@ public class SchemaLoader {
 
                 String tableName = resultSet.getString("name");
 
+                if (!considerSqliteTables && tableName.startsWith("sqlite")) continue;
+
                 comparedSource.getSource().getSourceTables().add(new SourceTable(tableName));
 
             }
         }
     }
+
     private static void loadRecordCounts(Connection conn, ComparedSource comparedSource) throws Exception {
         for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
 

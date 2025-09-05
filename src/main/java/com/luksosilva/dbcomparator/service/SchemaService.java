@@ -3,6 +3,7 @@ package com.luksosilva.dbcomparator.service;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.persistence.ColumnSettingsDAO;
 import com.luksosilva.dbcomparator.persistence.SchemaLoader;
@@ -16,9 +17,9 @@ import java.util.Optional;
 public class SchemaService {
 
 
-    public static void mapComparedSources (List<ComparedSource> comparedSourceList) {
+    public static void mapComparedSources (List<ComparedSource> comparedSourceList, ConfigRegistry configRegistry) {
         for (ComparedSource comparedSource : comparedSourceList) {
-            SchemaLoader.mapSourceTable(comparedSource);
+            SchemaLoader.mapSourceTable(comparedSource, configRegistry);
         }
     }
 
