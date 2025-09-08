@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="600.0" prefWidth="850.0" styleClass="main-container" stylesheets="@../comparisonScreens/css/Main.css, @../comparisonScreens/css/TableComparisonResult.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.comparisonScreens.SchemaComparisonScreenController">
+    <children>
+         <Label fx:id="titleLabel" styleClass="title-text" text="table_name" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="30.0" />
+
+
+        <HBox alignment="CENTER_LEFT" spacing="10" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="90.0">
+                <TextField fx:id="searchTextField" prefHeight="34.0" prefWidth="238.0" promptText="Pesquisar por..." styleClass="txt-search" />
+                <Button fx:id="applyFilterButton" styleClass="btn-action" text="Pesquisar" />
+        </HBox>
+      <HBox fx:id="tablesHBox"  prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="150.0" />
+
+
+        <!-- Footer buttons -->
+        <HBox alignment="CENTER_RIGHT" spacing="10" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
+            <Button onAction="#onCloseButtonClicked" styleClass="btn-secondary" text="Fechar" />
+        </HBox>
+
+    </children>
+</AnchorPane>

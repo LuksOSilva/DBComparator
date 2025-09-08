@@ -15,6 +15,7 @@ public enum FxmlFiles {
     SET_FILTERS_SCREEN("comparisonScreens/SetFiltersScreen"),
     COMPARISON_RESULT_SCREEN("comparisonScreens/ComparisonResultScreen"),
     TABLE_COMPARISON_RESULT_SCREEN("comparisonScreens/TableComparisonResultScreen"),
+    SCHEMA_COMPARISON_SCREEN("comparisonScreens/SchemaComparisonScreen"),
 
 
     /// DIALOGS

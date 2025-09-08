@@ -6,6 +6,7 @@ import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.result.ComparisonResult;
 import com.luksosilva.dbcomparator.model.live.comparison.result.TableComparisonResult;
+import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.queue.ComparisonQueueManager;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
@@ -157,9 +158,8 @@ public class ComparisonResultScreenController {
         }
 
         Stage newStage = DialogUtils.showTableComparisonResultScreen(currentStage, tableComparisonResultViewModel);
-        if (newStage == null) {
-            return; /// todo: show warning
-        }
+        if (newStage == null) return;
+
 
         newStage.setUserData(tableComparisonResultViewModel);
 
@@ -167,7 +167,27 @@ public class ComparisonResultScreenController {
     }
 
     public void onShowSchemaDifferencesButtonClicked(TableComparisonResultViewModel tableComparisonResultViewModel) {
+        Map<String, SourceTable> perSourceTable = tableComparisonResultViewModel.getModel().getComparedTable().getPerSourceTable();
 
+        Stage previouslyOpenedStage = openedStages.stream()
+                .filter(openedStage -> perSourceTable.equals(openedStage.getUserData()))
+                .findFirst()
+                .orElse(null);
+
+        if (previouslyOpenedStage != null) {
+            DialogUtils.showInCenter(currentStage, previouslyOpenedStage);
+            previouslyOpenedStage.toFront();
+            previouslyOpenedStage.requestFocus();
+
+            return;
+        }
+
+        Stage schemaComparisonStage = DialogUtils.showSchemaComparisonScreen(currentStage, perSourceTable);
+        if (schemaComparisonStage == null) return;
+
+        schemaComparisonStage.setUserData(perSourceTable);
+
+        openedStages.add(schemaComparisonStage);
     }
 
     private void applyFilter() {

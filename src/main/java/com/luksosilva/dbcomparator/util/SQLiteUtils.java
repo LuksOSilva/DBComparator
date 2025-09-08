@@ -33,7 +33,7 @@ public class SQLiteUtils {
     }
 
     public static String loadSQL(SqlFiles sqlFile) {
-        try (InputStream inputStream = SqlFormatter.class.getClassLoader().getResourceAsStream(sqlFile.fullPath())) {
+        try (InputStream inputStream = SQLiteUtils.class.getResourceAsStream(sqlFile.fullPath())) {
             if (inputStream == null) {
                 throw new RuntimeException("SQL file not found: " + sqlFile.fullPath());
             }

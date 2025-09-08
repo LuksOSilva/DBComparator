@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
+import com.luksosilva.dbcomparator.controller.ConfigScreenController;
 import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
@@ -7,6 +8,7 @@ import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.service.ComparisonService;
+import com.luksosilva.dbcomparator.service.ConfigurationService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
@@ -46,6 +48,7 @@ public class SelectTablesScreenController {
     private Stage currentStage;
     private Scene nextScene;
 
+    private List<Stage> compareSchemaOpenedStages = new ArrayList<>();
 
     private Comparison comparison;
     private Map<String, Map<String, SourceTable>> groupedTables;
@@ -150,8 +153,28 @@ public class SelectTablesScreenController {
     public void onCompareSchemasButtonClicked(ActionEvent actionEvent) {
         Button clickedButton = (Button) actionEvent.getSource();
         String tableName = (String) clickedButton.getUserData();
+        Map<String, SourceTable> perSourceTable = groupedTables.get(tableName);
 
-        System.out.println(tableName);
+        Stage previouslyOpenedStage = compareSchemaOpenedStages.stream()
+                .filter(openedStage -> perSourceTable.equals(openedStage.getUserData()))
+                .findFirst()
+                .orElse(null);
+
+        if (previouslyOpenedStage != null) {
+            DialogUtils.showInCenter(currentStage, previouslyOpenedStage);
+            previouslyOpenedStage.toFront();
+            previouslyOpenedStage.requestFocus();
+
+            return;
+        }
+
+
+        Stage schemaComparisonStage = DialogUtils.showSchemaComparisonScreen(currentStage, perSourceTable);
+        if (schemaComparisonStage == null) return;
+
+        schemaComparisonStage.setUserData(perSourceTable);
+
+        compareSchemaOpenedStages.add(schemaComparisonStage);
     }
 
 
@@ -205,7 +228,7 @@ public class SelectTablesScreenController {
         showDiffRecordCountOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         showSelectedOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
 
-        applyFilter(); // Apply initial filter (which is "show all" by default)
+        applyFilter();
     }
 
     private void applyFilter() {

@@ -234,8 +234,7 @@ public class TableComparisonResultScreenController {
                 super.updateItem(item, empty);
 
                 // Clear styles and text every time
-                getTableRow().getStyleClass().removeAll("row-missing");
-                getStyleClass().removeAll("cell-null", "cell-default", "cell-different");
+                getStyleClass().removeAll("cell-null", "cell-default", "cell-different", "row-missing");
                 setText(null);
 
                 if (empty) {
@@ -253,9 +252,9 @@ public class TableComparisonResultScreenController {
                 // style for row:
                 RowDifferenceViewModel rowVM = getTableView().getItems().get(getIndex());
 
-                // If row missing in any source → apply row style
+                // If row missing in any source
                 if (rowVM.isMissingInAnySource()) {
-                    getTableRow().getStyleClass().add("row-missing");
+                    getStyleClass().add("row-missing");
                     return;
                 }
 
@@ -325,8 +324,8 @@ public class TableComparisonResultScreenController {
                 super.updateItem(item, empty);
 
                 // Clear styles and text every time
-                getTableRow().getStyleClass().removeAll("row-missing");
-                getStyleClass().removeAll("cell-null", "cell-default", "cell-different");
+                //getTableRow().getStyleClass().removeAll("row-missing");
+                getStyleClass().removeAll("cell-null", "cell-default", "cell-different", "row-missing");
                 setText(null);
 
                 if (empty) {
@@ -346,7 +345,7 @@ public class TableComparisonResultScreenController {
 
                 // If row missing in any source → apply row style
                 if (rowVM.isMissingInAnySource()) {
-                    getTableRow().getStyleClass().add("row-missing");
+                    getStyleClass().add("row-missing");
                     return;
                 }
 

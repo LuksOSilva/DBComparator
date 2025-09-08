@@ -1,5 +1,7 @@
 package com.luksosilva.dbcomparator.model.live.source;
 
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +38,7 @@ public class SourceTable {
     public List<SourceTableColumn> getSourceTableColumns() {
         return sourceTableColumns;
     }
+
 
 
 

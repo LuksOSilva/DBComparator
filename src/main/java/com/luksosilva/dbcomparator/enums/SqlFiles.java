@@ -11,8 +11,8 @@ public enum SqlFiles {
     UPDATE_LAST_LOADED0("persistence", "update_last_loaded"),
     DELETE_DBC_COMPARISON("persistence", "delete_dbc_comparison"),
 
-    SELECT_DBC_CONFIGS("Config", "select_dbc_configs"),
-    UPDATE_DBC_CONFIG("Config", "update_dbc_config"),
+    SELECT_DBC_CONFIGS("config", "select_dbc_configs"),
+    UPDATE_DBC_CONFIG("config", "update_dbc_config"),
 
     PRAGMA_TABLE_LIST("comparison", "pragma_table_list"),
     SELECT_TABLE_RECORD_COUNT("comparison", "select_table_record_count"),
@@ -23,15 +23,15 @@ public enum SqlFiles {
     SELECT_DIFFERENCES("comparison", "select_differences"),
 
 
-    SD_WITH_CLAUSE("comparison\\SelectDifferencesPieces", "with_clause"),
-    SD_COALESCE_IDENTIFIER_COLUMN("comparison\\SelectDifferencesPieces", "coalesce_identifier_column"),
-    SD_SELECT_COMPARABLE_COLUMNS("comparison\\SelectDifferencesPieces", "select_comparable_columns"),
-    SD_FROM_CLAUSE("comparison\\SelectDifferencesPieces", "from_clause"),
-    SD_JOIN_CLAUSE("comparison\\SelectDifferencesPieces", "join_clause"),
-    SD_ON_CLAUSE("comparison\\SelectDifferencesPieces", "on_clause"),
-    SD_COALESCE_COMPARABLE_COLUMN("comparison\\SelectDifferencesPieces", "coalesce_comparable_column"),
-    SD_WHERE_CLAUSE("comparison\\SelectDifferencesPieces", "where_clause"),
-    SD_COALESCE_VALUES("comparison\\SelectDifferencesPieces", "coalesce_values");
+    SD_WITH_CLAUSE("comparison/SelectDifferencesPieces", "with_clause"),
+    SD_COALESCE_IDENTIFIER_COLUMN("comparison/SelectDifferencesPieces", "coalesce_identifier_column"),
+    SD_SELECT_COMPARABLE_COLUMNS("comparison/SelectDifferencesPieces", "select_comparable_columns"),
+    SD_FROM_CLAUSE("comparison/SelectDifferencesPieces", "from_clause"),
+    SD_JOIN_CLAUSE("comparison/SelectDifferencesPieces", "join_clause"),
+    SD_ON_CLAUSE("comparison/SelectDifferencesPieces", "on_clause"),
+    SD_COALESCE_COMPARABLE_COLUMN("comparison/SelectDifferencesPieces", "coalesce_comparable_column"),
+    SD_WHERE_CLAUSE("comparison/SelectDifferencesPieces", "where_clause"),
+    SD_COALESCE_VALUES("comparison/SelectDifferencesPieces", "coalesce_values");
 
     private final String type;
     private final String fileName;
@@ -42,7 +42,7 @@ public enum SqlFiles {
     }
 
     public String fullPath() {
-        return "\\sql\\" + type + "\\" + fileName + ".sql";
+        return "/sql/" + type + "/" + fileName + ".sql";
     }
 
 

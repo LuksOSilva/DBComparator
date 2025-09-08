@@ -49,6 +49,10 @@ public class SourceTableColumn {
         return isPk;
     }
 
+    public boolean isNotNull() {
+        return notNull;
+    }
+
     public String getType() {
         return type;
     }

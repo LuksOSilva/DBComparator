@@ -114,6 +114,37 @@
     -fx-border-color: #545b62;
 }
 
+/* Icon button */
+
+.button-icon {
+    -fx-background-color: #638ECB;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 12 6 12; /* top, right, bottom, left */
+    -fx-cursor: hand;
+}
+
+.button-icon:hover {
+    -fx-background-color: #4e7ab2; /* slightly darker blue */
+}
+
+.button-icon:pressed {
+    -fx-background-color: #3a6498; /* even darker */
+}
+
+/* SUPER-TITLE LABEL */
+
+.lbl-super-title {
+    -fx-text-fill: #638ECB;            /* Soft blue */
+    -fx-font-size: 24px;               /* Large text */
+    -fx-font-weight: bold;             /* Bold */
+    -fx-font-family: "Segoe UI", sans-serif; /* Clean modern font */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0.5, 0, 2); /* Light shadow */
+    -fx-padding: 10 0 0 0;             /* Some spacing from above */
+}
+
 /* TITLE LABEL */
 
 .lbl-title {

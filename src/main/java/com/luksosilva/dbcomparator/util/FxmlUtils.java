@@ -41,9 +41,5 @@ public class FxmlUtils {
 
 
 
-    public static Parent loadGUI(FxmlFiles fxmlFile) throws IOException {
-        FXMLLoader loader = new FXMLLoader(FxmlUtils.class.getResource(fxmlFile.getPath()));
-        return loader.load();
-    }
 
 }

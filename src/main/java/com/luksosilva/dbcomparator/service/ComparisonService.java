@@ -126,6 +126,12 @@ public class ComparisonService {
     public static void deleteSavedComparison(SavedComparison savedComparison) throws Exception {
         try {
 
+            File file = savedComparison.getFile();
+
+            if (file.exists()) {
+                file.delete();
+            }
+
             ComparisonDAO.deleteSavedComparison(savedComparison);
 
         } catch (Exception e) {

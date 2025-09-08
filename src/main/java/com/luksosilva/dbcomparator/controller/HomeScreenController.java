@@ -22,23 +22,27 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class HomeScreenController {
-
-
 
     private Stage currentStage;
 
@@ -96,11 +100,15 @@ public class HomeScreenController {
     public void settingsBtnClick(MouseEvent mouseEvent) { openConfigScreen(); }
 
     public void loadComparisonBtnClick(SavedComparison savedComparison) {
-        loadComparison(savedComparison.getFile());
+        loadComparison(savedComparison);
     }
 
     public void deleteComparisonBtnClick(SavedComparison savedComparison) {
         deleteComparison(savedComparison);
+    }
+
+    public void openComparisonDirectoryBtnClick(SavedComparison savedComparison) {
+        openComparisonDirectory(savedComparison);
     }
 
 
@@ -280,17 +288,45 @@ public class HomeScreenController {
     private HBox constructCardActionButtons(SavedComparisonViewModel savedComparisonVM) {
         HBox buttonBox = new HBox();
         buttonBox.setSpacing(10);
-        Button openBtn = new Button("Abrir");
-        openBtn.setOnAction(e -> loadComparisonBtnClick(savedComparisonVM.getModel()));
 
-        Button deleteBtn = new Button("Excluir");
+        Button openBtn = new Button();
+        openBtn.getStyleClass().add("button-icon");
+        addIcon(openBtn, "/icons/openComparison.png");
+
+        Button openDirectoryBtn = new Button();
+        openDirectoryBtn.getStyleClass().add("button-icon");
+        addIcon(openDirectoryBtn, "/icons/openDirectory.png");
+
+        Button deleteBtn = new Button();
+        deleteBtn.getStyleClass().add("button-icon");
+        addIcon(deleteBtn, "/icons/delete.png");
+
+
+        openBtn.setOnAction(e -> loadComparisonBtnClick(savedComparisonVM.getModel()));
+        openDirectoryBtn.setOnAction(e -> openComparisonDirectoryBtnClick(savedComparisonVM.getModel()));
         deleteBtn.setOnAction(e -> deleteComparisonBtnClick(savedComparisonVM.getModel()));
 
-        buttonBox.getChildren().addAll(openBtn, deleteBtn);
 
+        Tooltip.install(openBtn, new Tooltip("Abrir comparação"));
+        Tooltip.install(openDirectoryBtn, new Tooltip("Abrir local do arquivo"));
+        Tooltip.install(deleteBtn, new Tooltip("Excluir comparação"));
+
+        buttonBox.getChildren().addAll(openBtn, openDirectoryBtn, deleteBtn);
         return buttonBox;
     }
 
+    public void addIcon(Button button, String imagePath) {
+
+        InputStream iconStream = getClass().getResourceAsStream(imagePath);
+        if (iconStream == null) return;
+
+        Image icon = new Image(iconStream);
+        ImageView iconView = new ImageView(icon);
+        iconView.setFitWidth(16);
+        iconView.setFitHeight(16);
+        iconView.setPreserveRatio(true);
+        button.setGraphic(iconView);
+    }
 
 
     //
@@ -330,9 +366,31 @@ public class HomeScreenController {
 
     public void loadComparison(File file) {
         try {
+            Comparison  loadedComparison = ComparisonService.loadComparison(file);
+            openComparisonResultScreen(loadedComparison);
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao abrir comparação",
+                    e.getMessage());
+        }
+    }
 
-            Comparison loadedComparison = ComparisonService.loadComparison(file);
+    private void loadComparison(SavedComparison savedComparison) {
+        try {
+            Comparison  loadedComparison = ComparisonService.loadComparison(savedComparison.getFile());
+            openComparisonResultScreen(loadedComparison);
+        } catch (Exception e) {
+            DialogUtils.showError(
+                    "Erro ao carregar comparação",
+                    e.getMessage());
+            deleteComparison(savedComparison);
+        }
+    }
 
+
+
+    private void openComparisonResultScreen(Comparison loadedComparison) {
+        try {
             FxLoadResult<Parent, ComparisonResultScreenController> screenData =
                     FxmlUtils.loadScreen(FxmlFiles.COMPARISON_RESULT_SCREEN);
 
@@ -349,7 +407,7 @@ public class HomeScreenController {
 
         } catch (Exception e) {
             DialogUtils.showError(currentStage,
-                    "Erro ao carregar comparação",
+                    "Erro ao mudar de tela",
                     e.getMessage());
         }
     }
@@ -357,7 +415,7 @@ public class HomeScreenController {
     private void deleteComparison(SavedComparison savedComparison) {
         boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
                 "Deletar comparação",
-                "Deseja deletar essa comparação? O arquivo continuará salvo na sua máquina");;
+                "Deseja deletar essa comparação? Essa ação não poderá ser desfeita");;
         if (!confirmCancel) return;
 
         try {
@@ -405,6 +463,25 @@ public class HomeScreenController {
 
         } catch (Exception e) {
 
+        }
+    }
+
+    private void openComparisonDirectory(SavedComparison savedComparison) {
+        File fileDirectory = savedComparison.getFile().getParentFile();
+
+        if (fileDirectory == null || !fileDirectory.exists()) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao abrir arquivo",
+                    "caminho do arquivo não encontrado");
+            return;
+        }
+
+        try {
+            Desktop.getDesktop().open(fileDirectory);
+        } catch (IOException e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao abrir arquivo",
+                    e.getMessage());
         }
     }
 

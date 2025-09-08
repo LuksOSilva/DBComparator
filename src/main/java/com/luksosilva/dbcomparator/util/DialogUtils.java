@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.util;
 
+import com.luksosilva.dbcomparator.controller.comparisonScreens.SchemaComparisonScreenController;
 import com.luksosilva.dbcomparator.controller.dialogs.AddFilterDialogController;
 import com.luksosilva.dbcomparator.controller.dialogs.ColumnSettingsValidationDialogController;
 import com.luksosilva.dbcomparator.controller.comparisonScreens.TableComparisonResultScreenController;
@@ -7,6 +8,7 @@ import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
+import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.viewmodel.live.comparison.result.TableComparisonResultViewModel;
 import javafx.scene.control.Alert;
@@ -57,6 +59,7 @@ public class DialogUtils {
         alert.setTitle("Erro");
         alert.setHeaderText(headerText);
         alert.setContentText(contentText);
+
 
         showInCenter(ownerStage, alert);
     }
@@ -215,6 +218,34 @@ public class DialogUtils {
 
         return null;
     }
+
+    public static Stage showSchemaComparisonScreen(Stage ownerStage, Map<String, SourceTable> perSourceTable) {
+        try {
+            FxLoadResult<Stage, SchemaComparisonScreenController> loadResult =
+                    FxmlUtils.createNewStage(FxmlFiles.SCHEMA_COMPARISON_SCREEN, Modality.NONE, ownerStage, "Comparação de Schema");
+
+
+            loadResult.controller.init(perSourceTable);
+
+            loadResult.controller.setStage(loadResult.node);
+
+            loadResult.node.setMinHeight(600.0);
+            loadResult.node.setMinWidth(850.0);
+            loadResult.node.show();
+
+            showInCenter(ownerStage, loadResult.node);
+
+            return loadResult.node;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            DialogUtils.showError("Erro", "Não foi possível abrir a tela.");
+        }
+
+        return null;
+    }
+
+
 
     public static void showInCenter(Stage ownerStage, Stage newStage) {
         newStage.show();
