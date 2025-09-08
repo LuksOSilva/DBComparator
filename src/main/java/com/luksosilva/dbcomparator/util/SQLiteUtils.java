@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.util;
 
+import com.luksosilva.dbcomparator.Main;
 import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.zaxxer.hikari.HikariDataSource;
@@ -8,6 +9,9 @@ import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -15,13 +19,23 @@ import java.util.stream.Collectors;
 
 public class SQLiteUtils {
 
+    public static void createDatabase() throws Exception {
+        Path userDb = Paths.get(System.getenv("APPDATA"), "DBComparator/database", "DBCdatabase.db");
+        Files.createDirectories(userDb.getParent());
+        try (InputStream is = Main.class.getResourceAsStream("/database/DBCdatabase.db")) {
+            if (is != null && !Files.exists(userDb)) {
+                Files.copy(is, userDb);
+            }
+        }
+    }
+
 
     public static DataSource getDataSource() {
-        var dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:sqlite:database/DBCdatabase.db");
+        Path userDb = Paths.get(System.getenv("APPDATA"), "DBComparator/database", "DBCdatabase.db");
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:sqlite:" + userDb.toAbsolutePath());
         dataSource.setMaximumPoolSize(1);
         return dataSource;
-
     }
 
     public static void runSql (Connection conn, String sql) {

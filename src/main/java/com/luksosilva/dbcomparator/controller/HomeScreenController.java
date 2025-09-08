@@ -39,7 +39,6 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public class HomeScreenController {
@@ -367,7 +366,8 @@ public class HomeScreenController {
     public void loadComparison(File file) {
         try {
             Comparison  loadedComparison = ComparisonService.loadComparison(file);
-            openComparisonResultScreen(loadedComparison);
+
+            Platform.runLater(openComparisonResultScreen(loadedComparison));
         } catch (Exception e) {
             DialogUtils.showError(currentStage,
                     "Erro ao abrir comparação",
@@ -389,7 +389,7 @@ public class HomeScreenController {
 
 
 
-    private void openComparisonResultScreen(Comparison loadedComparison) {
+    private Runnable openComparisonResultScreen(Comparison loadedComparison) {
         try {
             FxLoadResult<Parent, ComparisonResultScreenController> screenData =
                     FxmlUtils.loadScreen(FxmlFiles.COMPARISON_RESULT_SCREEN);
@@ -410,6 +410,7 @@ public class HomeScreenController {
                     "Erro ao mudar de tela",
                     e.getMessage());
         }
+        return null;
     }
 
     private void deleteComparison(SavedComparison savedComparison) {

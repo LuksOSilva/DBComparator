@@ -4,6 +4,7 @@ import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 
 import com.luksosilva.dbcomparator.util.FxmlUtils;
+import com.luksosilva.dbcomparator.util.SQLiteUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import javafx.application.Application;
 import javafx.scene.Parent;
@@ -13,12 +14,19 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class Main extends Application {
     public static void main(String[] args) {
         try {
+
+            SQLiteUtils.createDatabase();
+
             Application.launch(args);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,6 +55,10 @@ public class Main extends Application {
         controller.setCurrentStage(stage);
         controller.init();
 
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+
 
         List<String> args = getParameters().getRaw();
         if (!args.isEmpty()) {
@@ -56,10 +68,5 @@ public class Main extends Application {
                 controller.loadComparison(file);
             }
         }
-
-
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
     }
 }
