@@ -42,6 +42,7 @@ public class FilterService {
 
                 String filterSql = FilterSqlBuilder.build(comparedTable, comparedSource);
 
+
                 // Run the test query
                 FilterValidationResult result = FilterValidator.selectValidateFilter(
                         sourceId,

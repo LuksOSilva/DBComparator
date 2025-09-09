@@ -1,6 +1,6 @@
 package com.luksosilva.dbcomparator.service;
 
-import com.luksosilva.dbcomparator.builder.FilterSqlBuilder;
+
 import com.luksosilva.dbcomparator.enums.ConfigKeys;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
@@ -13,7 +13,6 @@ import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
-import com.luksosilva.dbcomparator.persistence.ConfigurationDAO;
 import com.luksosilva.dbcomparator.util.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -85,17 +84,6 @@ public class ComparisonService {
         }
     }
 
-
-    //5
-    public static void processFilters(List<ComparedTable> comparedTableList, List<ComparedSource> comparedSourceList) {
-
-        for (ComparedTable comparedTable : comparedTableList) {
-            String filterSql = FilterSqlBuilder.build(comparedTable, comparedSourceList);
-
-            comparedTable.setSqlUserFilter(filterSql);
-        }
-
-    }
 
     public static void saveComparison(Comparison comparison, File file) throws Exception {
         try {

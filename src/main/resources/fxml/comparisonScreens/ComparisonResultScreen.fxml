@@ -14,6 +14,8 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.CheckBox?>
 <AnchorPane prefHeight="600.0" prefWidth="800.0" styleClass="main-container" stylesheets="@css/Main.css, @css/ComparisonResultScreen.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luksosilva.dbcomparator.controller.comparisonScreens.ComparisonResultScreenController">
     <children>
       <HBox alignment="CENTER" layoutX="1.0" layoutY="14.0" prefHeight="40.0" prefWidth="691.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
@@ -41,10 +43,18 @@
                      <children>
                         <ComboBox fx:id="filterTypeComboBox" prefHeight="20.0" prefWidth="144.0" styleClass="cmb-search" />
                         <TextField fx:id="searchTextField" prefWidth="200.0" promptText="buscar tabela..." styleClass="txt-search" />
+                         <ToggleButton fx:id="filterToggleButton" mnemonicParsing="false" onMouseClicked="#onFilterButtonClicked" prefHeight="25.0" prefWidth="25.0" />
+
                      </children>
                   </HBox>
                </children>
             </VBox>
+             <HBox fx:id="filtersHBox" managed="false" spacing="10.0" visible="false">
+                 <children>
+                     <CheckBox fx:id="showOnlyWithRecordDifference" prefHeight="19.0" text="Apenas tabelas com diferenças nos registros" />
+                     <CheckBox fx:id="showOnlyWithSchemaDifference" prefHeight="19.0" text="Apenas tabelas com diferenças no schema" />
+                 </children>
+             </HBox>
             <ScrollPane fx:id="scrollPane" fitToWidth="true" prefHeight="339.0" prefWidth="916.0" VBox.vgrow="ALWAYS">
                <content>
                   <Accordion fx:id="tablesAccordion" />

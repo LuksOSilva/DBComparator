@@ -1,1 +1,0 @@
-"{{source_id}}_data"."{{column_name}}" AS "{{source_id}}_{{column_name}}"

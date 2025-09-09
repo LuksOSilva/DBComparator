@@ -22,7 +22,9 @@ import java.util.*;
         "columnSettingsInvalid",
         "columnSettingsValid",
         "orderedComparedTableColumns",
-        "totalRecordCount"
+        "totalRecordCount",
+        "comparableComparedTableColumns",
+        "identifierComparedTableColumns",
 })
 public class ComparedTable {
 
@@ -180,8 +182,19 @@ public class ComparedTable {
         }
 
         return totalRecordCount;
-
     }
+
+    public List<ComparedTableColumn> getComparableComparedTableColumns() {
+        return getComparedTableColumns().stream()
+                .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isComparable())
+                .toList();
+    }
+    public List<ComparedTableColumn> getIdentifierComparedTableColumns() {
+        return getComparedTableColumns().stream()
+                .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isIdentifier())
+                .toList();
+    }
+
 
     /// COLUMN SETTINGS VALIDATION
 

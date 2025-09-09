@@ -15,6 +15,8 @@ import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.viewmodel.live.comparison.compared.ComparedTableViewModel;
 import com.luksosilva.dbcomparator.viewmodel.live.comparison.result.TableComparisonResultViewModel;
 import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -74,6 +76,16 @@ public class ComparisonResultScreenController {
     public ComboBox<String> filterTypeComboBox;
 
     @FXML
+    public ToggleButton filterToggleButton;
+
+    @FXML
+    public HBox filtersHBox;
+    @FXML
+    public CheckBox showOnlyWithRecordDifference;
+    @FXML
+    public CheckBox showOnlyWithSchemaDifference;
+
+    @FXML
     public Accordion tablesAccordion;
     @FXML
     public Button saveBtn;
@@ -109,9 +121,9 @@ public class ComparisonResultScreenController {
 
         List<ComparedTable> sortedComparedTableList = getSortedComparedTableList(comparison.getComparedTables());
 
-        // add tables to the queue
+        // addTable tables to the queue
         for (ComparedTable comparedTable : sortedComparedTableList) {
-            comparisonQueueManager.add(comparedTable);
+            comparisonQueueManager.addTable(comparedTable);
         }
 
         // start the queue processor
@@ -142,6 +154,10 @@ public class ComparisonResultScreenController {
     }
 
     /// User actions
+
+    public void onFilterButtonClicked(MouseEvent mouseEvent) {
+        toggleFilters(filterToggleButton.isSelected());
+    }
 
     public void onShowComparisonResultButtonClicked(TableComparisonResultViewModel tableComparisonResultViewModel) {
         Stage previouslyOpenedStage = openedStages.stream()
@@ -198,6 +214,8 @@ public class ComparisonResultScreenController {
             String tableName = pane.getText();
             String tableNameLowerCase = tableName.toLowerCase();
 
+            ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+
             // Filter by text
             if (!filterText.isEmpty()) {
 
@@ -207,7 +225,6 @@ public class ComparisonResultScreenController {
 
                 } else if ("coluna".equalsIgnoreCase(filterType)) {
 
-                    ComparedTable comparedTable = getComparedTableFromTableName(tableName);
                     if (comparedTable == null) return false;
 
                     boolean columnMatch = comparedTable.getComparedTableColumns().stream()
@@ -215,6 +232,22 @@ public class ComparisonResultScreenController {
 
                     if (!columnMatch) return false;
                 }
+            }
+
+            if (showOnlyWithRecordDifference.isSelected()) {
+
+                TableComparisonResult tableComparisonResult = comparisonResult.getTableComparisonResults().stream()
+                        .filter(tableResult -> tableResult.getComparedTable().equals(comparedTable))
+                        .findFirst().orElse(null);
+                if (tableComparisonResult == null) return false;
+
+                if (tableComparisonResult.getRowDifferences().isEmpty()) return false;
+
+            }
+
+            if (showOnlyWithSchemaDifference.isSelected()) {
+
+                if (!comparedTable.hasSchemaDifference()) return false;
 
             }
 
@@ -237,6 +270,44 @@ public class ComparisonResultScreenController {
         fade.play();
     }
 
+    public void toggleFilters(boolean show) {
+        if (show) {
+            // Show with animation
+            filtersHBox.setVisible(true);
+            filtersHBox.setManaged(true);
+            filtersHBox.setOpacity(0.0);
+            filtersHBox.setTranslateY(-10);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), filtersHBox);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+
+            TranslateTransition slideDown = new TranslateTransition(Duration.millis(200), filtersHBox);
+            slideDown.setFromY(-10);
+            slideDown.setToY(0);
+
+            new ParallelTransition(fadeIn, slideDown).play();
+        } else {
+            // Hide with animation
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(200), filtersHBox);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+
+            TranslateTransition slideUp = new TranslateTransition(Duration.millis(200), filtersHBox);
+            slideUp.setFromY(0);
+            slideUp.setToY(-10);
+
+            ParallelTransition hideTransition = new ParallelTransition(fadeOut, slideUp);
+            hideTransition.setOnFinished(event -> {
+                filtersHBox.setVisible(false);
+                filtersHBox.setManaged(false);
+            });
+
+            hideTransition.play();
+        }
+    }
+
+
     /// setups
 
     private void setupFilterControls() {
@@ -246,6 +317,9 @@ public class ComparisonResultScreenController {
 
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+
+        showOnlyWithRecordDifference.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showOnlyWithSchemaDifference.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
 
 
         applyFilter();
@@ -431,4 +505,6 @@ public class ComparisonResultScreenController {
             e.printStackTrace();
         }
     }
+
+
 }

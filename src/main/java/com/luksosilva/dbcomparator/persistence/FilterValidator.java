@@ -22,6 +22,7 @@ public class FilterValidator {
 
             SQLiteUtils.attachSource(connection, sourcePath, sourceId);
 
+
             try (Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
 

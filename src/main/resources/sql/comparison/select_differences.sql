@@ -1,8 +1,10 @@
-WITH
+WITH unified AS (
     {{with_clause}}
+    )
 SELECT
     {{select_clause}}
-FROM
-    {{from_clause}}
-WHERE 1=1
-    {{where_clause}}
+FROM unified
+GROUP BY
+    {{group_by_clause}}
+HAVING
+    {{having_clause}}

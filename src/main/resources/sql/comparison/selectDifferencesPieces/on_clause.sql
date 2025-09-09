@@ -1,1 +1,0 @@
-ON ({{equals_identifier_columns}})

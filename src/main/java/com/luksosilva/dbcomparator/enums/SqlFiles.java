@@ -20,18 +20,8 @@ public enum SqlFiles {
     SELECT_COLUMN_DEFAULTS("comparison", "select_column_defaults"),
     SELECT_VALIDATE_IDENTIFIERS("comparison", "select_validate_identifiers"),
     SELECT_VALIDATE_FILTERS("comparison", "select_validate_filters"),
-    SELECT_DIFFERENCES("comparison", "select_differences"),
+    SELECT_DIFFERENCES("comparison", "select_differences");
 
-
-    SD_WITH_CLAUSE("comparison/selectDifferencesPieces", "with_clause"),
-    SD_COALESCE_IDENTIFIER_COLUMN("comparison/selectDifferencesPieces", "coalesce_identifier_column"),
-    SD_SELECT_COMPARABLE_COLUMNS("comparison/selectDifferencesPieces", "select_comparable_columns"),
-    SD_FROM_CLAUSE("comparison/selectDifferencesPieces", "from_clause"),
-    SD_JOIN_CLAUSE("comparison/selectDifferencesPieces", "join_clause"),
-    SD_ON_CLAUSE("comparison/selectDifferencesPieces", "on_clause"),
-    SD_COALESCE_COMPARABLE_COLUMN("comparison/selectDifferencesPieces", "coalesce_comparable_column"),
-    SD_WHERE_CLAUSE("comparison/selectDifferencesPieces", "where_clause"),
-    SD_COALESCE_VALUES("comparison/selectDifferencesPieces", "coalesce_values");
 
     private final String type;
     private final String fileName;

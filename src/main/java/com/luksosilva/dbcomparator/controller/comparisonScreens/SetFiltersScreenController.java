@@ -620,8 +620,6 @@ public class SetFiltersScreenController {
                                     .toList());
                 }
 
-                ComparisonService.processFilters(comparison.getComparedTables(), comparison.getComparedSources());
-
                 //ComparisonService.compare(comparison);
 
                 FxLoadResult<Parent, ComparisonResultScreenController> screenData =

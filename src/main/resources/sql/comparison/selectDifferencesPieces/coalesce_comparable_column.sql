@@ -1,1 +1,0 @@
-COALESCE("{{source_id}}_data"."{{column_name}}", {{default_value}})

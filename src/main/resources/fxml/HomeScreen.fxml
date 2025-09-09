@@ -72,7 +72,7 @@
                         <Insets bottom="15" left="15" right="15" top="15" />
                      </padding>
       
-                     <!-- We will dynamically add comparison cards here -->
+                     <!-- We will dynamically addTable comparison cards here -->
                   </VBox>
                </content>
                <VBox.margin>

@@ -1,1 +1,0 @@
-"{{source_id}}_data" AS (SELECT * FROM "{{source_id}}"."{{table_name}}")

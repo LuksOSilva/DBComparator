@@ -146,20 +146,18 @@ public class SqlFormatter {
         return buildSQL(SqlFiles.PRAGMA_TABLE_LIST, placeholders);
     }
 
-
-    public static String buildSelectDiff(String withClause, String selectClause, String fromClause, String whereClause) {
+    public static String buildSelectDifferences(String withClause, String selectClause, String groupByClause, String havingClause) {
 
         Map<SqlPlaceholders, String> placeholders = Map.of(
                 SqlPlaceholders.WITH_CLAUSE, withClause,
                 SqlPlaceholders.SELECT_CLAUSE, selectClause,
-                SqlPlaceholders.FROM_CLAUSE, fromClause,
-                SqlPlaceholders.WHERE_CLAUSE, whereClause
+                SqlPlaceholders.GROUP_BY_CLAUSE, groupByClause,
+                SqlPlaceholders.HAVING_CLAUSE, havingClause
         );
 
         return buildSQL(SqlFiles.SELECT_DIFFERENCES, placeholders);
 
     }
-
 
 
 

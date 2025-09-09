@@ -1,1 +1,0 @@
-({{coalesce_comparable_columns}})

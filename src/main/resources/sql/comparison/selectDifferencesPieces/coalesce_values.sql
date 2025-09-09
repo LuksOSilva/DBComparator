@@ -1,1 +1,0 @@
-COALESCE({{coalesce_values}})

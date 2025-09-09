@@ -1,36 +1,24 @@
 package com.luksosilva.dbcomparator.builder;
 
+import com.luksosilva.dbcomparator.log.ComparisonLogger;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.result.*;
 import com.luksosilva.dbcomparator.persistence.ComparisonQueryExecutor;
 import com.luksosilva.dbcomparator.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class ComparisonResultBuilder {
 
-
-    public static ComparisonResult build(Comparison comparison) {
-
-        ComparisonResult comparisonResult = new ComparisonResult();
-
-        for (ComparedTable comparedTable : comparison.getComparedTables()) {
-
-            comparisonResult.addTableComparisonResult(buildTableComparisonResult(comparedTable, comparison.getComparedSources()));
-
-        }
-
-
-        return comparisonResult;
-    }
-
-
-    public static TableComparisonResult buildTableComparisonResult(ComparedTable comparedTable, List<ComparedSource> comparedSourceList) {
+    public static TableComparisonResult buildTableComparisonResult(ComparedTable comparedTable,
+                                                                   List<ComparedSource> comparedSourceList,
+                                                                   ComparisonLogger logger) throws Exception {
 
         TableComparisonResult tableComparisonResult = new TableComparisonResult(comparedTable);
 
@@ -43,24 +31,33 @@ public class ComparisonResultBuilder {
             );
         }
 
+        logger.log("Running query");
         try (Stream<Map<String,Object>> rows =
                      ComparisonQueryExecutor.streamQueryDifferences(sourcesInfo, comparedTable.getSqlSelectDifferences())) {
 
-            rows.forEach(row -> {
+            boolean hasRow = false;
+            for (Map<String, Object> row : (Iterable<Map<String, Object>>) rows::iterator) {
+                hasRow = true;
+
+
                 RowDifference rowDifference = buildRowDifference(comparedTable, row);
                 tableComparisonResult.addRowDifference(rowDifference);
-            });
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error while comparing table: " + comparedTable.getTableName(), e);
+            }
+
+            if (hasRow) {
+                logger.log("Differences found");
+            } else {
+                logger.log("No differences found");
+            }
         }
 
         return tableComparisonResult;
     }
 
 
-    private static RowDifference buildRowDifference(ComparedTable comparedTable, Map<String, Object> rowData) {
+    private static RowDifference buildRowDifference(ComparedTable comparedTable,
+                                                    Map<String, Object> rowData) {
 
         RowDifference rowDifference = new RowDifference();
 
@@ -110,6 +107,7 @@ public class ComparisonResultBuilder {
 
 
             if (columnExistsIn(columnNameWithoutSourceId, comparableComparedColumns)) {
+
                 perComparedColumnSourceValue
                         .computeIfAbsent(comparedTableColumn, k -> new HashMap<>())
                         .put(sourceId, value);

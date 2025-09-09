@@ -19,19 +19,13 @@ public enum SqlPlaceholders {
     IS_COMPARABLE("{{is_comparable}}"),
     IS_IDENTIFIER("{{is_identifier}}"),
     FILTER_SQL("{{filter_sql}}"),
+    IDENTIFIER_COLUMNS("{{identifier_columns}}"),
 
     //select differences
     WITH_CLAUSE("{{with_clause}}"),
     SELECT_CLAUSE("{{select_clause}}"),
-    FROM_CLAUSE("{{from_clause}}"),
-    WHERE_CLAUSE("{{where_clause}}"),
-    IDENTIFIER_COLUMNS("{{identifier_columns}}"),
-    JOIN_CLAUSE("{{join_clause}}"),
-    ON_CLAUSE("{{on_clause}}"),
-    EQUALS_IDENTIFIER_COLUMNS("{{equals_identifier_columns}}"),
-    CONDITION_COMPARABLE_COLUMNS("{{coalesce_comparable_columns}}"),
-    DEFAULT_VALUE("{{default_value}}"),
-    COALESCE_VALUES("{{coalesce_values}}");
+    GROUP_BY_CLAUSE("{{group_by_clause}}"),
+    HAVING_CLAUSE("{{having_clause}}");
 
 
 
