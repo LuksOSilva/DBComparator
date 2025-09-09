@@ -340,7 +340,7 @@ public class AttachSourcesScreenController {
     }
 
     public void nextStep(MouseEvent mouseEvent) {
-        if (perPaneSource.isEmpty()) {
+        if (perPaneSource.size() <2) {
             DialogUtils.showWarning(currentStage,
                     "Fontes Faltantes",
                     "Você deve anexar duas fontes para prosseguir.");
