@@ -77,3 +77,15 @@
 }
 
 
+
+.button-icon {
+    -fx-background-color: #f8f9fa;
+}
+
+.button-icon:hover {
+    -fx-background-color: #e9ecef;
+}
+
+.button-icon:pressed {
+    -fx-background-color: #dee2e6;
+}
