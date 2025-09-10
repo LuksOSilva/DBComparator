@@ -461,36 +461,37 @@ public class TableComparisonResultScreenController {
             //if nothing searched and both checkboxes marked, show all
             if ((selectedColumnName == null || filterText.isBlank()) && showDivergingRecords && showExclusiveRecords) return true;
 
+            if (!filterText.isBlank()) {
 
-            if (isIdentifierFieldSearch) {
-                boolean matchesIdentifierSearch = row.getIdentifierColumnViewModels().stream()
-                        .anyMatch(identifierColumnViewModel ->
-                                identifierColumnViewModel.getColumnName().equals(selectedColumnName)
-                                        && identifierColumnViewModel.getValue().toLowerCase().contains(filterText));
-                if (!matchesIdentifierSearch) return false;
+                if (isIdentifierFieldSearch) {
+                    boolean matchesIdentifierSearch = row.getIdentifierColumnViewModels().stream()
+                            .anyMatch(identifierColumnViewModel ->
+                                    identifierColumnViewModel.getColumnName().equals(selectedColumnName)
+                                            && identifierColumnViewModel.getValue().toLowerCase().contains(filterText));
+                    if (!matchesIdentifierSearch) return false;
 
-            } else {
-                boolean matchesComparableSearch;
-                if (selectedSource.equals("Todas")) {
-                    matchesComparableSearch = row.getComparableColumnViewModels().stream()
-                            .anyMatch(comparableColumnViewModel ->
-                                    comparableColumnViewModel.getColumnName().equals(selectedColumnName)
-                                            && comparableColumnViewModel.getPerSourceValue().values().stream()
-                                            .anyMatch(value -> value.toLowerCase().contains(filterText)));
                 } else {
-                    matchesComparableSearch = row.getComparableColumnViewModels().stream()
-                            .anyMatch(comparableColumnViewModel -> {
-                                if (!comparableColumnViewModel.getColumnName().equals(selectedColumnName)) {
-                                    return false;
-                                }
-                                String value = comparableColumnViewModel.getPerSourceValue().get(selectedSource);
-                                return value != null && value.toLowerCase().contains(filterText);
-                            });
+                    boolean matchesComparableSearch;
+                    if (selectedSource.equals("Todas")) {
+                        matchesComparableSearch = row.getComparableColumnViewModels().stream()
+                                .anyMatch(comparableColumnViewModel ->
+                                        comparableColumnViewModel.getColumnName().equals(selectedColumnName)
+                                                && comparableColumnViewModel.getPerSourceValue().values().stream()
+                                                .anyMatch(value -> value.toLowerCase().contains(filterText)));
+                    } else {
+                        matchesComparableSearch = row.getComparableColumnViewModels().stream()
+                                .anyMatch(comparableColumnViewModel -> {
+                                    if (!comparableColumnViewModel.getColumnName().equals(selectedColumnName)) {
+                                        return false;
+                                    }
+                                    String value = comparableColumnViewModel.getPerSourceValue().get(selectedSource);
+                                    return value != null && value.toLowerCase().contains(filterText);
+                                });
+                    }
+                    if (!matchesComparableSearch) return false;
                 }
-                if (!matchesComparableSearch) return false;
+
             }
-
-
 
             if (!showExclusiveRecords && row.isMissingInAnySource()) return false;
 

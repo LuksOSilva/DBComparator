@@ -45,7 +45,13 @@ public class ComparisonResultScreenController {
 
 
     private Stage currentStage;
-    public void setCurrentStage(Stage currentStage) { this.currentStage = currentStage; }
+    public void setCurrentStage(Stage currentStage) {
+        this.currentStage = currentStage;
+
+        currentStage.setOnCloseRequest(event -> {
+            comparisonQueueManager.stop();
+        });
+    }
     private List<Stage> openedStages = new ArrayList<>();
 
     private Comparison comparison;

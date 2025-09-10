@@ -7,6 +7,7 @@ import com.luksosilva.dbcomparator.util.FxmlUtils;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -30,6 +31,12 @@ public class Main extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void stop() {
+        Platform.exit();
+        System.exit(0);
     }
 
     @Override
