@@ -97,9 +97,9 @@
       <Pane layoutX="10.0" layoutY="404.0" prefHeight="80.0" prefWidth="960.0" style="-fx-background-color: #E8EBF3;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
       <HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="960.0" spacing="15.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <children>
-              <Text fx:id="cancelBtn" onMouseClicked="#cancelComparison" styleClass="cancel-text" text="CANCELAR" />
-              <Button fx:id="previousStepBtn" mnemonicParsing="false" onMouseClicked="#previousStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="VOLTAR" />
-              <Button fx:id="nextStepBtn" mnemonicParsing="false" onMouseClicked="#nextStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="AVANÇAR" />
+              <Text fx:id="cancelBtn" onMouseClicked="#cancelComparison" styleClass="cancel-text" text="Cancelar" />
+              <Button fx:id="previousStepBtn" mnemonicParsing="false" onMouseClicked="#previousStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="Voltar" />
+              <Button fx:id="nextStepBtn" mnemonicParsing="false" onMouseClicked="#nextStep" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="Avançar" />
          </children>
          <padding>
             <Insets right="25.0" />

@@ -12,6 +12,8 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -72,6 +74,13 @@ public class SchemaComparisonScreenController {
         constructComparisonTable(perSourceTable);
 
         applyFilterButton.setOnAction(event -> applyFilter());
+    }
+
+    @FXML
+    public void onSearchKeyPressed(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            applyFilter();
+        }
     }
 
     private void applyFilter() {

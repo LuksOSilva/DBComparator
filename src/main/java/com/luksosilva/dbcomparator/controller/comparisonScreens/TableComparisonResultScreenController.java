@@ -17,6 +17,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class TableComparisonResultScreenController {
+
 
     private Stage currentStage;
     private Stage columnSelectorStage;
@@ -41,6 +44,8 @@ public class TableComparisonResultScreenController {
     public MenuButton visibleColumnsMenuButton;
     @FXML
     public ComboBox<String> columnsComboBox;
+    @FXML
+    public ComboBox<String> sourcesComboBox;
     @FXML
     public TextField searchTextField;
     @FXML
@@ -69,14 +74,19 @@ public class TableComparisonResultScreenController {
         titleLabel.setText(tableComparisonResultViewModel.getTableName());
 
         constructDifferencesTableView();
-        constructIdentifierColumnsComboBox();
 
+        setupColumnsComboBox();
+        setupSourcesComboBox();
         setupVisibleColumnsMenuButton();
     }
 
     /// SETUPS
 
     private void setupVisibleColumnsMenuButton() {
+        if (differencesTableView.getColumns().isEmpty()) {
+            visibleColumnsMenuButton.setVisible(false);
+            return;
+        }
 
         visibleColumnsMenuButton.getItems().addAll(constructVisibleColumnsMenuActions());
 
@@ -95,23 +105,53 @@ public class TableComparisonResultScreenController {
 
     }
 
+    private void setupSourcesComboBox() {
 
-    /// CONSTRUCTORS
+        List<String> sourceIds = tableComparisonResultViewModel.getModel().getComparedTable().getPerSourceTable().keySet()
+                .stream().toList();
 
-    private void constructIdentifierColumnsComboBox() {
+        sourcesComboBox.getItems().add("Todas");
+        sourcesComboBox.getItems().addAll(sourceIds);
 
-        List<String> identifierColumnNames = tableComparisonResultViewModel.getRowDifferenceViewModels().stream()
-                .flatMap(row -> row.getIdentifierColumnViewModels().stream())
-                .map(IdentifierColumnViewModel::getColumnName)
-                .distinct()
+        sourcesComboBox.setValue(sourcesComboBox.getItems().getFirst());
+    }
+
+    private void setupColumnsComboBox() {
+
+        List<String> identifierColumns = tableComparisonResultViewModel.getModel().getComparedTable().getOrderedComparedTableColumns().stream()
+                .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isIdentifier())
+                .map(ComparedTableColumn::getColumnName)
+                .toList();
+
+        List<String> comparableColumns = tableComparisonResultViewModel.getModel().getComparedTable().getOrderedComparedTableColumns().stream()
+                .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isComparable())
+                .map(ComparedTableColumn::getColumnName)
                 .toList();
 
 
-        columnsComboBox.getItems().setAll(identifierColumnNames);
-        if (!identifierColumnNames.isEmpty()) {
-            columnsComboBox.setValue(identifierColumnNames.getFirst()); // Default selection
+        List<String> allColumns = new ArrayList<>();
+        allColumns.addAll(identifierColumns);
+        allColumns.addAll(comparableColumns);
+
+
+        columnsComboBox.getItems().setAll(allColumns);
+        if (!allColumns.isEmpty()) {
+            columnsComboBox.setValue(allColumns.getFirst()); // Default selection
         }
+
+        columnsComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (identifierColumns.contains(newVal)) {
+                sourcesComboBox.setManaged(false);
+                sourcesComboBox.setVisible(false);
+                return;
+            }
+            sourcesComboBox.setManaged(true);
+            sourcesComboBox.setVisible(true);
+        });
     }
+
+
+    /// CONSTRUCTORS
 
     private List<MenuItem> constructVisibleColumnsMenuActions() {
 
@@ -135,21 +175,13 @@ public class TableComparisonResultScreenController {
         });
         menuActions.add(hideAll);
 
-        /// show only with difference and identifiers.
-        MenuItem showOnlyWithValues = new MenuItem("Mostrar apenas colunas com diferença");
-        showOnlyWithValues.setOnAction(e -> {
-
-            differencesTableView.getColumns()
-                    .forEach(column -> column.setVisible(column.getColumns().isEmpty() || columnHasDifferences(column)));
-
-
-        });
-        menuActions.add(showOnlyWithValues);
 
         return menuActions;
     }
 
     private void constructDifferencesTableView() {
+        differencesTableView.setPlaceholder(new Label("Nenhum registro com diferença encontrado"));
+
         constructTableColumns();
 
         diffRowViewModels.setAll(tableComparisonResultViewModel.getRowDifferenceViewModels());
@@ -369,29 +401,6 @@ public class TableComparisonResultScreenController {
         return sourceValueColumn;
     }
 
-    /// HELPERS
-
-    private boolean columnHasDifferences(TableColumn<RowDifferenceViewModel, ?> column) {
-        // Go through each child column
-        String columnName = column.getText();
-        
-        // Go through each row and check if this column has differences
-        for (RowDifferenceViewModel row : differencesTableView.getItems()) {
-            for (ComparableColumnViewModel cvm : row.getComparableColumnViewModels()) {
-                // Only check if it matches column
-                if (!cvm.getColumnName().equals(columnName)) continue;
-
-                // Found a difference → parent should be shown
-                if (!cvm.allValuesAreEqual()) {
-                    return true;
-                }
-            }
-        }
-
-        // No differences in any child column
-        return false;
-    }
-
 
     /// USER ACTIONS
 
@@ -417,7 +426,7 @@ public class TableComparisonResultScreenController {
 
         dialogStage.setTitle("Selecionar colunas visíveis");
         dialogStage.setScene(scene);
-        dialogStage.initOwner(currentStage); // set owner to your main dialog
+        dialogStage.initOwner(currentStage);
         dialogStage.setResizable(false);
 
         dialogStage.setOnCloseRequest(e -> {
@@ -428,9 +437,22 @@ public class TableComparisonResultScreenController {
     }
 
     @FXML
+    public void onSearchKeyPressed(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            applyFilter();
+        }
+    }
+
+    @FXML
     private void applyFilter() {
         String filterText = searchTextField.getText().toLowerCase().trim();
         String selectedColumnName = columnsComboBox.getValue();
+        String selectedSource = sourcesComboBox.getValue();
+
+        boolean isIdentifierFieldSearch = tableComparisonResultViewModel.getModel().getComparedTable().getComparedTableColumns()
+                .stream()
+                .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isIdentifier())
+                .anyMatch(comparedTableColumn -> comparedTableColumn.getColumnName().equals(selectedColumnName));
 
         boolean showDivergingRecords = showDivergingRecordsCheckBox.isSelected();
         boolean showExclusiveRecords = showExclusiveRecordsCheckBox.isSelected();
@@ -439,12 +461,36 @@ public class TableComparisonResultScreenController {
             //if nothing searched and both checkboxes marked, show all
             if ((selectedColumnName == null || filterText.isBlank()) && showDivergingRecords && showExclusiveRecords) return true;
 
-            boolean matchesSearch = row.getIdentifierColumnViewModels().stream()
-                    .anyMatch(identifierColumnViewModel ->
-                            identifierColumnViewModel.getColumnName().equals(selectedColumnName)
-                                    && identifierColumnViewModel.getValue().toLowerCase().contains(filterText));
 
-            if (!matchesSearch) return false;
+            if (isIdentifierFieldSearch) {
+                boolean matchesIdentifierSearch = row.getIdentifierColumnViewModels().stream()
+                        .anyMatch(identifierColumnViewModel ->
+                                identifierColumnViewModel.getColumnName().equals(selectedColumnName)
+                                        && identifierColumnViewModel.getValue().toLowerCase().contains(filterText));
+                if (!matchesIdentifierSearch) return false;
+
+            } else {
+                boolean matchesComparableSearch;
+                if (selectedSource.equals("Todas")) {
+                    matchesComparableSearch = row.getComparableColumnViewModels().stream()
+                            .anyMatch(comparableColumnViewModel ->
+                                    comparableColumnViewModel.getColumnName().equals(selectedColumnName)
+                                            && comparableColumnViewModel.getPerSourceValue().values().stream()
+                                            .anyMatch(value -> value.toLowerCase().contains(filterText)));
+                } else {
+                    matchesComparableSearch = row.getComparableColumnViewModels().stream()
+                            .anyMatch(comparableColumnViewModel -> {
+                                if (!comparableColumnViewModel.getColumnName().equals(selectedColumnName)) {
+                                    return false;
+                                }
+                                String value = comparableColumnViewModel.getPerSourceValue().get(selectedSource);
+                                return value != null && value.toLowerCase().contains(filterText);
+                            });
+                }
+                if (!matchesComparableSearch) return false;
+            }
+
+
 
             if (!showExclusiveRecords && row.isMissingInAnySource()) return false;
 
@@ -456,6 +502,7 @@ public class TableComparisonResultScreenController {
 
         differencesTableView.getItems().setAll(filteredDiffRowViewModels);
     }
+
 
     @FXML
     private void onCopyQueryButtonClicked() {
@@ -549,4 +596,6 @@ public class TableComparisonResultScreenController {
             currentStage.hide();
         }
     }
+
+
 }

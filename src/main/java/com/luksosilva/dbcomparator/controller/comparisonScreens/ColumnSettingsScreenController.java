@@ -157,7 +157,7 @@ public class ColumnSettingsScreenController {
     }
 
     public boolean needToProcess() {
-        return !getTableNamesWithAlteredColumns().isEmpty();
+        return !getTableNamesThatNeedProcessing().isEmpty();
     }
 
 
@@ -177,7 +177,7 @@ public class ColumnSettingsScreenController {
 
         boolean saveAsDefault = true;
 
-        saveSettingsForAllAlteredTables(getTableNamesWithAlteredColumns(), saveAsDefault);
+        saveSettingsForAllAlteredTables(getTableNamesThatNeedProcessing(), saveAsDefault);
 
         if (hasAnyInvalidColumnSettings()){
             showErrorInvalidSettings();
@@ -259,11 +259,6 @@ public class ColumnSettingsScreenController {
     }
 
     /// Helper Methods
-
-    private void displayNoTablesMessage() {
-        tablesAccordion.getPanes().clear();
-        tablesAccordion.getPanes().add(new TitledPane("No Tables Found", new Label("No table metadata available for comparison.")));
-    }
 
     private void fadeInAccordion() {
         tablesAccordion.setOpacity(0);
@@ -409,12 +404,27 @@ public class ColumnSettingsScreenController {
                 .orElse(null);
     }
 
-    private List<String> getTableNamesWithAlteredColumns() {
-        return perTableComparedColumnViewModel.entrySet()
+    private List<String> getTableNamesThatNeedProcessing() {
+
+        Set<String> tableNames = new HashSet<>();
+
+        for (String tableName : perTableComparedColumnViewModel.keySet()) {
+            ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+            if (comparedTable == null) continue;
+
+            if (comparedTable.isColumnSettingsInvalid()) {
+                tableNames.add(comparedTable.getTableName());
+            }
+        }
+
+        tableNames.addAll(perTableComparedColumnViewModel.entrySet()
                 .stream()
+                .filter(entry -> !tableNames.contains(entry.getKey())) //ignores the tables already added to the list
                 .filter(entry -> entry.getValue().stream().anyMatch(ComparedTableColumnViewModel::isAltered))
                 .map(Map.Entry::getKey)
-                .toList();
+                .toList());
+
+        return tableNames.stream().toList();
     }
 
 
@@ -422,7 +432,7 @@ public class ColumnSettingsScreenController {
 
     private  void setupViewModels() {
         for (ComparedTable comparedTable : comparison.getComparedTables()) {
-            List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = comparedTable.getComparedTableColumns().stream()
+            List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = comparedTable.getOrderedComparedTableColumns().stream()
                     .map(ComparedTableColumnViewModel::new)
                     .toList();
 
@@ -471,7 +481,7 @@ public class ColumnSettingsScreenController {
 
             //show only altered filter
             if (showOnlyAlteredCheckBox.isSelected()) {
-                if (!getTableNamesWithAlteredColumns().contains(tableName)) return false;
+                if (!getTableNamesThatNeedProcessing().contains(tableName)) return false;
             }
 
             //show only if schema differs filter
@@ -497,10 +507,6 @@ public class ColumnSettingsScreenController {
     }
 
     private void constructAccordion() {
-        if (comparison.getComparedTables() == null ) {
-            displayNoTablesMessage();
-            return;
-        }
 
         tablesAccordion.getPanes().clear(); // Clears Accordion
         allTablePanes.clear();             // Clears master list

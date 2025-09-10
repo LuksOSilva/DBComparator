@@ -17,6 +17,8 @@ import com.luksosilva.dbcomparator.util.FxmlUtils;
 import com.luksosilva.dbcomparator.viewmodel.live.comparison.compared.ComparedTableViewModel;
 import com.luksosilva.dbcomparator.viewmodel.live.comparison.customization.FilterViewModel;
 import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -46,6 +48,8 @@ import java.util.*;
 
 public class SetFiltersScreenController {
 
+
+
     private Scene previousScene;
     private Stage currentStage;
     private Scene nextScene;
@@ -64,6 +68,13 @@ public class SetFiltersScreenController {
     public TextField searchTextField;
     @FXML
     public Button addFilterBtn;
+
+    @FXML
+    public ToggleButton filterToggleButton;
+    @FXML
+    public HBox filtersHBox;
+    @FXML
+    public CheckBox showOnlyWithInvalidFilter;
 
     @FXML
     public Button nextStepBtn;
@@ -150,6 +161,10 @@ public class SetFiltersScreenController {
         clipboard.setContent(content);
     }
 
+    public void onFilterButtonClicked(MouseEvent mouseEvent) {
+        toggleFilters(filterToggleButton.isSelected());
+    }
+
     /// HELPER METHODS
 
     private void addFilter(List<Filter> addedFilters) {
@@ -221,6 +236,7 @@ public class SetFiltersScreenController {
 
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        showOnlyWithInvalidFilter.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
 
 
         applyFilter();
@@ -234,13 +250,13 @@ public class SetFiltersScreenController {
             String tableName = pane.getText();
             String tableNameLowerCase = tableName.toLowerCase();
 
+            ComparedTable comparedTable = getComparedTableFromTableName(tableName);
+
             // Filter by text
             if (!filterText.isEmpty()) {
                 if ("tabela".equalsIgnoreCase(filterType)) {
                     if (!tableNameLowerCase.contains(filterText)) return false;
                 } else if ("coluna".equalsIgnoreCase(filterType)) {
-
-                    ComparedTable comparedTable = getComparedTableFromTableName(tableName);
                     if (comparedTable == null) return false;
 
                     boolean columnMatch = comparedTable.getComparedTableColumns().stream()
@@ -249,6 +265,12 @@ public class SetFiltersScreenController {
                     if (!columnMatch) return false;
                 }
             }
+
+            if (showOnlyWithInvalidFilter.isSelected()) {
+                if (comparedTable == null ||
+                        !comparedTable.getFilterValidationResult().isInvalid()) return false;
+            }
+
 
             return true;
         });
@@ -266,6 +288,43 @@ public class SetFiltersScreenController {
         fade.setFromValue(0);
         fade.setToValue(1);
         fade.play();
+    }
+
+    public void toggleFilters(boolean show) {
+        if (show) {
+            // Show with animation
+            filtersHBox.setVisible(true);
+            filtersHBox.setManaged(true);
+            filtersHBox.setOpacity(0.0);
+            filtersHBox.setTranslateY(-10);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), filtersHBox);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+
+            TranslateTransition slideDown = new TranslateTransition(Duration.millis(200), filtersHBox);
+            slideDown.setFromY(-10);
+            slideDown.setToY(0);
+
+            new ParallelTransition(fadeIn, slideDown).play();
+        } else {
+            // Hide with animation
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(200), filtersHBox);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+
+            TranslateTransition slideUp = new TranslateTransition(Duration.millis(200), filtersHBox);
+            slideUp.setFromY(0);
+            slideUp.setToY(-10);
+
+            ParallelTransition hideTransition = new ParallelTransition(fadeOut, slideUp);
+            hideTransition.setOnFinished(event -> {
+                filtersHBox.setVisible(false);
+                filtersHBox.setManaged(false);
+            });
+
+            hideTransition.play();
+        }
     }
 
     private ComparedTable getComparedTableFromTableName(String tableName) {
@@ -719,6 +778,7 @@ public class SetFiltersScreenController {
             e.printStackTrace();
         }
     }
+
 
 
 }

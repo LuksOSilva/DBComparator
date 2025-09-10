@@ -14,7 +14,7 @@
 
 
         <HBox alignment="CENTER_LEFT" spacing="10" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="90.0">
-                <TextField fx:id="searchTextField" prefHeight="34.0" prefWidth="238.0" promptText="Pesquisar por..." styleClass="txt-search" />
+                <TextField fx:id="searchTextField" onKeyPressed="#onSearchKeyPressed" prefHeight="34.0" prefWidth="238.0" promptText="Pesquisar por..." styleClass="txt-search" />
                 <Button fx:id="applyFilterButton" styleClass="btn-action" text="Pesquisar" />
         </HBox>
       <HBox fx:id="tablesHBox"  prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="150.0" />

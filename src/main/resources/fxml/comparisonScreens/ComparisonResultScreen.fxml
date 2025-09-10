@@ -82,8 +82,8 @@
       <Pane prefHeight="80.0" prefWidth="960.0" style="-fx-background-color: #E8EBF3;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
       <HBox alignment="CENTER_RIGHT" layoutX="38.0" layoutY="486.0" prefHeight="41.0" prefWidth="960.0" spacing="15.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <children>
-              <Button fx:id="leaveBtn" mnemonicParsing="false" onMouseClicked="#leaveComparisonBtnClicked" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="SAIR" />
-              <Button fx:id="saveBtn" mnemonicParsing="false" onMouseClicked="#saveComparisonBtnClicked" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="SALVAR" />
+              <Button fx:id="leaveBtn" mnemonicParsing="false" onMouseClicked="#leaveComparisonBtnClicked" prefHeight="61.0" prefWidth="198.0" styleClass="btn-secondary" text="Sair" />
+              <Button fx:id="saveBtn" mnemonicParsing="false" onMouseClicked="#saveComparisonBtnClicked" prefHeight="61.0" prefWidth="198.0" styleClass="btn-primary" text="Salvar" />
          </children>
          <padding>
             <Insets right="25.0" />
