@@ -6,6 +6,9 @@ import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
+import com.luksosilva.dbcomparator.persistence.temp.TempComparedTablesDAO;
+import com.luksosilva.dbcomparator.persistence.temp.TempSourcesDAO;
+import com.luksosilva.dbcomparator.persistence.temp.TempTableComparisonResultDAO;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.service.ConfigurationService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
@@ -331,6 +334,16 @@ public class HomeScreenController {
     //
 
     private void startNewComparison() {
+        try {
+            TempSourcesDAO.clearTables();
+            TempComparedTablesDAO.clearTables();
+            TempTableComparisonResultDAO.clearTables();
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao limpar tabelas temporárias.",
+                    e.getMessage());
+            return;
+        }
 
         Comparison newComparison = new Comparison();
 

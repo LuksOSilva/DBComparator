@@ -9,7 +9,6 @@ import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.TableFilter;
-import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.service.FilterService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;

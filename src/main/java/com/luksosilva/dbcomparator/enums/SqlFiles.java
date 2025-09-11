@@ -20,7 +20,18 @@ public enum SqlFiles {
     SELECT_COLUMN_DEFAULTS("comparison", "select_column_defaults"),
     SELECT_VALIDATE_IDENTIFIERS("comparison", "select_validate_identifiers"),
     SELECT_VALIDATE_FILTERS("comparison", "select_validate_filters"),
-    SELECT_DIFFERENCES("comparison", "select_differences");
+    SELECT_DIFFERENCES("comparison", "select_differences"),
+
+    /// TEMPORARY TABLES
+
+    INSERT_TEMP_SOURCE("temp/source", "insert_temp_source"),
+    INSERT_TEMP_SOURCE_TABLE("temp/source", "insert_temp_source_table"),
+    INSERT_TEMP_SOURCE_TABLE_COLUMN("temp/source", "insert_temp_source_table_column"),
+
+    CLEAR_TEMP_SOURCES("temp/source", "clear"),
+    CLEAR_TEMP_COMPARED_TABLES("temp/comparedTable", "clear"),
+    CLEAR_TEMP_TABLE_COMPARISON_RESULT("temp/tableComparisonResult", "clear");
+
 
 
     private final String type;

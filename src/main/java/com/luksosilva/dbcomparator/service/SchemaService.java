@@ -5,6 +5,7 @@ import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.persistence.ColumnSettingsDAO;
 import com.luksosilva.dbcomparator.persistence.SchemaLoader;
 import com.luksosilva.dbcomparator.util.FileUtils;
@@ -17,9 +18,9 @@ import java.util.Optional;
 public class SchemaService {
 
 
-    public static void mapComparedSources (List<ComparedSource> comparedSourceList, ConfigRegistry configRegistry) {
-        for (ComparedSource comparedSource : comparedSourceList) {
-            SchemaLoader.mapSourceTable(comparedSource, configRegistry);
+    public static void mapComparedSources (List<Source> sourceList, ConfigRegistry configRegistry) {
+        for (Source source : sourceList) {
+            SchemaLoader.mapSourceTable(source, configRegistry);
         }
     }
 
@@ -67,7 +68,7 @@ public class SchemaService {
 
             invalidInSources.addAll(
                     ColumnSettingsDAO.selectValidateColumnSettings(comparedSource.getSourceId(),
-                            FileUtils.getCanonicalPath(comparedSource.getSource().getPath()),
+                            FileUtils.getCanonicalPath(comparedSource.getSource().getFile()),
                             comparedTable.getTableName(), identifiersComparedColumns));
 
         }

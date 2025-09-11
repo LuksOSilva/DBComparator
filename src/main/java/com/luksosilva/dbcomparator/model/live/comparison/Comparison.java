@@ -6,6 +6,7 @@ import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.comparison.result.ComparisonResult;
+import com.luksosilva.dbcomparator.model.live.source.Source;
 
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class Comparison {
 
     private ConfigRegistry configRegistry;
 
-    private List<ComparedSource> comparedSources = new ArrayList<>();
+    private List<Source> sources = new ArrayList<>();
     private List<ComparedTable> comparedTables = new ArrayList<>();
 
 
@@ -27,19 +28,24 @@ public class Comparison {
     @JsonCreator
     public Comparison(
             @JsonProperty("configsRegistry") ConfigRegistry configsRegistry,
-            @JsonProperty("comparedSources") List<ComparedSource> comparedSources,
+            @JsonProperty("comparedSources") List<Source> sources,
             @JsonProperty("comparedTables") List<ComparedTable> comparedTables,
             @JsonProperty("comparisonResult") ComparisonResult comparisonResult) {
         this.configRegistry = configsRegistry;
-        this.comparedSources = comparedSources;
+        this.sources = sources;
         this.comparedTables = comparedTables;
         this.comparisonResult = comparisonResult;
     }
 
-
-
+    /**SUPER TEMP**/
     public List<ComparedSource> getComparedSources() {
-        return comparedSources;
+        List<ComparedSource> list = new ArrayList<>();
+        return list;
+    }
+    /**SUPER TEMP**/
+
+    public List<Source> getSources() {
+        return sources;
     }
 
     public List<ComparedTable> getComparedTables() {

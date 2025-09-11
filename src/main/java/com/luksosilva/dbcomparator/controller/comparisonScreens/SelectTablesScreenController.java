@@ -1,6 +1,5 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
-import com.luksosilva.dbcomparator.controller.ConfigScreenController;
 import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
@@ -8,7 +7,6 @@ import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.service.ComparisonService;
-import com.luksosilva.dbcomparator.service.ConfigurationService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
@@ -273,7 +271,7 @@ public class SelectTablesScreenController {
 
             // show only different schema
             if (showOnlySchemaDiffersCheckBox.isSelected()) {
-                int totalSources = comparison.getComparedSources().size();
+                int totalSources = comparison.getSources().size();
                 Map<String, SourceTable> perSource = groupedTables.get(pane.getText());
                 if (perSource == null) return false;
 
@@ -384,7 +382,7 @@ public class SelectTablesScreenController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            boolean tableExistsInAllSources = groupedTables.get(tableName).size() == comparison.getComparedSources().size();
+            boolean tableExistsInAllSources = groupedTables.get(tableName).size() == comparison.getSources().size();
             boolean tableHasRecordsInAllSources = groupedTables.get(tableName).values().stream().noneMatch(sourceTable -> sourceTable.getRecordCount() == 0);
 
 
@@ -483,7 +481,7 @@ public class SelectTablesScreenController {
     private Map<String, Map<String, SourceTable>> getGroupedTables () {
         Map<String, Map<String, SourceTable>> groupedTables = new HashMap<>();
 
-        if (comparison != null && comparison.getComparedSources() != null) {
+        if (comparison != null && comparison.getSources() != null) {
             for (ComparedSource comparedSource : comparison.getComparedSources()) {
                 if (comparedSource.getSource() != null && comparedSource.getSource().getSourceTables() != null) {
                     for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {

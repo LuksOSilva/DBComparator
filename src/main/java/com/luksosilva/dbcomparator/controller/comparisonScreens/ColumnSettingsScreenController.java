@@ -78,7 +78,7 @@ public class ColumnSettingsScreenController {
                     || (comparableProperty.get() != defaultComparableProperty.get());
         }
         public boolean existsInAllSources() {
-            return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getComparedSources().size();
+            return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getSources().size();
         }
 
         public ColumnSettings getViewModelColumnSetting() {
@@ -89,7 +89,7 @@ public class ColumnSettingsScreenController {
             Map<String, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
 
             long pkCount = map.values().stream().filter(SourceTableColumn::isPk).count();
-            int totalSources = comparison.getComparedSources().size();
+            int totalSources = comparison.getSources().size();
 
             if (pkCount == 0) return "";
             if (pkCount == totalSources) return "Y";

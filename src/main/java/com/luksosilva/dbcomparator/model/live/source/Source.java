@@ -9,17 +9,30 @@ import java.util.Objects;
 
 public class Source {
 
-    private File path;
+    private String id;
+    private int sequence;
+    private File file;
+
     private List<SourceTable> sourceTables = new ArrayList<>();
 
     public Source() {}
 
-    public Source(File path) {
-        this.path = path;
+    public Source(String id, int sequence, File file) {
+        this.id = id;
+        this.sequence = sequence;
+        this.file = file;
     }
 
-    public File getPath() {
-        return path;
+    public File getFile() {
+        return file;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getSequence() {
+        return sequence;
     }
 
     @JsonIgnore
@@ -27,8 +40,8 @@ public class Source {
         return sourceTables;
     }
 
-    public void setPath(File path) {
-        this.path = path;
+    public void setFile(File file) {
+        this.file = file;
     }
 
 
@@ -39,19 +52,19 @@ public class Source {
 
         Source other = (Source) obj;
 
-        if (this.path == null || other.path == null) return false;
+        if (this.file == null || other.file == null) return false;
 
-        return path.equals(other.path)
-                && path.length() == other.path.length()
-                && path.lastModified() == other.path.lastModified();
+        return file.equals(other.file)
+                && file.length() == other.file.length()
+                && file.lastModified() == other.file.lastModified();
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                path != null ? path.getAbsolutePath() : null,
-                path != null ? path.length() : 0,
-                path != null ? path.lastModified() : 0
+                file != null ? file.getAbsolutePath() : null,
+                file != null ? file.length() : 0,
+                file != null ? file.lastModified() : 0
         );
     }
 

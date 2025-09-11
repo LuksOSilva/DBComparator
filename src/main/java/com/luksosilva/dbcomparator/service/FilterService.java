@@ -46,7 +46,7 @@ public class FilterService {
                 // Run the test query
                 FilterValidationResult result = FilterValidator.selectValidateFilter(
                         sourceId,
-                        FileUtils.getCanonicalPath(comparedSource.getSource().getPath()),
+                        FileUtils.getCanonicalPath(comparedSource.getSource().getFile()),
                         comparedTable.getTableName(),
                         filterSql
                 );

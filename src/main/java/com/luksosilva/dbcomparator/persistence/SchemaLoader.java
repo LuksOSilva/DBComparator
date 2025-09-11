@@ -1,8 +1,8 @@
 package com.luksosilva.dbcomparator.persistence;
 
 import com.luksosilva.dbcomparator.enums.ConfigKeys;
-import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
+import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.util.SqlFormatter;
@@ -15,16 +15,16 @@ import java.sql.Statement;
 public class SchemaLoader {
 
 
-    public static void mapSourceTable(ComparedSource comparedSource, ConfigRegistry configRegistry) {
+    public static void mapSourceTable(Source source, ConfigRegistry configRegistry) {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
-            SQLiteUtils.attachSource(connection, comparedSource);
+            SQLiteUtils.attachSource(connection, source);
 
-            loadTableNames(connection, comparedSource, configRegistry);
-            loadRecordCounts(connection, comparedSource);
-            loadTableColumns(connection, comparedSource);
+            loadTableNames(connection, source, configRegistry);
+            loadRecordCounts(connection, source);
+            loadTableColumns(connection, source);
 
-            SQLiteUtils.detachSource(connection, comparedSource);
+            SQLiteUtils.detachSource(connection, source.getId());
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -34,12 +34,12 @@ public class SchemaLoader {
 
     //
 
-    private static void loadTableNames(Connection conn, ComparedSource comparedSource, ConfigRegistry configRegistry) throws Exception {
+    private static void loadTableNames(Connection conn, Source source, ConfigRegistry configRegistry) throws Exception {
         boolean considerSqliteTables = configRegistry.getConfigValueOf(ConfigKeys.DBC_CONSIDER_SQLITE_TABLES);
 
         try (Statement stmt = conn.createStatement();
              ResultSet resultSet = stmt.executeQuery(
-                     SqlFormatter.buildPragmaTableList(comparedSource.getSourceId()))
+                     SqlFormatter.buildPragmaTableList(source.getId()))
         ) {
             while (resultSet.next()) {
 
@@ -47,18 +47,18 @@ public class SchemaLoader {
 
                 if (!considerSqliteTables && tableName.startsWith("sqlite")) continue;
 
-                comparedSource.getSource().getSourceTables().add(new SourceTable(tableName));
+                source.getSourceTables().add(new SourceTable(tableName));
 
             }
         }
     }
 
-    private static void loadRecordCounts(Connection conn, ComparedSource comparedSource) throws Exception {
-        for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
+    private static void loadRecordCounts(Connection conn, Source source) throws Exception {
+        for (SourceTable sourceTable : source.getSourceTables()) {
 
             try (Statement stmt = conn.createStatement();
                  ResultSet resultSet = stmt.executeQuery(
-                         SqlFormatter.buildSelectTableRecordCount(comparedSource.getSourceId(), sourceTable.getTableName()))
+                         SqlFormatter.buildSelectTableRecordCount(source.getId(), sourceTable.getTableName()))
             ) {
                 while (resultSet.next()) {
 
@@ -72,12 +72,12 @@ public class SchemaLoader {
         }
     }
 
-    private static void loadTableColumns(Connection conn, ComparedSource comparedSource) throws Exception {
-        for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
+    private static void loadTableColumns(Connection conn, Source source) throws Exception {
+        for (SourceTable sourceTable : source.getSourceTables()) {
 
             try (Statement stmt = conn.createStatement();
                  ResultSet resultSet = stmt.executeQuery(
-                         SqlFormatter.buildPragmaTableInfo(comparedSource.getSourceId(), sourceTable.getTableName()))
+                         SqlFormatter.buildPragmaTableInfo(source.getId(), sourceTable.getTableName()))
             ) {
                 while (resultSet.next()) {
 

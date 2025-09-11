@@ -13,6 +13,7 @@ import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
+import com.luksosilva.dbcomparator.persistence.temp.TempSourcesDAO;
 import com.luksosilva.dbcomparator.util.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -29,9 +30,12 @@ public class ComparisonService {
 
 
     //1
-    public static void processSources(Comparison comparison, List<Source> sourceList) {
-        setComparedSources(comparison, sourceList);
-        SchemaService.mapComparedSources(comparison.getComparedSources(), comparison.getConfigRegistry());
+    public static void processSources(Comparison comparison, List<File> fileList) throws Exception {
+        comparison.getSources().addAll(getSourcesFromFiles(fileList));
+
+        SchemaService.mapComparedSources(comparison.getSources(), comparison.getConfigRegistry());
+
+        TempSourcesDAO.saveTempSources(comparison.getSources());
     }
 
     //2
@@ -140,15 +144,16 @@ public class ComparisonService {
 
     /// privates
 
-    private static void setComparedSources(Comparison comparison, List<Source> sourceList) {
-        for (int i = 0; i < sourceList.size(); i++) {
+    private static List<Source> getSourcesFromFiles(List<File> fileList) {
+        List<Source> sources = new ArrayList<>();
+        for (int i = 0; i < fileList.size(); i++) {
 
-            String sourceName = sourceList.get(i).getPath().getName();
+            String sourceName = fileList.get(i).getName();
             String sourceId = FilenameUtils.removeExtension(sourceName);
 
-            comparison.getComparedSources().add(new ComparedSource(sourceId, i, sourceList.get(i)));
-
+            sources.add(new Source(sourceId, i, fileList.get(i)));
         }
+        return sources;
     }
 
     private static void setComparedTables(Comparison comparison, Map<String, Map<String, SourceTable>> groupedTables) {

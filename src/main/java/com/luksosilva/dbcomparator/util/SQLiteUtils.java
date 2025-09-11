@@ -3,6 +3,7 @@ package com.luksosilva.dbcomparator.util;
 import com.luksosilva.dbcomparator.Main;
 import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
@@ -85,11 +86,11 @@ public class SQLiteUtils {
         }
     }
 
-    public static void attachSource(Connection conn, ComparedSource comparedSource) {
+    public static void attachSource(Connection conn, Source source) {
         try {
 
             String query =
-                    "ATTACH DATABASE '" +comparedSource.getSource().getPath().getCanonicalPath() +"' AS " + comparedSource.getSourceId();
+                    "ATTACH DATABASE '" + source.getFile().getCanonicalPath() +"' AS " + source.getId();
             runSql(conn, query);
 
         } catch (Exception e) {
@@ -97,15 +98,4 @@ public class SQLiteUtils {
         }
     }
 
-    public static void detachSource(Connection conn, ComparedSource comparedSource) {
-        try {
-
-            String query =
-                    "DETACH DATABASE " + comparedSource.getSourceId();
-            runSql(conn, query);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

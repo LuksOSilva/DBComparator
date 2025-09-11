@@ -49,7 +49,7 @@ public class JsonUtils {
         if (comparison.getComparedTables() == null || comparison.getComparedTables().isEmpty()) {
             throw new IOException("Não foi possível ler as informações das tabelas comparadas.");
         }
-        if (comparison.getComparedSources() == null || comparison.getComparedSources().isEmpty()) {
+        if (comparison.getSources() == null || comparison.getSources().isEmpty()) {
             throw new IOException("Não foi possível ler as informações das fontes comparadas.");
         }
         if (comparison.getComparisonResult() == null

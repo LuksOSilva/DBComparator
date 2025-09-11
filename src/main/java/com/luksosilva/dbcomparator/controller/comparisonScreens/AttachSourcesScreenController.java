@@ -2,7 +2,6 @@ package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.service.ComparisonService;
@@ -24,7 +23,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
@@ -42,7 +40,7 @@ public class AttachSourcesScreenController {
     }
 
     private Comparison comparison;
-    private final Map<Pane, Source> perPaneSource = new LinkedHashMap<>();
+    private final Map<Pane, File> perPaneFile = new LinkedHashMap<>();
 
     private static final String EMPTY_DROP_BOX_CLASS = "empty-drop-box";
     private static final String ATTACHED_DROP_BOX_CLASS = "attached-drop-box";
@@ -90,16 +88,12 @@ public class AttachSourcesScreenController {
 
     public boolean needToProcess() {
 
-        List<ComparedSource> comparedSources = comparison.getComparedSources();
-        List<Source> currentSources = new ArrayList<>(perPaneSource.values());
+        List<Source> sources = comparison.getSources();
+        List<File> currentFiles = new ArrayList<>(perPaneFile.values());
 
-        if (comparedSources.size() != currentSources.size()) {
-            return true;
-        }
-
-        for (Source source : currentSources) {
-            boolean found = comparedSources.stream()
-                    .anyMatch(cs -> cs.getSource().equals(source));
+        for (File file : currentFiles) {
+            boolean found = sources.stream()
+                    .anyMatch(source -> source.getFile().equals(file));
             if (!found) {
                 return true;
             }
@@ -125,11 +119,11 @@ public class AttachSourcesScreenController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Escolha uma fonte de dados");
 
-        if (!perPaneSource.isEmpty()) {
+        if (!perPaneFile.isEmpty()) {
 
-            Source lastAttachedSource = new ArrayList<>(perPaneSource.values()).get(perPaneSource.size() - 1);
+            File lastAttachedFile = new ArrayList<>(perPaneFile.values()).get(perPaneFile.size() - 1);
 
-            fileChooser.setInitialDirectory(lastAttachedSource.getPath().getParentFile());
+            fileChooser.setInitialDirectory(lastAttachedFile.getParentFile());
         }
 
         fileChooser.getExtensionFilters().addAll(
@@ -144,7 +138,7 @@ public class AttachSourcesScreenController {
         if (!isValid) return;
 
 
-        perPaneSource.put(clickedPane, new Source(selectedFile));
+        perPaneFile.put(clickedPane, selectedFile);
         changePaneToAttached(clickedPane);
 
     }
@@ -160,7 +154,7 @@ public class AttachSourcesScreenController {
 
         Pane clickedPane = (Pane) mouseEvent.getSource();
 
-        perPaneSource.remove(clickedPane);
+        perPaneFile.remove(clickedPane);
 
         changePaneToEmpty(clickedPane);
 
@@ -207,11 +201,11 @@ public class AttachSourcesScreenController {
                 // Attach first file to the pane that received the drop
                 if (fileIterator.hasNext()) {
                     File file = fileIterator.next();
-                    Source newSource = new Source(file);
 
-                    if (!perPaneSource.containsKey(pane)) {
+
+                    if (!perPaneFile.containsKey(pane)) {
                         // Pane is empty, attach directly
-                        perPaneSource.put(pane, newSource);
+                        perPaneFile.put(pane, file);
                         changePaneToAttached(pane);
                         success = true;
                     } else {
@@ -220,7 +214,7 @@ public class AttachSourcesScreenController {
                                 "Substituir arquivo?",
                                 "Já existe um arquivo aqui. Deseja substituí-lo?");
                         if (confirmReplace) {
-                            perPaneSource.put(pane, newSource);
+                            perPaneFile.put(pane, file);
                             changePaneToAttached(pane);
                             success = true;
                         }
@@ -230,13 +224,12 @@ public class AttachSourcesScreenController {
                 // If there’s a second file, attach to the other pane if available
                 if (fileIterator.hasNext()) {
                     File secondFile = fileIterator.next();
-                    Source secondSource = new Source(secondFile);
 
                     // Find the other pane
                     Pane otherPane = (pane == attachSourceA) ? attachSourceB : attachSourceA;
 
-                    if (!perPaneSource.containsKey(otherPane)) {
-                        perPaneSource.put(otherPane, secondSource);
+                    if (!perPaneFile.containsKey(otherPane)) {
+                        perPaneFile.put(otherPane, secondFile);
                         changePaneToAttached(otherPane);
                         success = true;
                     }
@@ -272,17 +265,17 @@ public class AttachSourcesScreenController {
                     "O nome " + FilenameUtils.removeExtension(selectedFile.getName()) + " não pode ser utilizado.");
             return false;
         }
-        if (!perPaneSource.isEmpty()) {
-            for (Source source : perPaneSource.values()) {
+        if (!perPaneFile.isEmpty()) {
+            for (File file : perPaneFile.values()) {
 
-                if (FileUtils.areFilesEqual(source.getPath(), selectedFile)) {
+                if (FileUtils.areFilesEqual(file, selectedFile)) {
 
                     DialogUtils.showWarning(currentStage,
                             "Arquivo já selecionado.",
                             "O arquivo " + selectedFile.getName() + " já foi selecionado.");
                     return false;
                 }
-                if (FileUtils.areFileNamesEqual(source.getPath(), selectedFile)) {
+                if (FileUtils.areFileNamesEqual(file, selectedFile)) {
 
                     DialogUtils.showWarning(currentStage,
                             "Nome já utilizado.",
@@ -303,18 +296,18 @@ public class AttachSourcesScreenController {
 
         Tooltip.install(pane, detachPaneToolTip);
 
-        Source attachedSource = perPaneSource.get(pane);
+        File attachedFile = perPaneFile.get(pane);
 
         if (pane == attachSourceA) {
-            sourceIdLabelA.setText(FilenameUtils.removeExtension(attachedSource.getPath().getName()));
-            sourcePathLabelA.setText(FileUtils.getDisplayPath(attachedSource.getPath()));
+            sourceIdLabelA.setText(FilenameUtils.removeExtension(attachedFile.getName()));
+            sourcePathLabelA.setText(FileUtils.getDisplayPath(attachedFile));
 
             sourceIdLabelA.setVisible(true);
             sourcePathLabelA.setVisible(true);
         }
         else if (pane == attachSourceB) {
-            sourceIdLabelB.setText(FilenameUtils.removeExtension(attachedSource.getPath().getName()));
-            sourcePathLabelB.setText(FileUtils.getDisplayPath(attachedSource.getPath()));
+            sourceIdLabelB.setText(FilenameUtils.removeExtension(attachedFile.getName()));
+            sourcePathLabelB.setText(FileUtils.getDisplayPath(attachedFile));
 
             sourceIdLabelB.setVisible(true);
             sourcePathLabelB.setVisible(true);
@@ -340,7 +333,7 @@ public class AttachSourcesScreenController {
     }
 
     public void nextStep(MouseEvent mouseEvent) {
-        if (perPaneSource.size() <2) {
+        if (perPaneFile.size() <2) {
             DialogUtils.showWarning(currentStage,
                     "Fontes Faltantes",
                     "Você deve anexar duas fontes para prosseguir.");
@@ -384,15 +377,15 @@ public class AttachSourcesScreenController {
             @Override
             protected Parent call() throws Exception {
 
-                comparison.getComparedSources()
-                        .removeIf(comparedSource -> !perPaneSource.containsValue(comparedSource.getSource()));
+                comparison.getSources()
+                        .removeIf(source -> !perPaneFile.containsValue(source.getFile()));
 
-                List<Source> notProcessedSources = perPaneSource.values().stream()
-                        .filter(source -> comparison.getComparedSources().stream()
-                                .noneMatch(comparedSource -> comparedSource.getSource().equals(source)))
+                List<File> notProcessedFiles = perPaneFile.values().stream()
+                        .filter(file -> comparison.getSources().stream()
+                                .noneMatch(source -> source.getFile().equals(file)))
                         .toList();
 
-                ComparisonService.processSources(comparison, notProcessedSources);
+                ComparisonService.processSources(comparison, notProcessedFiles);
 
 
 

@@ -27,7 +27,7 @@ public class ComparisonResultBuilder {
 
             sourcesInfo.put(
                     comparedSource.getSourceId(),
-                    FileUtils.getCanonicalPath(comparedSource.getSource().getPath())
+                    FileUtils.getCanonicalPath(comparedSource.getSource().getFile())
             );
         }
 
