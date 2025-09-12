@@ -59,7 +59,7 @@ public class Main extends Application {
         Parent root = screenData.node;
         HomeScreenController controller = screenData.controller;
 
-        controller.setCurrentStage(stage);
+        controller.setStage(stage);
         controller.init();
 
         Scene scene = new Scene(root);

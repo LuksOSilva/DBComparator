@@ -4,6 +4,8 @@ import java.util.Objects;
 
 public class SourceTableColumn {
 
+    private String sourceId;
+    private String tableName;
     private int sequence;
     private String columnName;
     private String type;
@@ -13,7 +15,15 @@ public class SourceTableColumn {
 
     public SourceTableColumn() {}
 
-    public SourceTableColumn(int sequence, String columnName, String type, boolean notNull, boolean isPk) {
+    public SourceTableColumn(String sourceId,
+                             String tableName,
+                             int sequence,
+                             String columnName,
+                             String type,
+                             boolean notNull,
+                             boolean isPk) {
+        this.sourceId = sourceId;
+        this.tableName = tableName;
         this.sequence = sequence;
         this.columnName = columnName;
         this.type = type;
@@ -39,6 +49,14 @@ public class SourceTableColumn {
 
     public void setPk(boolean pk) {
         isPk = pk;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     public String getColumnName() {

@@ -2,19 +2,19 @@ package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
 import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
-import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
-import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
+import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
+import com.luksosilva.dbcomparator.navigator.ComparisonStepsNavigator;
+import com.luksosilva.dbcomparator.service.ComparedTableService;
 import com.luksosilva.dbcomparator.service.ComparisonService;
+import com.luksosilva.dbcomparator.service.SourceService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
-import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
-import com.luksosilva.dbcomparator.util.FxmlUtils;
+import com.luksosilva.dbcomparator.viewmodel.live.source.SourceTableViewModel;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -40,54 +40,31 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SelectTablesScreenController {
+public class SelectTablesScreenController implements BaseController {
 
-    private Scene previousScene;
+    private ComparisonStepsNavigator navigator;
+
     private Stage currentStage;
-    private Scene nextScene;
 
-    private List<Stage> compareSchemaOpenedStages = new ArrayList<>();
+    private final Comparison comparison = new Comparison();
 
-    private Comparison comparison;
-    private Map<String, Map<String, SourceTable>> groupedTables;
-    private List<String> selectedTableNames = new ArrayList<>();
+    List<ComparedTable> comparedTableList = new ArrayList<>();
 
     private ObservableList<TitledPane> allTablePanes = FXCollections.observableArrayList();
     private FilteredList<TitledPane> filteredTablePanes;
 
-    private class TableSourceStats {
-        SimpleStringProperty sourceName;
-        SimpleIntegerProperty rowCount;
-        SimpleIntegerProperty columnCount;
-
-        public TableSourceStats(String sourceName, int rowCount, int columnCount) {
-            this.sourceName = new SimpleStringProperty(sourceName);
-            this.rowCount = new SimpleIntegerProperty(rowCount);
-            this.columnCount = new SimpleIntegerProperty(columnCount);
-        }
-
-        // Getters for properties
-        public SimpleStringProperty sourceNameProperty() {
-            return sourceName;
-        }
-        public SimpleIntegerProperty rowCountProperty() {
-            return rowCount;
-        }
-        public SimpleIntegerProperty columnCountProperty() {
-            return columnCount;
-        }
-    }
-
-    public void setComparison(Comparison comparison) {
-        this.comparison = comparison;
-    }
-
-    public void setPreviousScene(Scene previousScene) { this.previousScene = previousScene; }
-    public void setCurrentStage(Stage currentStage) { this.currentStage = currentStage; }
-    public void setNextScene(Scene nextScene) {this.nextScene = nextScene; }
+    private List<String> selectedTableNames = new ArrayList<>();
+    private List<Stage> compareSchemaOpenedStages = new ArrayList<>();
 
     @FXML
-    private CheckBox selectAllCheckBox;
+    public Text titleLabel;
+
+    @FXML
+    private CheckBox selectAllCheckBox,
+            showDiffRecordCountOnlyCheckBox,
+            showOnlySchemaDiffersCheckBox,
+            showSelectedOnlyCheckBox;
+
     @FXML
     private ComboBox<String> filterTypeComboBox;
     @FXML
@@ -97,18 +74,10 @@ public class SelectTablesScreenController {
     @FXML
     public HBox filtersHBox;
     @FXML
-    public CheckBox showDiffRecordCountOnlyCheckBox;
-    @FXML
-    public CheckBox showOnlySchemaDiffersCheckBox;
-    @FXML
-    public CheckBox showSelectedOnlyCheckBox;
-    @FXML
     public Accordion tablesAccordion;
-
     @FXML
-    public Button nextStepBtn;
-    @FXML
-    public Button previousStepBtn;
+    public Button nextStepBtn,
+            previousStepBtn;
     @FXML
     public Text cancelBtn;
 
@@ -118,61 +87,58 @@ public class SelectTablesScreenController {
         toggleFilters(filterToggleButton.isSelected());
     }
 
+    @Override
+    public void setTitle(String title) {
+        titleLabel.setText(title);
+    }
 
+    @Override
+    public void init(ConfigRegistry configRegistry, ComparisonStepsNavigator navigator) {
+        this.comparison.setConfigRegistry(configRegistry);
+        this.navigator = navigator;
+        this.currentStage = navigator.getStage();
 
-
-    public void init() {
-        groupedTables = getGroupedTables();
+        computeComparedTables();
         prepareAccordionInfo();
         setupFilterControls();
-
     }
 
-    public boolean needToProcess() {
-        List<ComparedTable> comparedTables = comparison.getComparedTables();
-        List<String> currentTables = selectedTableNames;
 
-        if (comparedTables.size() != currentTables.size()) {
-            return true;
+    private void computeComparedTables() {
+        try {
+
+            comparedTableList = ComparedTableService.getComparedTablesFromSources();
+
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao carregar tabelas",
+                    e.getMessage());
         }
-
-
-        for (String tableName : currentTables) {
-            boolean found = comparedTables.stream()
-                    .anyMatch(cs -> cs.getTableName().equals(tableName));
-            if (!found) {
-                return true;
-            }
-        }
-
-        return false;
     }
+
+    /// USER-ACTIONS
 
     public void onCompareSchemasButtonClicked(ActionEvent actionEvent) {
-        Button clickedButton = (Button) actionEvent.getSource();
-        String tableName = (String) clickedButton.getUserData();
-        Map<String, SourceTable> perSourceTable = groupedTables.get(tableName);
-
-        Stage previouslyOpenedStage = compareSchemaOpenedStages.stream()
-                .filter(openedStage -> perSourceTable.equals(openedStage.getUserData()))
-                .findFirst()
-                .orElse(null);
-
-        if (previouslyOpenedStage != null) {
-            DialogUtils.showInCenter(currentStage, previouslyOpenedStage);
-            previouslyOpenedStage.toFront();
-            previouslyOpenedStage.requestFocus();
-
-            return;
-        }
-
-
-        Stage schemaComparisonStage = DialogUtils.showSchemaComparisonScreen(currentStage, perSourceTable);
-        if (schemaComparisonStage == null) return;
-
-        schemaComparisonStage.setUserData(perSourceTable);
-
-        compareSchemaOpenedStages.add(schemaComparisonStage);
+//        Stage previouslyOpenedStage = compareSchemaOpenedStages.stream()
+//                .filter(openedStage -> perSourceTable.equals(openedStage.getUserData()))
+//                .findFirst()
+//                .orElse(null);
+//
+//        if (previouslyOpenedStage != null) {
+//            DialogUtils.showInCenter(currentStage, previouslyOpenedStage);
+//            previouslyOpenedStage.toFront();
+//            previouslyOpenedStage.requestFocus();
+//
+//            return;
+//        }
+//
+//
+//        Stage schemaComparisonStage = DialogUtils.showSchemaComparisonScreen(currentStage, perSourceTable);
+//        if (schemaComparisonStage == null) return;
+//
+//        schemaComparisonStage.setUserData(perSourceTable);
+//
+//        compareSchemaOpenedStages.add(schemaComparisonStage);
     }
 
 
@@ -180,7 +146,7 @@ public class SelectTablesScreenController {
 
 
     private void prepareAccordionInfo() {
-        if (comparison == null || groupedTables.isEmpty()) {
+        if (comparedTableList.isEmpty()) {
             displayNoTablesMessage();
             return;
         }
@@ -191,8 +157,8 @@ public class SelectTablesScreenController {
 
         filterToggleButton.setSelected(false); //hides filters
 
-        // Populate allTablePanes (your master list) with all TitledPanes
-        allTablePanes.addAll(buildAllTableTitledPanes());
+        // Populate allTablePanes with all TitledPanes
+        allTablePanes.addAll(constructTitledPanes());
 
         // Initialize FilteredList based on allTablePanes
         filteredTablePanes = new FilteredList<>(allTablePanes, pane -> true);
@@ -221,12 +187,39 @@ public class SelectTablesScreenController {
         });
 
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.equals("coluna")) {
+                setupFilterByColumnName();
+            }
+            applyFilter();
+        });
+
+
+
         showOnlySchemaDiffersCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         showDiffRecordCountOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         showSelectedOnlyCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
 
         applyFilter();
+    }
+
+    private void setupFilterByColumnName() {
+        List<SourceTable> allSourceTables = comparedTableList.stream()
+                .flatMap(comparedTable -> comparedTable.getSourceTables().stream())
+                .filter(sourceTable -> sourceTable.getSourceTableColumns().isEmpty())
+                .toList();
+
+        if (allSourceTables.isEmpty()) return;
+
+        try {
+
+            SourceService.getColumnsOfTables(allSourceTables);
+
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Algo deu errado ao carregar as colunas",
+                    e.getMessage());
+        }
     }
 
     private void applyFilter() {
@@ -236,19 +229,27 @@ public class SelectTablesScreenController {
         filteredTablePanes.setPredicate(pane -> {
             String tableName = pane.getText().toLowerCase();
 
+            ComparedTable comparedTable = comparedTableList.stream()
+                    .filter(ct -> ct.getTableName().equalsIgnoreCase(tableName))
+                    .findFirst().orElse(null);
+            if (comparedTable == null) return true;
+
             // Filter by text
             if (!filterText.isEmpty()) {
                 if ("tabela".equalsIgnoreCase(filterType)) {
                     if (!tableName.contains(filterText)) return false;
-                } else if ("coluna".equalsIgnoreCase(filterType)) {
-                    Map<String, SourceTable> sourceTableMap = groupedTables.get(pane.getText());
-                    if (sourceTableMap == null) return false;
 
-                    boolean columnMatch = sourceTableMap.values().stream()
+                } else if ("coluna".equalsIgnoreCase(filterType)) {
+
+                    List<SourceTable> sourceTables = comparedTable.getSourceTables();
+                    if (sourceTables.isEmpty()) return false;
+
+                    boolean columnMatch = sourceTables.stream()
                             .flatMap(st -> st.getSourceTableColumns().stream())
                             .anyMatch(col -> col.getColumnName().toLowerCase().contains(filterText));
 
                     if (!columnMatch) return false;
+
                 }
             }
 
@@ -259,7 +260,7 @@ public class SelectTablesScreenController {
 
             // show only different record count filter
             if (showDiffRecordCountOnlyCheckBox.isSelected()) {
-                Map<String, SourceTable> perSource = groupedTables.get(pane.getText());
+                Map<String, SourceTable> perSource = comparedTable.getPerSourceTable();
                 if (perSource == null) return false;
 
                 Set<Integer> rowCounts = new HashSet<>();
@@ -272,7 +273,7 @@ public class SelectTablesScreenController {
             // show only different schema
             if (showOnlySchemaDiffersCheckBox.isSelected()) {
                 int totalSources = comparison.getSources().size();
-                Map<String, SourceTable> perSource = groupedTables.get(pane.getText());
+                Map<String, SourceTable> perSource = comparedTable.getPerSourceTable();
                 if (perSource == null) return false;
 
                 // only checks for schema difference if table exists in all sources.
@@ -351,26 +352,31 @@ public class SelectTablesScreenController {
 
     private void displayNoTablesMessage() {
         tablesAccordion.getPanes().clear();
-        tablesAccordion.getPanes().add(new TitledPane("No Tables Found", new Label("No table metadata available for comparison.")));
+        tablesAccordion.getPanes().add(new TitledPane("Erro ao carregar tabelas", new Label("Erro ao carregar tabelas")));
     }
 
 
-    private List<TitledPane> buildAllTableTitledPanes() {
+
+    private List<TitledPane> constructTitledPanes() {
         List<TitledPane> titledPaneList = new ArrayList<>();
 
-        List<String> tableNames = groupedTables.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .toList();
+        for (ComparedTable comparedTable : comparedTableList) {
+            String tableName = comparedTable.getTableName();
 
-        for (String tableName : tableNames) {
+
             TitledPane tablePane = new TitledPane();
             tablePane.setText(tableName);
 
+
+
             tablePane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
                 if (isNowExpanded && tablePane.getUserData() == null) {
-                    TableView<TableSourceStats> tableView = buildTableMetadata(tableName);
+
+                    TableView<SourceTableViewModel> tableView = constructTitledPaneContent(comparedTable);
+
                     HBox buttonBox = buildButtonBox(tableName);
                     VBox contentContainer = new VBox(tableView, buttonBox);
+
                     tablePane.setContent(contentContainer);
                     tablePane.setUserData(true);
                 }
@@ -382,9 +388,10 @@ public class SelectTablesScreenController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            boolean tableExistsInAllSources = groupedTables.get(tableName).size() == comparison.getSources().size();
-            boolean tableHasRecordsInAllSources = groupedTables.get(tableName).values().stream().noneMatch(sourceTable -> sourceTable.getRecordCount() == 0);
 
+            boolean tableExistsInAllSources = comparedTable.getSourceTables().size() == 2;
+            boolean tableHasRecordsInAllSources = comparedTable.getSourceTables().stream()
+                    .noneMatch(table -> table.getRecordCount() == 0);
 
 
             CheckBox selectCheckBox = new CheckBox();
@@ -398,11 +405,9 @@ public class SelectTablesScreenController {
             });
             if (!tableExistsInAllSources) {
                 Tooltip tooltip = new Tooltip("Esta tabela não está presente em todas as fontes.");
-                tooltip.setShowDelay(Duration.millis(200));
                 Tooltip.install(tablePane, tooltip);
             } else if (!tableHasRecordsInAllSources) {
                 Tooltip tooltip = new Tooltip("Esta tabela não possui registro em todas as fontes");
-                tooltip.setShowDelay(Duration.millis(200));
                 Tooltip.install(tablePane, tooltip);
             }
 
@@ -415,40 +420,31 @@ public class SelectTablesScreenController {
     }
 
 
-    private TableView<TableSourceStats> buildTableMetadata(String tableName) {
+    private TableView<SourceTableViewModel> constructTitledPaneContent(ComparedTable comparedTable) {
         final double TABLE_ROW_HEIGHT = 28.0;
         final double TABLE_HEADER_HEIGHT = 30.0;
 
-        Map<String, SourceTable> perSourceTable = groupedTables.get(tableName);
-
-        TableView<TableSourceStats> tableView = new TableView<>();
+        TableView<SourceTableViewModel> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableView.setPlaceholder(new Label("No data for this table from attached sources."));
+        tableView.setPlaceholder(new Label("Nenhuma informação encontrada."));
 
-        TableColumn<TableSourceStats, String> sourceColumn = new TableColumn<>("Fonte");
-        sourceColumn.setCellValueFactory(cellData -> cellData.getValue().sourceNameProperty());
+        TableColumn<SourceTableViewModel, String> sourceColumn = new TableColumn<>("Fonte");
+        sourceColumn.setCellValueFactory(cellData -> cellData.getValue().sourceIdProperty());
 
-        TableColumn<TableSourceStats, Integer> rowCountColumn = new TableColumn<>("Nº de Registros");
-        rowCountColumn.setCellValueFactory(cellData -> cellData.getValue().rowCountProperty().asObject());
+        TableColumn<SourceTableViewModel, Number> rowCountColumn = new TableColumn<>("Nº de Registros");
+        rowCountColumn.setCellValueFactory(cellData -> cellData.getValue().columnCountProperty());
 
-        TableColumn<TableSourceStats, Integer> columnCountColumn = new TableColumn<>("Nº de Colunas");
-        columnCountColumn.setCellValueFactory(cellData -> cellData.getValue().columnCountProperty().asObject());
 
-        tableView.getColumns().addAll(sourceColumn, rowCountColumn, columnCountColumn);
+        tableView.getColumns().addAll(sourceColumn, rowCountColumn);
 
-        ObservableList<TableSourceStats> tableStats = FXCollections.observableArrayList();
+        ObservableList<SourceTableViewModel> tableStats = FXCollections.observableArrayList();
 
-        if (perSourceTable != null) {
-            for (Map.Entry<String, SourceTable> entry : perSourceTable.entrySet()) {
-                String sourceId = entry.getKey();
-                SourceTable sourceTable = entry.getValue();
 
-                int rowCount = sourceTable.getRecordCount();
-                int columnCount = sourceTable.getSourceTableColumns().size();
+        for (SourceTable sourceTable : comparedTable.getSourceTables()) {
 
-                tableStats.add(new TableSourceStats(sourceId, rowCount, columnCount));
-            }
+            tableStats.add(new SourceTableViewModel(sourceTable));
         }
+
         tableView.setItems(tableStats);
 
         double calculatedPrefHeight = (tableStats.size() * TABLE_ROW_HEIGHT) + TABLE_HEADER_HEIGHT;
@@ -478,24 +474,27 @@ public class SelectTablesScreenController {
 
 
 
-    private Map<String, Map<String, SourceTable>> getGroupedTables () {
-        Map<String, Map<String, SourceTable>> groupedTables = new HashMap<>();
 
-        if (comparison != null && comparison.getSources() != null) {
-            for (ComparedSource comparedSource : comparison.getComparedSources()) {
-                if (comparedSource.getSource() != null && comparedSource.getSource().getSourceTables() != null) {
-                    for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
-                        String tableName = sourceTable.getTableName();
 
-                        groupedTables
-                                .computeIfAbsent(tableName, k -> new HashMap<>())
-                                .put(comparedSource.getSourceId(), sourceTable);
-                    }
-                }
-            }
-        }
-        return groupedTables;
-    }
+//    private Map<String, Map<String, SourceTable>> getGroupedTables () {
+//        // tableName, sourceId, sourceTable
+//        Map<String, Map<String, SourceTable>> groupedTables = new HashMap<>();
+//
+//        if (comparison != null && comparison.getSources() != null) {
+//            for (ComparedSource comparedSource : comparison.getComparedSources()) {
+//                if (comparedSource.getSource() != null && comparedSource.getSource().getSourceTables() != null) {
+//                    for (SourceTable sourceTable : comparedSource.getSource().getSourceTables()) {
+//                        String tableName = sourceTable.getTableName();
+//
+//                        groupedTables
+//                                .computeIfAbsent(tableName, k -> new HashMap<>())
+//                                .put(comparedSource.getSourceId(), sourceTable);
+//                    }
+//                }
+//            }
+//        }
+//        return groupedTables;
+//    }
 
     private void updateSelectAllCheckBoxState() {
         boolean allSelected = true;
@@ -529,9 +528,7 @@ public class SelectTablesScreenController {
 
     // --- Navigation Steps ---
 
-    public void nextStep(MouseEvent mouseEvent) {
-
-
+    public void nextStep() {
         if (selectedTableNames.isEmpty()) {
             DialogUtils.showWarning(currentStage,
                     "Nenhuma tabela selecionada.",
@@ -539,166 +536,59 @@ public class SelectTablesScreenController {
             return;
         }
 
-        Scene currentScene = currentStage.getScene();
-        currentScene.setUserData(SelectTablesScreenController.this);
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("Processando tabelas, aguarde...");
+        });
 
-        if (!needToProcess() && nextScene != null) {
-            currentStage.setScene(nextScene);
-            return;
-        }
-
-        try {
-            FxLoadResult<Parent, LoadingScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
-
-            Parent root = screenData.node;
-            LoadingScreenController controller = screenData.controller;
-
-            controller.setMessage("Processando tabelas, aguarde...");
-
-            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
-            currentStage.setScene(scene);
-            currentStage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError(currentStage,
-                    "Erro de Carregamento",
-                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
-            e.printStackTrace();
-            return;
-        }
-
-
-        Task<Parent> processTablesTask = new Task<>() {
+        Task<Void> task = new Task<>() {
             @Override
-            protected Parent call() throws Exception {
-
-
-
-                comparison.getComparedTables()
-                        .removeIf(comparedTable -> !selectedTableNames.contains(comparedTable.getTableName()));
-
-                Map<String, Map<String, SourceTable>> notProcessedSelectedGroupedTables =
-                        groupedTables.entrySet().stream()
-                                .filter(groupedTable -> comparison.getComparedTables().stream()
-                                        .noneMatch(comparedTable -> comparedTable.getTableName().equals(groupedTable.getKey())))
-                                .filter(entry -> selectedTableNames.contains(entry.getKey()))
-                                .collect(Collectors.toMap(
-                                        Map.Entry::getKey,
-                                        Map.Entry::getValue
-                                ));
-
-
-                ComparisonService.processTables(comparison,
-                        comparison.getConfigRegistry(),
-                        notProcessedSelectedGroupedTables);
-
-
-                FxLoadResult<Parent, ColumnSettingsScreenController> screenData =
-                        FxmlUtils.loadScreen(FxmlFiles.COLUMN_SETTINGS_SCREEN);
-
-                Parent nextScreenRoot = screenData.node;
-                ColumnSettingsScreenController controller = screenData.controller;
-
-                controller.setCurrentStage(currentStage);
-                controller.setPreviousScene(currentScene);
-                controller.setComparison(comparison);
-                controller.init();
-
-                return nextScreenRoot;
+            protected Void call() throws Exception {
+                ComparisonService.processTables(selectedTableNames);
+                return null;
             }
         };
 
-
-        processTablesTask.setOnSucceeded(event -> {
-            try {
-
-                Parent nextScreenRoot = processTablesTask.getValue();
-
-                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
-
-                currentStage.setScene(nextScreenScene);
-
-            } catch (Exception e) {
-                DialogUtils.showError(currentStage,
-                        "Erro de Transição",
-                        "Não foi possível exibir a próxima tela: " + e.getMessage());
-                e.printStackTrace();
-            }
+        navigator.runTask(task, () -> {
+            navigator.goTo(FxmlFiles.COLUMN_SETTINGS_SCREEN, ctrl -> {
+                ctrl.setTitle("selecione as tabelas a serem comparadas");
+                ctrl.init(comparison.getConfigRegistry(), navigator);
+            });
         });
-
-
-        processTablesTask.setOnFailed(event -> {
-            DialogUtils.showError(currentStage,
-                    "Erro de Processamento",
-                    "Ocorreu um erro durante o processamento: " + processTablesTask.getException().getMessage());
-            processTablesTask.getException().printStackTrace();
-
-            try {
-                FxLoadResult<Parent, SelectTablesScreenController> screenData =
-                        FxmlUtils.loadScreen(FxmlFiles.SELECT_TABLES_SCREEN);
-
-                Parent root = screenData.node;
-
-                Scene currentScreenScene = new Scene(root);
-                currentStage.setScene(currentScreenScene);
-
-            } catch (IOException e) {
-                DialogUtils.showError(currentStage,
-                        "Erro de Recuperação",
-                        "Não foi possível recarregar a tela anterior: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-
-
-        new Thread(processTablesTask).start();
-
     }
 
     public void previousStep(MouseEvent mouseEvent) {
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("Processando fontes, aguarde...");
+        });
 
-        double width = currentStage.getWidth();
-        double height = currentStage.getHeight();
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                ComparisonService.processTables(selectedTableNames);
+                return null;
+            }
+        };
 
-        AttachSourcesScreenController attachSourcesScreenController = (AttachSourcesScreenController) previousScene.getUserData();
-        attachSourcesScreenController.setNextScene(currentStage.getScene());
-
-        currentStage.setScene(previousScene);
-
-        currentStage.setWidth(width);
-        currentStage.setHeight(height);
-
+        navigator.runTask(task, () -> {
+            navigator.goTo(FxmlFiles.ATTACH_SOURCES_SCREEN, ctrl -> {
+                ctrl.setTitle("selecione os bancos para comparação");
+                ctrl.init(comparison.getConfigRegistry(), navigator);
+            });
+        });
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
         boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
                 "Cancelar comparação",
-                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");
+                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");;
         if (!confirmCancel) {
             return;
         }
 
-        try {
-            FxLoadResult<Parent, HomeScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("cancelando comparação, aguarde...");
+        });
 
-            Parent root = screenData.node;
-            HomeScreenController controller = screenData.controller;
-
-            controller.setCurrentStage(currentStage);
-            controller.init();
-
-            Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError(currentStage,
-                    "Erro de Carregamento",
-                    "Não foi possível carregar a tela inicial: " + e.getMessage());
-            e.printStackTrace();
-        }
+        navigator.cancelComparison();
     }
 }

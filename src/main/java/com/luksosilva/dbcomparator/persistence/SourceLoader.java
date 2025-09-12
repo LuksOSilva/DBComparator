@@ -12,7 +12,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-public class SchemaLoader {
+public class SourceLoader {
 
 
     public static void mapSourceTable(Source source, ConfigRegistry configRegistry) {
@@ -47,7 +47,7 @@ public class SchemaLoader {
 
                 if (!considerSqliteTables && tableName.startsWith("sqlite")) continue;
 
-                source.getSourceTables().add(new SourceTable(tableName));
+                source.getSourceTables().add(new SourceTable(source.getId(), tableName));
 
             }
         }
@@ -88,7 +88,7 @@ public class SchemaLoader {
                     boolean isPk = resultSet.getInt("pk") > 0;
 
                     SourceTableColumn sourceTableColumn =
-                            new SourceTableColumn(sequence, columnName, type, notNull, isPk);
+                            new SourceTableColumn(source.getId(), sourceTable.getTableName(), sequence, columnName, type, notNull, isPk);
 
 
                     sourceTable.getSourceTableColumns().add(sourceTableColumn);

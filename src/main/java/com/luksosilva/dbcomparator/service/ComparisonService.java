@@ -29,40 +29,30 @@ public class ComparisonService {
     private static final ExecutorService executor = Executors.newFixedThreadPool(1);
 
 
-    //1
-    public static void processSources(Comparison comparison, List<File> fileList) throws Exception {
-        comparison.getSources().addAll(getSourcesFromFiles(fileList));
-
-        SchemaService.mapComparedSources(comparison.getSources(), comparison.getConfigRegistry());
-
-        TempSourcesDAO.saveTempSources(comparison.getSources());
-    }
 
     //2
-    public static void processTables(Comparison comparison,
-                                     ConfigRegistry configRegistry,
-                                     Map<String, Map<String, SourceTable>> groupedTables) {
+    public static void processTables(List<String> selectedTableNames) {
 
-        setComparedTables(comparison, groupedTables);
-        setComparedTableColumns(comparison.getComparedTables());
-
-
-        //gets only tables with at least one column without column setting.
-        List<ComparedTable> comparedTablesWithoutColumnSettings = comparison.getComparedTables().stream()
-                .filter(comparedTable -> comparedTable.getComparedTableColumns()
-                        .stream().anyMatch(comparedTableColumn -> !comparedTableColumn.hasColumnSetting())).toList();
-
-        //removes any column setting in the tables gathered.
-        comparedTablesWithoutColumnSettings.forEach(comparedTable -> {
-            comparedTable.getComparedTableColumns().forEach(ComparedTableColumn::removeColumnSetting);
-        });
-
-
-        boolean prioritizeUserColumnSettings =
-                configRegistry.getConfigValueOf(ConfigKeys.DBC_PRIORITIZE_USER_COLUMN_SETTINGS);
-
-        setTableColumnsSettings(comparedTablesWithoutColumnSettings,
-               comparison.getComparedSources(), prioritizeUserColumnSettings);
+//        setComparedTables(comparison, groupedTables);
+//        setComparedTableColumns(comparison.getComparedTables());
+//
+//
+//        //gets only tables with at least one column without column setting.
+//        List<ComparedTable> comparedTablesWithoutColumnSettings = comparison.getComparedTables().stream()
+//                .filter(comparedTable -> comparedTable.getComparedTableColumns()
+//                        .stream().anyMatch(comparedTableColumn -> !comparedTableColumn.hasColumnSetting())).toList();
+//
+//        //removes any column setting in the tables gathered.
+//        comparedTablesWithoutColumnSettings.forEach(comparedTable -> {
+//            comparedTable.getComparedTableColumns().forEach(ComparedTableColumn::removeColumnSetting);
+//        });
+//
+//
+//        boolean prioritizeUserColumnSettings =
+//                configRegistry.getConfigValueOf(ConfigKeys.DBC_PRIORITIZE_USER_COLUMN_SETTINGS);
+//
+//        setTableColumnsSettings(comparedTablesWithoutColumnSettings,
+//               comparison.getComparedSources(), prioritizeUserColumnSettings);
 
     }
 
@@ -144,24 +134,14 @@ public class ComparisonService {
 
     /// privates
 
-    private static List<Source> getSourcesFromFiles(List<File> fileList) {
-        List<Source> sources = new ArrayList<>();
-        for (int i = 0; i < fileList.size(); i++) {
 
-            String sourceName = fileList.get(i).getName();
-            String sourceId = FilenameUtils.removeExtension(sourceName);
-
-            sources.add(new Source(sourceId, i, fileList.get(i)));
-        }
-        return sources;
-    }
 
     private static void setComparedTables(Comparison comparison, Map<String, Map<String, SourceTable>> groupedTables) {
 
-        for (Map<String, SourceTable> perSourceTable : groupedTables.values()) {
-            ComparedTable comparedTable = new ComparedTable(perSourceTable);
-            comparison.getComparedTables().add(comparedTable);
-        }
+//        for (Map<String, SourceTable> perSourceTable : groupedTables.values()) {
+//            ComparedTable comparedTable = new ComparedTable(perSourceTable);
+//            comparison.getComparedTables().add(comparedTable);
+//        }
 
     }
 

@@ -24,12 +24,21 @@ public enum SqlFiles {
 
     /// TEMPORARY TABLES
 
+    CLEAR_TEMP_SOURCES("temp/source", "clear"),
     INSERT_TEMP_SOURCE("temp/source", "insert_temp_source"),
     INSERT_TEMP_SOURCE_TABLE("temp/source", "insert_temp_source_table"),
     INSERT_TEMP_SOURCE_TABLE_COLUMN("temp/source", "insert_temp_source_table_column"),
+    DELETE_TEMP_SOURCES("temp/source","delete_temp_sources"),
+    DELETE_TEMP_SOURCE_TABLES("temp/source","delete_temp_source_tables"),
+    DELETE_TEMP_SOURCE_TABLE_COLUMNS("temp/source","delete_temp_source_table_columns"),
+    SELECT_TEMP_SOURCE_TABLES("temp/source", "select_temp_source_tables"),
+    SELECT_TEMP_SOURCES_FILES("temp/source", "select_temp_sources_files"),
+    SELECT_TEMP_SOURCE_COLUMNS("temp/source", "select_temp_source_columns"),
 
-    CLEAR_TEMP_SOURCES("temp/source", "clear"),
     CLEAR_TEMP_COMPARED_TABLES("temp/comparedTable", "clear"),
+    SELECT_TEMP_COMPARED_TABLES_NAMES("temp/comparedTable", "select_temp_compared_tables_names"),
+    SELECT_TEMP_COMPARED_TABLES_FROM_SOURCES("temp/comparedTable", "select_temp_compared_tables_from_sources"),
+
     CLEAR_TEMP_TABLE_COMPARISON_RESULT("temp/tableComparisonResult", "clear");
 
 

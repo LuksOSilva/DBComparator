@@ -496,7 +496,7 @@ public class ComparisonResultScreenController {
             Parent root = screenData.node;
             HomeScreenController controller = screenData.controller;
 
-            controller.setCurrentStage(currentStage);
+            controller.setStage(currentStage);
             controller.init();
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();

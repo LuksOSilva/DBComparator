@@ -5,14 +5,105 @@ import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
-import com.luksosilva.dbcomparator.util.SqlFormatter;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TempSourcesDAO {
+
+    public static List<SourceTableColumn> selectSourceColumns() throws Exception {
+
+        List<SourceTableColumn> sourceTableColumns = new ArrayList<>();
+
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_SOURCE_COLUMNS);
+
+            try (Statement statement = connection.createStatement();
+                 ResultSet rs = statement.executeQuery(sql)
+            ) {
+                while (rs.next()) {
+
+                    String sourceId = rs.getString("SOURCE_ID");
+                    String tableName = rs.getString("TABLE_NAME");
+                    int sequence = rs.getInt("SEQUENCE");
+                    String columnName = rs.getString("COLUMN_NAME");
+                    String type = rs.getString("TYPE");
+                    boolean isNotNull = rs.getBoolean("NOT_NULL");
+                    boolean isPK = rs.getBoolean("IS_PK");
+
+                    SourceTableColumn sourceTableColumn = new SourceTableColumn(
+                            sourceId,tableName,sequence,columnName,type,isNotNull,isPK
+                    );
+
+                    sourceTableColumns.add(sourceTableColumn);
+
+                }
+            }
+
+        }
+
+        return sourceTableColumns;
+    }
+
+    public static List<File> selectSourcesFiles() throws Exception {
+
+        List<File> sourcesFile = new ArrayList<>();
+
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_SOURCES_FILES);
+
+            try (Statement statement = connection.createStatement();
+                 ResultSet rs = statement.executeQuery(sql)
+            ){
+                while (rs.next()) {
+
+                    File file = new File(rs.getString("SOURCE_PATH"));
+                    sourcesFile.add(file);
+                }
+            }
+
+        }
+
+        return sourcesFile;
+    }
+
+    public static List<SourceTable> selectSourceTables() throws Exception {
+
+        List<SourceTable> sourceTables = new ArrayList<>();
+
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_SOURCE_TABLES);
+
+            try (Statement statement = connection.createStatement();
+                 ResultSet rs = statement.executeQuery(sql)
+            ) {
+                while (rs.next()) {
+
+                    String sourceId = rs.getString("SOURCE_ID");
+                    String tableName = rs.getString("TABLE_NAME");
+                    int recordCount = rs.getInt("RECORD_COUNT");
+
+                    SourceTable sourceTable = new SourceTable(sourceId, tableName);
+                    sourceTable.setRecordCount(recordCount);
+
+                    sourceTables.add(sourceTable);
+                }
+            }
+
+        }
+
+        return sourceTables;
+    }
 
     public static void clearTables() throws Exception {
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
@@ -44,7 +135,45 @@ public class TempSourcesDAO {
         }
     }
 
+    public static void deleteTempSources(List<Source> sourceList) throws Exception {
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
 
+            String deleteSourcesSql = SQLiteUtils.loadSQL(SqlFiles.DELETE_TEMP_SOURCES);
+            String deleteTablesSql = SQLiteUtils.loadSQL(SqlFiles.DELETE_TEMP_SOURCE_TABLES);
+            String deleteColumnsSql = SQLiteUtils.loadSQL(SqlFiles.DELETE_TEMP_SOURCE_TABLE_COLUMNS);
+
+            try (
+                    PreparedStatement psSources = connection.prepareStatement(deleteSourcesSql);
+                    PreparedStatement psTables = connection.prepareStatement(deleteTablesSql);
+                    PreparedStatement psColumns = connection.prepareStatement(deleteColumnsSql)
+            ) {
+                for (Source source : sourceList) {
+                    String id = source.getId();
+
+                    psSources.setString(1, id);
+                    psSources.addBatch();
+
+                    psTables.setString(1, id);
+                    psTables.addBatch();
+
+                    psColumns.setString(1, id);
+                    psColumns.addBatch();
+                }
+
+                psColumns.executeBatch();
+                psTables.executeBatch();
+                psSources.executeBatch();
+
+                connection.commit();
+            } catch (Exception e) {
+                connection.rollback();
+                throw e;
+            }
+        }
+    }
+
+    ///
 
     private static void saveTempSource(Connection conn, List<Source> sources) throws Exception {
 

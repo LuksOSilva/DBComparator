@@ -707,7 +707,7 @@ public class ColumnSettingsScreenController {
             Parent root = screenData.node;
             LoadingScreenController controller = screenData.controller;
 
-            controller.setMessage("Validando configurações, aguarde...");
+            controller.setTitle("Validando configurações, aguarde...");
 
             Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             currentStage.setScene(scene);
@@ -797,7 +797,7 @@ public class ColumnSettingsScreenController {
     public void previousStep(MouseEvent mouseEvent) {
 
         SelectTablesScreenController selectTablesScreenController = (SelectTablesScreenController) previousScene.getUserData();
-        selectTablesScreenController.setNextScene(currentStage.getScene());
+
 
         currentStage.setScene(previousScene);
 
@@ -818,7 +818,7 @@ public class ColumnSettingsScreenController {
             Parent root = screenData.node;
             HomeScreenController controller = screenData.controller;
 
-            controller.setCurrentStage(currentStage);
+            controller.setStage(currentStage);
             controller.init();
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();

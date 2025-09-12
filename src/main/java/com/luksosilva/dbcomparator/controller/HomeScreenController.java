@@ -1,10 +1,13 @@
 package com.luksosilva.dbcomparator.controller;
 
 import com.luksosilva.dbcomparator.controller.comparisonScreens.AttachSourcesScreenController;
+import com.luksosilva.dbcomparator.controller.comparisonScreens.BaseController;
 import com.luksosilva.dbcomparator.controller.comparisonScreens.ComparisonResultScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
+import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
+import com.luksosilva.dbcomparator.navigator.ComparisonStepsNavigator;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
 import com.luksosilva.dbcomparator.persistence.temp.TempComparedTablesDAO;
 import com.luksosilva.dbcomparator.persistence.temp.TempSourcesDAO;
@@ -44,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class HomeScreenController {
+public class HomeScreenController implements BaseController {
 
     private Stage currentStage;
 
@@ -67,10 +70,6 @@ public class HomeScreenController {
     public Label pageLabel;
     @FXML
     public Button nextBtn;
-
-    public void setCurrentStage(Stage currentStage) {
-        this.currentStage = currentStage;
-    }
 
     public void init() {
         try {
@@ -334,7 +333,7 @@ public class HomeScreenController {
     //
 
     private void startNewComparison() {
-        try {
+        try { /// TODO: pode causar problemas em casos de 2 instancias abertas. Avaliar o que fazer.
             TempSourcesDAO.clearTables();
             TempComparedTablesDAO.clearTables();
             TempTableComparisonResultDAO.clearTables();
@@ -345,10 +344,9 @@ public class HomeScreenController {
             return;
         }
 
-        Comparison newComparison = new Comparison();
-
+        ConfigRegistry configRegistry = new ConfigRegistry();
         try {
-            newComparison.setConfigRegistry(ConfigurationService.getConfigRegistry());
+            configRegistry = ConfigurationService.getConfigRegistry();
         } catch (Exception e) {
             DialogUtils.showWarning(currentStage,
                     "Erro ao carregar configurações",
@@ -362,8 +360,7 @@ public class HomeScreenController {
             Parent root = screenData.node;
             AttachSourcesScreenController controller = screenData.controller;
 
-            controller.setCurrentStage(currentStage);
-            controller.setComparison(newComparison);
+            controller.init(configRegistry, new ComparisonStepsNavigator(currentStage));
 
             Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
             currentStage.setScene(scene);
@@ -522,4 +519,20 @@ public class HomeScreenController {
             default -> "Essa mensagem não deveria aparecer...";
         };
     }
+
+    @Override
+    public void setTitle(String title) {
+        //do nothing
+    }
+
+    public void setStage(Stage stage) {
+        this.currentStage = stage;
+    }
+
+    @Override
+    public void init(ConfigRegistry configRegistry, ComparisonStepsNavigator navigator) {
+        this.currentStage = navigator.getStage();
+        init();
+    }
+
 }

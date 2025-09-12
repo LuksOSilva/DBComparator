@@ -28,28 +28,37 @@ import java.util.*;
 })
 public class ComparedTable {
 
+    private int codComparedTable;
     private String tableName;
+    private boolean hasRecordCountDifference;
+    private boolean hasSchemaDifference;
 
+    private List<SourceTable> sourceTables = new ArrayList<>();
     private Map<String, SourceTable> perSourceTable;
-
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
 
     private ColumnSettingsValidationResultType columnSettingsValidationResult = ColumnSettingsValidationResultType.NOT_VALIDATED;
-
     private FilterValidationResult filterValidationResult = new FilterValidationResult(FilterValidationResultType.NOT_VALIDATED);
 
     private TableFilter filter;
-
-    private String sqlUserFilter;
 
     private String sqlSelectDifferences;
 
     public ComparedTable() {}
 
-    public ComparedTable(Map<String, SourceTable> perSourceTable) {
-        this.perSourceTable = perSourceTable;
-        computeTableName();
+    public ComparedTable(int codComparedTable,
+                         String tableName,
+                         boolean hasRecordCountDifference,
+                         boolean hasSchemaDifference,
+                         List<SourceTable> sourceTables) {
+
+        this.codComparedTable = codComparedTable;
+        this.tableName = tableName;
+        this.hasRecordCountDifference = hasRecordCountDifference;
+        this.hasSchemaDifference = hasSchemaDifference;
+        this.sourceTables = sourceTables;
+
     }
 
     @JsonCreator
@@ -74,6 +83,9 @@ public class ComparedTable {
                 .orElse(null);
     }
 
+    public List<SourceTable> getSourceTables() {
+        return sourceTables;
+    }
 
     public List<ComparedTableColumn> getComparedTableColumns() {
         return comparedTableColumns;
@@ -120,13 +132,6 @@ public class ComparedTable {
         this.sqlSelectDifferences = sqlSelectDifferences;
     }
 
-    public String getSqlUserFilter() {
-        return sqlUserFilter;
-    }
-
-    public void setSqlUserFilter(String sqlUserFilter) {
-        this.sqlUserFilter = sqlUserFilter;
-    }
 
     public TableFilter getFilter() {
         return filter;

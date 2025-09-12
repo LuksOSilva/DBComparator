@@ -647,7 +647,7 @@ public class SetFiltersScreenController {
             Parent root = screenData.node;
             LoadingScreenController controller = screenData.controller;
 
-            controller.setMessage("Validando filtros, aguarde...");
+            controller.setTitle("Validando filtros, aguarde...");
 
             Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             currentStage.setScene(scene);
@@ -762,7 +762,7 @@ public class SetFiltersScreenController {
             Parent root = screenData.node;
             HomeScreenController controller = screenData.controller;
 
-            controller.setCurrentStage(currentStage);
+            controller.setStage(currentStage);
             controller.init();
 
             Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();

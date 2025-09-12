@@ -8,6 +8,7 @@ import java.util.Objects;
 
 public class SourceTable {
 
+    private String sourceId;
     private String tableName;
     private int recordCount;
 
@@ -15,7 +16,8 @@ public class SourceTable {
 
     public SourceTable() {}
 
-    public SourceTable(String tableName) {
+    public SourceTable(String sourceId, String tableName) {
+        this.sourceId = sourceId;
         this.tableName = tableName;
     }
 
@@ -39,8 +41,9 @@ public class SourceTable {
         return sourceTableColumns;
     }
 
-
-
+    public String getSourceId() {
+        return sourceId;
+    }
 
     public int getRecordCount() {
         return recordCount;

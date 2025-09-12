@@ -14,14 +14,18 @@ public class SourceTableViewModel {
 
     private final List<SourceTableColumnViewModel> sourceTableColumnViewModels = new ArrayList<>();
 
+    private final SimpleStringProperty sourceId = new SimpleStringProperty();
     private final SimpleStringProperty tableName = new SimpleStringProperty();
     private final SimpleIntegerProperty recordCount = new SimpleIntegerProperty();
+    private final SimpleIntegerProperty columnCount = new SimpleIntegerProperty();
 
     public SourceTableViewModel(SourceTable model) {
         this.model = model;
 
+        this.sourceId.set(model.getSourceId());
         this.tableName.set(model.getTableName());
         this.recordCount.set(model.getRecordCount());
+        this.columnCount.set(model.getSourceTableColumns().size());
 
         for (SourceTableColumn sourceTableColumn : model.getSourceTableColumns()) {
             sourceTableColumnViewModels.add(new SourceTableColumnViewModel(sourceTableColumn));
@@ -34,6 +38,14 @@ public class SourceTableViewModel {
 
     public List<SourceTableColumnViewModel> getSourceTableColumnViewModels() {
         return sourceTableColumnViewModels;
+    }
+
+    public String getSourceId() {
+        return sourceId.get();
+    }
+
+    public SimpleStringProperty sourceIdProperty() {
+        return sourceId;
     }
 
     public String getTableName() {
@@ -50,5 +62,13 @@ public class SourceTableViewModel {
 
     public SimpleIntegerProperty recordCountProperty() {
         return recordCount;
+    }
+
+    public int getColumnCount() {
+        return columnCount.get();
+    }
+
+    public SimpleIntegerProperty columnCountProperty() {
+        return columnCount;
     }
 }
