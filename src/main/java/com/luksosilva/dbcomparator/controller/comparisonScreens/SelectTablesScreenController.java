@@ -13,6 +13,7 @@ import com.luksosilva.dbcomparator.viewmodel.live.source.SourceTableViewModel;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -50,7 +51,7 @@ public class SelectTablesScreenController implements BaseController {
 
     //pagination
     private int currentPage = 0;
-    private static final int ITEMS_PER_PAGE = 10;
+    private static final int ITEMS_PER_PAGE = 30;
 
     private List<Stage> compareSchemaOpenedStages = new ArrayList<>();
 
@@ -71,18 +72,24 @@ public class SelectTablesScreenController implements BaseController {
     public ToggleButton filterToggleButton;
     @FXML
     public HBox filtersHBox;
+
     @FXML
     public Accordion tablesAccordion;
+    @FXML
+    public ScrollPane scrollPane;
+    @FXML
+    public HBox paginationHBox;
+    @FXML
+    public Button nextBtn, prevBtn;
+    @FXML
+    public Label pageLabel;
+
     @FXML
     public Button nextStepBtn,
             previousStepBtn;
     @FXML
     public Text cancelBtn;
 
-    @FXML
-    public Button nextBtn, prevBtn;
-    @FXML
-    public Label pageLabel;
 
     @FXML
     public void onFilterButtonClicked(MouseEvent mouseEvent) {
@@ -298,6 +305,15 @@ public class SelectTablesScreenController implements BaseController {
 
         tablesAccordion.getPanes().setAll(pageItems);
         updateSelectAllCheckBoxState();
+
+        /* */
+        Accordion newAccordion = new Accordion();
+        newAccordion.getPanes().setAll(tablesAccordion.getPanes());
+        tablesAccordion = newAccordion;
+
+        VBox content = new VBox(10, tablesAccordion, paginationHBox);
+        scrollPane.setContent(content);
+        /* */
 
         // fade-in style
         fadeInAccordion();
@@ -572,7 +588,7 @@ public class SelectTablesScreenController implements BaseController {
 
         navigator.runTask(task, () -> {
             navigator.goTo(FxmlFiles.COLUMN_SETTINGS_SCREEN, ctrl -> {
-                ctrl.setTitle("selecione as tabelas a serem comparadas");
+                ctrl.setTitle("configure as colunas das tabelas selecionadas");
                 ctrl.init(comparison.getConfigRegistry(), navigator);
             });
         });

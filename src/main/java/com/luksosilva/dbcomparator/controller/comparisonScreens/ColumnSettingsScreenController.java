@@ -6,8 +6,10 @@ import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.navigator.ComparisonStepsNavigator;
 import com.luksosilva.dbcomparator.service.ColumnSettingsService;
 import com.luksosilva.dbcomparator.service.ComparisonService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
@@ -42,87 +44,82 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ColumnSettingsScreenController {
+public class ColumnSettingsScreenController implements BaseController {
 
-    private Scene previousScene;
+
+    private ComparisonStepsNavigator navigator;
+
     private Stage currentStage;
-    private Scene nextScene;
 
-    private class ComparedTableColumnViewModel {
-        ComparedTableColumn comparedTableColumn;
 
-        private final SimpleBooleanProperty identifierProperty = new SimpleBooleanProperty();
-        private final SimpleBooleanProperty comparableProperty = new SimpleBooleanProperty();
+//    private class ComparedTableColumnViewModel {
+//        ComparedTableColumn comparedTableColumn;
+//
+//        private final SimpleBooleanProperty identifierProperty = new SimpleBooleanProperty();
+//        private final SimpleBooleanProperty comparableProperty = new SimpleBooleanProperty();
+//
+//        private final SimpleBooleanProperty defaultIdentifierProperty = new SimpleBooleanProperty();
+//        private final SimpleBooleanProperty defaultComparableProperty = new SimpleBooleanProperty();
+//
+//        public ComparedTableColumnViewModel(ComparedTableColumn comparedTableColumn) {
+//            this.comparedTableColumn = comparedTableColumn;
+//
+//            setProperties();
+//            setDefault();
+//
+//            // Radio button-like behavior: selecting one disables the other
+//            identifierProperty.addListener((obs, oldVal, newVal) -> {
+//                if (newVal) comparableProperty.set(false);
+//            });
+//
+//            comparableProperty.addListener((obs, oldVal, newVal) -> {
+//                if (newVal) identifierProperty.set(false);
+//            });
+//        }
+//
+//        public boolean isAltered() {
+//            return (identifierProperty.get() != defaultIdentifierProperty.get())
+//                    || (comparableProperty.get() != defaultComparableProperty.get());
+//        }
+//        public boolean existsInAllSources() {
+//            return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getSources().size();
+//        }
+//
+//        public ColumnSettings getViewModelColumnSetting() {
+//            return new ColumnSettings(comparableProperty.get(), identifierProperty.get());
+//        }
+//
+//        public String getPrimaryKeyCountText() {
+//            Map<String, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
+//
+//            long pkCount = map.values().stream().filter(SourceTableColumn::isPk).count();
+//            int totalSources = comparison.getSources().size();
+//
+//            if (pkCount == 0) return "";
+//            if (pkCount == totalSources) return "Y";
+//
+//            return pkCount + "/" + totalSources;
+//        }
+//
+//        public void setProperties() {
+//            this.identifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
+//            this.comparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
+//        }
+//
+//        public void setDefault() {
+//            this.defaultIdentifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
+//            this.defaultComparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
+//        }
+//    }
 
-        private final SimpleBooleanProperty defaultIdentifierProperty = new SimpleBooleanProperty();
-        private final SimpleBooleanProperty defaultComparableProperty = new SimpleBooleanProperty();
-
-        public ComparedTableColumnViewModel(ComparedTableColumn comparedTableColumn) {
-            this.comparedTableColumn = comparedTableColumn;
-
-            setProperties();
-            setDefault();
-
-            // Radio button-like behavior: selecting one disables the other
-            identifierProperty.addListener((obs, oldVal, newVal) -> {
-                if (newVal) comparableProperty.set(false);
-            });
-
-            comparableProperty.addListener((obs, oldVal, newVal) -> {
-                if (newVal) identifierProperty.set(false);
-            });
-        }
-
-        public boolean isAltered() {
-            return (identifierProperty.get() != defaultIdentifierProperty.get())
-                    || (comparableProperty.get() != defaultComparableProperty.get());
-        }
-        public boolean existsInAllSources() {
-            return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getSources().size();
-        }
-
-        public ColumnSettings getViewModelColumnSetting() {
-            return new ColumnSettings(comparableProperty.get(), identifierProperty.get());
-        }
-
-        public String getPrimaryKeyCountText() {
-            Map<String, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
-
-            long pkCount = map.values().stream().filter(SourceTableColumn::isPk).count();
-            int totalSources = comparison.getSources().size();
-
-            if (pkCount == 0) return "";
-            if (pkCount == totalSources) return "Y";
-
-            return pkCount + "/" + totalSources;
-        }
-
-        public void setProperties() {
-            this.identifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
-            this.comparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
-        }
-
-        public void setDefault() {
-            this.defaultIdentifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
-            this.defaultComparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
-        }
-    }
-
-    private Comparison comparison;
+    private final Comparison comparison = new Comparison();
     private final ObservableList<TitledPane> allTablePanes = FXCollections.observableArrayList();
     private FilteredList<TitledPane> filteredTablePanes;
 
     Map<String, List<ComparedTableColumnViewModel>> perTableComparedColumnViewModel = new HashMap<>();
 
-    public void setComparison(Comparison comparison) {
-        this.comparison = comparison;
-    }
-
-    public void setPreviousScene(Scene previousScene) { this.previousScene = previousScene; }
-    public void setCurrentStage(Stage currentStage) { this.currentStage = currentStage; }
-
-    public void setNextScene(Scene nextScene) { this.nextScene = nextScene; }
-
+    @FXML
+    public Text titleLabel;
     @FXML
     private ComboBox<String> filterTypeComboBox;
     @FXML
@@ -148,8 +145,15 @@ public class ColumnSettingsScreenController {
     public Text cancelBtn;
 
 
+    @Override
+    public void setTitle(String title) {
+        titleLabel.setText(title);
+    }
+    @Override
+    public void init(ConfigRegistry configRegistry, ComparisonStepsNavigator navigator) {
+        this.comparison.setConfigRegistry(configRegistry);
+        this.navigator = navigator;
 
-    public void init() {
         setupViewModels();
         constructAccordion();
         setupFilterControls();

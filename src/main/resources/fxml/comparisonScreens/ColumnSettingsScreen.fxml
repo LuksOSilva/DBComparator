@@ -25,7 +25,7 @@
         <HBox alignment="CENTER" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
             <children>
                 <Region HBox.hgrow="ALWAYS" />
-                <Text styleClass="title-text" text="configure as colunas das tabelas selecionadas">
+                <Text fx:id="titleLabel" styleClass="title-text" text="configure as colunas das tabelas selecionadas">
                     <font>
                         <Font size="30.0" />
                     </font>
