@@ -1,5 +1,6 @@
 package com.luksosilva.dbcomparator.service;
 
+import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
@@ -18,21 +19,26 @@ import java.util.stream.Collectors;
 public class SourceService {
 
     public static void processSources(List<File> fileList, ConfigRegistry configRegistry) throws Exception {
-        List<File> fileSourcesOnDb = getSourcesFiles();
-        List<File> toRemoveList = getDifferenceList(fileSourcesOnDb, fileList);
-        List<File> toAddList = getDifferenceList(fileList, fileSourcesOnDb);
+        try {
+            List<File> fileSourcesOnDb = getSourcesFiles();
+            List<File> toRemoveList = getDifferenceList(fileSourcesOnDb, fileList);
+            List<File> toAddList = getDifferenceList(fileList, fileSourcesOnDb);
 
-        List<Source> sourcesToAdd = mapFilesToSources(toAddList);
-        List<Source> sourcesToRemove = mapFilesToSources(toRemoveList);
+            List<Source> sourcesToAdd = mapFilesToSources(toAddList);
+            List<Source> sourcesToRemove = mapFilesToSources(toRemoveList);
 
-        mapSources(sourcesToAdd, configRegistry);
+            mapSources(sourcesToAdd, configRegistry);
 
-        if (!sourcesToRemove.isEmpty()) {
-            TempSourcesDAO.deleteTempSources(sourcesToRemove);
-        }
+            if (!sourcesToRemove.isEmpty()) {
+                TempSourcesDAO.deleteTempSources(sourcesToRemove);
+                ComparedTableService.clearTempTables();
+            }
 
-        if (!sourcesToAdd.isEmpty()) {
-            TempSourcesDAO.saveTempSources(sourcesToAdd);
+            if (!sourcesToAdd.isEmpty()) {
+                TempSourcesDAO.saveTempSources(sourcesToAdd);
+            }
+        } catch (Exception e) {
+            throw new Exception("Não foi possível processar as fontes de dados: " + e);
         }
     }
 
@@ -109,17 +115,17 @@ public class SourceService {
 
     /// HELPERS
 
-    private static List<File> getDifferenceList(List<File> toRemoveList, List<File> toCompareList) {
+    private static List<File> getDifferenceList(List<File> toCompareList, List<File> toRemoveList) {
         // Convert to set of canonical paths for reliable comparison
-        Set<String> compareSet = toCompareList.stream()
+        Set<String> compareSet = toRemoveList.stream()
                 .map(f -> {
                     try { return f.getCanonicalPath(); }
                     catch (Exception e) { return f.getAbsolutePath(); }
                 })
                 .collect(Collectors.toSet());
 
-        // Keep only those in toRemoveList that aren't in toCompareList
-        return toRemoveList.stream()
+        // Keep only those in toCompareList that aren't in toRemoveList
+        return toCompareList.stream()
                 .filter(f -> {
                     try { return !compareSet.contains(f.getCanonicalPath()); }
                     catch (Exception e) { return !compareSet.contains(f.getAbsolutePath()); }

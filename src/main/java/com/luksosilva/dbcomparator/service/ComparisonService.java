@@ -31,8 +31,8 @@ public class ComparisonService {
 
 
     //2
-    public static void processTables(List<String> selectedTableNames) {
-
+//    public static void processTables(List<ComparedTable> selectedComparedTables) {
+//
 //        setComparedTables(comparison, groupedTables);
 //        setComparedTableColumns(comparison.getComparedTables());
 //
@@ -53,8 +53,8 @@ public class ComparisonService {
 //
 //        setTableColumnsSettings(comparedTablesWithoutColumnSettings,
 //               comparison.getComparedSources(), prioritizeUserColumnSettings);
-
-    }
+//
+//    }
 
     //4
     public static void processColumnSettings(ComparedTable comparedTable,

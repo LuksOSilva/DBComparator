@@ -93,8 +93,7 @@ public class TempSourcesDAO {
                     String tableName = rs.getString("TABLE_NAME");
                     int recordCount = rs.getInt("RECORD_COUNT");
 
-                    SourceTable sourceTable = new SourceTable(sourceId, tableName);
-                    sourceTable.setRecordCount(recordCount);
+                    SourceTable sourceTable = new SourceTable(sourceId, tableName, recordCount);
 
                     sourceTables.add(sourceTable);
                 }

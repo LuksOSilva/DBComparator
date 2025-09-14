@@ -76,6 +76,18 @@ public class ComparedTable {
         return tableName;
     }
 
+    public int getCodComparedTable() {
+        return codComparedTable;
+    }
+
+    public boolean hasRecordCountDifference() {
+        return hasRecordCountDifference;
+    }
+
+    public boolean hasSchemaDifference() {
+        return hasSchemaDifference;
+    }
+
     private void computeTableName() {
         this.tableName = getPerSourceTable().values().stream()
                 .findFirst()
@@ -145,27 +157,27 @@ public class ComparedTable {
         this.filter = null;
     }
 
-    public boolean hasSchemaDifference() {
-
-        Collection<SourceTable> sourceTables = perSourceTable.values();
-        if (sourceTables.isEmpty()) {
-            return false;
-        }
-        SourceTable first = sourceTables.iterator().next();
-        return !sourceTables.stream()
-                .allMatch(first::equalSchema);
-    }
-
-    public boolean hasRecordCountDifference() {
-
-        Collection<SourceTable> sourceTables = perSourceTable.values();
-        if (sourceTables.isEmpty()) {
-            return false;
-        }
-        SourceTable first = sourceTables.iterator().next();
-        return !sourceTables.stream()
-                .allMatch(first::equalRecordCount);
-    }
+//    public boolean hasSchemaDifference() {
+//
+//        Collection<SourceTable> sourceTables = perSourceTable.values();
+//        if (sourceTables.isEmpty()) {
+//            return false;
+//        }
+//        SourceTable first = sourceTables.iterator().next();
+//        return !sourceTables.stream()
+//                .allMatch(first::equalSchema);
+//    }
+//
+//    public boolean hasRecordCountDifference() {
+//
+//        Collection<SourceTable> sourceTables = perSourceTable.values();
+//        if (sourceTables.isEmpty()) {
+//            return false;
+//        }
+//        SourceTable first = sourceTables.iterator().next();
+//        return !sourceTables.stream()
+//                .allMatch(first::equalRecordCount);
+//    }
 
     public boolean hasTableFilter() {
         return getFilter() != null;

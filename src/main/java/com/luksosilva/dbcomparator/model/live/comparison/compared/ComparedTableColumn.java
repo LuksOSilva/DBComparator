@@ -18,21 +18,56 @@ import java.util.Map;
 )
 @JsonIgnoreProperties({"columnFilters"})
 public class ComparedTableColumn {
-
+    /// OLD
     private String columnId;
-
     private ComparedTable comparedTable;
     private Map<String, SourceTableColumn> perSourceTableColumn;
-    private ColumnSettings columnSettings;
+    /// NEW
+    private int codComparedColumn;
+    private int codComparedTable;
+    private String columnName;
+    private boolean hasSchemaDifference;
+    private boolean existsOnAllSources;
 
+
+    private ColumnSettings columnSettings;
     private final List<ColumnFilter> columnFilters = new ArrayList<>();
 
+    /// OLD
     public ComparedTableColumn() {}
-
     public ComparedTableColumn(ComparedTable comparedTable, Map<String, SourceTableColumn> perSourceTableColumn) {
         this.comparedTable = comparedTable;
         this.perSourceTableColumn = perSourceTableColumn;
         computeColumnId();
+    }
+    /// NEW
+    public ComparedTableColumn(int codComparedColumn,
+                               int codComparedTable,
+                               String columnName,
+                               boolean hasSchemaDifference,
+                               boolean existsOnAllSources) {
+
+        this.codComparedColumn = codComparedColumn;
+        this.codComparedTable = codComparedTable;
+        this.columnName = columnName;
+        this.hasSchemaDifference = hasSchemaDifference;
+        this.existsOnAllSources = existsOnAllSources;
+    }
+
+    public int getCodComparedColumn() {
+        return codComparedColumn;
+    }
+
+    public int getCodComparedTable() {
+        return codComparedTable;
+    }
+
+    public boolean hasSchemaDifference() {
+        return hasSchemaDifference;
+    }
+
+    public boolean existsOnAllSources() {
+        return existsOnAllSources;
     }
 
     public void setColumnId(String columnId) {
@@ -59,12 +94,17 @@ public class ComparedTableColumn {
         return columnId;
     }
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+//    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+//    public String getColumnName() {
+//        return getPerSourceTableColumn().values().stream()
+//                .findFirst()
+//                .map(SourceTableColumn::getColumnName)
+//                .orElse(null);
+//    }
+
+
     public String getColumnName() {
-        return getPerSourceTableColumn().values().stream()
-                .findFirst()
-                .map(SourceTableColumn::getColumnName)
-                .orElse(null);
+        return columnName;
     }
 
     private void computeColumnId() {

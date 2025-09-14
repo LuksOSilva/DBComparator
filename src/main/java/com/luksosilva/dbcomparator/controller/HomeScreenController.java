@@ -138,34 +138,10 @@ public class HomeScreenController implements BaseController {
         comparisonsContainer.getChildren().clear();
 
         String filter = searchTextField.getText();
-        List<SavedComparisonViewModel> filtered = new ArrayList<>(savedComparisonViewModelList);
-
-        filtered.sort((a, b) -> {
-            LocalDateTime dateA = (a.getLastLoadedAtRaw() != null)
-                    ? a.getLastLoadedAtRaw()
-                    : a.getCreatedAtRaw();
-
-            LocalDateTime dateB = (b.getLastLoadedAtRaw() != null)
-                    ? b.getLastLoadedAtRaw()
-                    : b.getCreatedAtRaw();
-
-            return dateB.compareTo(dateA);
-        });
-
-
-        if (filter != null && !filter.isBlank()) {
-            String lower = filter.toLowerCase();
-            filtered.removeIf(vm -> vm.getDescription() == null ||
-                    !vm.getDescription().toLowerCase().contains(lower));
-        }
+        List<SavedComparisonViewModel> filtered = getSavedComparisonViewModels(filter);
 
         if (filtered.isEmpty()) {
             if (filter != null && !filter.isBlank()) {
-                if (filter.length() > 50) {
-                    showEmptyMessage(getTooLongMessage());
-                    return;
-                }
-
                 showEmptyMessage("Nenhuma comparação encontrada para \"" + filter + "\".");
             } else {
                 showEmptyMessage("Suas comparações aparecerão aqui.");
@@ -233,6 +209,30 @@ public class HomeScreenController implements BaseController {
         int totalPages = (int) Math.ceil(filtered.size() / (double) ITEMS_PER_PAGE);
         if (totalPages == 0) totalPages = 1;
         pageLabel.setText("Página " + (currentPage + 1) + " de " + totalPages);
+    }
+
+    private List<SavedComparisonViewModel> getSavedComparisonViewModels(String filter) {
+        List<SavedComparisonViewModel> filtered = new ArrayList<>(savedComparisonViewModelList);
+
+        filtered.sort((a, b) -> {
+            LocalDateTime dateA = (a.getLastLoadedAtRaw() != null)
+                    ? a.getLastLoadedAtRaw()
+                    : a.getCreatedAtRaw();
+
+            LocalDateTime dateB = (b.getLastLoadedAtRaw() != null)
+                    ? b.getLastLoadedAtRaw()
+                    : b.getCreatedAtRaw();
+
+            return dateB.compareTo(dateA);
+        });
+
+
+        if (filter != null && !filter.isBlank()) {
+            String lower = filter.toLowerCase();
+            filtered.removeIf(vm -> vm.getDescription() == null ||
+                    !vm.getDescription().toLowerCase().contains(lower));
+        }
+        return filtered;
     }
 
     private void showEmptyMessage(String message) {
@@ -501,24 +501,6 @@ public class HomeScreenController implements BaseController {
         System.exit(0);
     }
 
-    private String getTooLongMessage() {
-        Random random = new Random();
-        int number = random.nextInt(10);
-
-        return switch (number) {
-            case 0 -> "Tá procurando uma comparação ou escrevendo uma redação?";
-            case 1 -> "O Word é pra lá >";
-            case 2 -> "Continua digitando... alguma hora deve aparecer alguma coisa, né?";
-            case 3 -> "Tá difícil assim achar o que precisa?";
-            case 4 -> "Se ainda não apareceu não é agora que vai aparecer...";
-            case 5 -> "Dormiu no teclado?";
-            case 6 -> "Se eu ganhasse 1 real por letra digitada...";
-            case 7 -> "Iniciando autodestruição em 3...";
-            case 8 -> "Tá se divertindo?";
-            case 9 -> "Eu devia ter colocado um limite de caracteres..";
-            default -> "Essa mensagem não deveria aparecer...";
-        };
-    }
 
     @Override
     public void setTitle(String title) {

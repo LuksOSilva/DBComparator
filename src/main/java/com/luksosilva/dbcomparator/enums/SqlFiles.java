@@ -36,8 +36,17 @@ public enum SqlFiles {
     SELECT_TEMP_SOURCE_COLUMNS("temp/source", "select_temp_source_columns"),
 
     CLEAR_TEMP_COMPARED_TABLES("temp/comparedTable", "clear"),
+    INSERT_TEMP_COMPARED_TABLES("temp/comparedTable","insert_temp_compared_tables"),
+    INSERT_TEMP_COMPARED_COLUMNS("temp/comparedTable","insert_temp_compared_columns"),
+    DELETE_TEMP_COMPARED_TABLES("temp/comparedTable", "delete_temp_compared_tables"),
+    DELETE_TEMP_COMPARED_TABLE_COLUMNS("temp/comparedTable", "delete_temp_compared_table_columns"),
+    DELETE_TEMP_COMPARED_TABLE_COLUMN_CONFIGS("temp/comparedTable", "delete_temp_compared_table_column_configs"),
+    DELETE_TEMP_COMPARED_TABLE_COLUMN_FILTERS("temp/comparedTable", "delete_temp_compared_table_column_filters"),
+    DELETE_TEMP_COMPARED_TABLE_FILTERS("temp/comparedTable", "delete_temp_compared_table_filters"),
     SELECT_TEMP_COMPARED_TABLES_NAMES("temp/comparedTable", "select_temp_compared_tables_names"),
     SELECT_TEMP_COMPARED_TABLES_FROM_SOURCES("temp/comparedTable", "select_temp_compared_tables_from_sources"),
+    SELECT_TEMP_COMPARED_COLUMNS_FROM_SOURCES("temp/comparedTable", "select_temp_compared_columns_from_sources"),
+
 
     CLEAR_TEMP_TABLE_COMPARISON_RESULT("temp/tableComparisonResult", "clear");
 

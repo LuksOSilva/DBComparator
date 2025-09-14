@@ -21,6 +21,16 @@ public class SourceTable {
         this.tableName = tableName;
     }
 
+    public SourceTable(String sourceId, String tableName, int recordCount) {
+        this.sourceId = sourceId;
+        this.tableName = tableName;
+        this.recordCount = recordCount;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
     public void setRecordCount(int recordCount) {
         this.recordCount = recordCount;
     }
@@ -41,9 +51,9 @@ public class SourceTable {
         return sourceTableColumns;
     }
 
-    public String getSourceId() {
-        return sourceId;
-    }
+
+
+
 
     public int getRecordCount() {
         return recordCount;

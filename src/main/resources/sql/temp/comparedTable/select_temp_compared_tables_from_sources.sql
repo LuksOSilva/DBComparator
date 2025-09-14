@@ -1,12 +1,14 @@
 WITH
 schema_diffs AS (
-    SELECT
-        TABLE_NAME,
-        CASE WHEN COUNT(DISTINCT (COLUMN_NAME || ':' || TYPE || ':' || NOT_NULL || ':' || IS_PK))
-                 != COUNT(COLUMN_NAME)
-             THEN 1 ELSE 0 END AS HAS_SCHEMA_DIFFERENCE
-    FROM TEMP_SOURCE_TABLE_COLUMNS
-    GROUP BY TABLE_NAME
+     SELECT
+            TABLE_NAME,
+            CASE WHEN
+                    COUNT(DISTINCT (COLUMN_NAME || '-' || TYPE || '-' || NOT_NULL || '-' || IS_PK))
+                   != (COUNT(1) / COUNT(DISTINCT SOURCE_ID))
+                THEN 1 ELSE 0
+            END AS HAS_SCHEMA_DIFFERENCE
+     FROM TEMP_SOURCE_TABLE_COLUMNS
+     GROUP BY TABLE_NAME
 ),
 record_counts AS (
     SELECT
