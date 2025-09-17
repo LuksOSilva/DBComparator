@@ -37,9 +37,11 @@ public class ComparedTable {
     private Map<String, SourceTable> perSourceTable;
     private List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
 
-
     private ColumnSettingsValidationResultType columnSettingsValidationResult = ColumnSettingsValidationResultType.NOT_VALIDATED;
-    private FilterValidationResult filterValidationResult = new FilterValidationResult(FilterValidationResultType.NOT_VALIDATED);
+    private FilterValidationResultType filterValidationResult = FilterValidationResultType.NOT_VALIDATED;
+
+
+    private FilterValidationResult OLDfilterValidationResult = new FilterValidationResult(FilterValidationResultType.NOT_VALIDATED);
 
     private TableFilter filter;
 
@@ -51,14 +53,40 @@ public class ComparedTable {
                          String tableName,
                          boolean hasRecordCountDifference,
                          boolean hasSchemaDifference,
-                         List<SourceTable> sourceTables) {
+                         ColumnSettingsValidationResultType columnValidation,
+                         FilterValidationResultType filterValidation) {
 
         this.codComparedTable = codComparedTable;
         this.tableName = tableName;
         this.hasRecordCountDifference = hasRecordCountDifference;
         this.hasSchemaDifference = hasSchemaDifference;
-        this.sourceTables = sourceTables;
+        this.columnSettingsValidationResult = columnValidation;
+        this.filterValidationResult = filterValidation;
+    }
 
+    public ComparedTable(int codComparedTable,
+                         String tableName,
+                         boolean hasRecordCountDifference,
+                         boolean hasSchemaDifference) {
+
+        this.codComparedTable = codComparedTable;
+        this.tableName = tableName;
+        this.hasRecordCountDifference = hasRecordCountDifference;
+        this.hasSchemaDifference = hasSchemaDifference;
+    }
+
+    public ComparedTable(ComparedTable that) {
+        this.codComparedTable = that.codComparedTable;
+        this.tableName = that.tableName;
+        this.hasRecordCountDifference = that.hasRecordCountDifference;
+        this.hasSchemaDifference = that.hasSchemaDifference;
+        this.sourceTables = that.sourceTables;
+        this.perSourceTable = that.perSourceTable;
+        this.comparedTableColumns = that.comparedTableColumns;
+        this.columnSettingsValidationResult = that.columnSettingsValidationResult;
+        this.filterValidationResult = that.filterValidationResult;
+        this.filter = that.filter;
+        this.sqlSelectDifferences = that.sqlSelectDifferences;
     }
 
     @JsonCreator
@@ -71,6 +99,9 @@ public class ComparedTable {
         this.sqlSelectDifferences = sqlSelectDifferences;
     }
 
+    public void setSourceTables(List<SourceTable> sourceTables) {
+        this.sourceTables = sourceTables;
+    }
 
     public String getTableName() {
         return tableName;
@@ -88,19 +119,16 @@ public class ComparedTable {
         return hasSchemaDifference;
     }
 
-    private void computeTableName() {
-        this.tableName = getPerSourceTable().values().stream()
-                .findFirst()
-                .map(SourceTable::getTableName)
-                .orElse(null);
-    }
-
     public List<SourceTable> getSourceTables() {
         return sourceTables;
     }
 
     public List<ComparedTableColumn> getComparedTableColumns() {
         return comparedTableColumns;
+    }
+
+    public void setComparedTableColumns(List<ComparedTableColumn> comparedTableColumns) {
+        this.comparedTableColumns = comparedTableColumns;
     }
 
     public List<ComparedTableColumn> getOrderedComparedTableColumns() {
@@ -157,27 +185,6 @@ public class ComparedTable {
         this.filter = null;
     }
 
-//    public boolean hasSchemaDifference() {
-//
-//        Collection<SourceTable> sourceTables = perSourceTable.values();
-//        if (sourceTables.isEmpty()) {
-//            return false;
-//        }
-//        SourceTable first = sourceTables.iterator().next();
-//        return !sourceTables.stream()
-//                .allMatch(first::equalSchema);
-//    }
-//
-//    public boolean hasRecordCountDifference() {
-//
-//        Collection<SourceTable> sourceTables = perSourceTable.values();
-//        if (sourceTables.isEmpty()) {
-//            return false;
-//        }
-//        SourceTable first = sourceTables.iterator().next();
-//        return !sourceTables.stream()
-//                .allMatch(first::equalRecordCount);
-//    }
 
     public boolean hasTableFilter() {
         return getFilter() != null;
@@ -201,12 +208,12 @@ public class ComparedTable {
         return totalRecordCount;
     }
 
-    public List<ComparedTableColumn> getComparableComparedTableColumns() {
+    public List<ComparedTableColumn> getComparableColumns() {
         return getComparedTableColumns().stream()
                 .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isComparable())
                 .toList();
     }
-    public List<ComparedTableColumn> getIdentifierComparedTableColumns() {
+    public List<ComparedTableColumn> getIdentifierColumns() {
         return getComparedTableColumns().stream()
                 .filter(comparedTableColumn -> comparedTableColumn.getColumnSetting().isIdentifier())
                 .toList();
@@ -243,16 +250,16 @@ public class ComparedTable {
     /// FILTER VALIDATION
 
     public FilterValidationResult getFilterValidationResult() {
-        return filterValidationResult;
+        return OLDfilterValidationResult;
     }
 
     public void setFilterValidationResult(FilterValidationResult filterValidationResult) {
-        this.filterValidationResult = filterValidationResult;
+        this.OLDfilterValidationResult = filterValidationResult;
     }
 
 
     public void clearFilterValidation() {
-        this.filterValidationResult = new FilterValidationResult(FilterValidationResultType.NOT_VALIDATED);
+        this.OLDfilterValidationResult = new FilterValidationResult(FilterValidationResultType.NOT_VALIDATED);
     }
 
 

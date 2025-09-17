@@ -1,9 +1,10 @@
 package com.luksosilva.dbcomparator.persistence.temp;
 
+import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
+import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
 import com.luksosilva.dbcomparator.enums.SqlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.live.source.Source;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.service.SourceService;
 import com.luksosilva.dbcomparator.util.SQLiteUtils;
@@ -14,49 +15,121 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TempComparedTablesDAO {
 
-    public static List<ComparedTableColumn> selectComparedColumnsFromSources() throws Exception {
+    public static List<ComparedTable> selectComparedTables() throws Exception {
 
-        List<ComparedTableColumn> comparedTableColumns = new ArrayList<>();
+        List<ComparedTable> comparedTableList = new ArrayList<>();
 
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
-            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_COMPARED_COLUMNS_FROM_SOURCES);
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_COMPARED_TABLES);
 
             try (Statement statement = connection.createStatement();
                  ResultSet rs = statement.executeQuery(sql)
             ) {
-                int counter = 1;
                 while (rs.next()) {
 
                     int codComparedTable = rs.getInt("COD_COMPARED_TABLE");
-                    String columnName = rs.getString("COLUMN_NAME");
+                    String tableName = rs.getString("TABLE_NAME");
+                    boolean hasRecordCountDifference = rs.getBoolean("HAS_RECORD_COUNT_DIFFERENCE");
                     boolean hasSchemaDifference = rs.getBoolean("HAS_SCHEMA_DIFFERENCE");
-                    boolean existsOnAllSources = rs.getBoolean("EXISTS_ON_ALL_SOURCES");
+                    ColumnSettingsValidationResultType columnValidation = ColumnSettingsValidationResultType.valueOf(rs.getString("COLUMN_CONFIGS_VALIDATION"));
+                    FilterValidationResultType filterValidation = FilterValidationResultType.valueOf(rs.getString("FILTER_VALIDATION"));
 
-                    ComparedTableColumn comparedTableColumn = new ComparedTableColumn(
-                            counter, codComparedTable, columnName, hasSchemaDifference, existsOnAllSources
+
+
+                    ComparedTable comparedTable = new ComparedTable(
+                            codComparedTable, tableName, hasRecordCountDifference, hasSchemaDifference, columnValidation, filterValidation
                     );
 
-                    comparedTableColumns.add(comparedTableColumn);
+                    comparedTableList.add(comparedTable);
 
-                    counter++;
+                }
+            }
+
+        }
+
+        return comparedTableList;
+    }
+
+    public static List<ComparedTableColumn> selectComparedColumnsOfTables(List<ComparedTable> comparedTables) throws Exception {
+
+        List<ComparedTableColumn> comparedTableColumnList = new ArrayList<>();
+
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String placeholders = comparedTables.stream()
+                    .map(t -> "?")
+                    .collect(Collectors.joining(", "));
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_COMPARED_TABLE_COLUMNS)
+                    .formatted(placeholders);
+
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+                int index = 1;
+                for (ComparedTable comparedTable : comparedTables) {
+                    ps.setInt(index++, comparedTable.getCodComparedTable());
+                }
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        ComparedTableColumn column = new ComparedTableColumn(
+                                rs.getInt("COD_COMPARED_COLUMN"),
+                                rs.getInt("COD_COMPARED_TABLE"),
+                                rs.getString("COLUMN_NAME"),
+                                rs.getBoolean("IS_PK_ANY_SOURCE"),
+                                rs.getBoolean("HAS_SCHEMA_DIFFERENCE"),
+                                rs.getBoolean("EXISTS_ON_ALL_SOURCES")
+                        );
+                        comparedTableColumnList.add(column);
+                    }
                 }
             }
         }
 
-        return comparedTableColumns;
+        return comparedTableColumnList;
     }
+
+
+    public static void computeComparedColumns(List<ComparedTable> comparedTableList) throws Exception {
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.PROCESS_TEMP_COMPARED_COLUMNS);
+
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+                for (ComparedTable comparedTable : comparedTableList) {
+
+                    ps.setInt(1, comparedTable.getCodComparedTable());
+                    ps.addBatch();
+
+                }
+
+                ps.executeBatch();
+                connection.commit();
+
+            } catch (Exception e) {
+                connection.rollback();
+                throw new Exception(e.getMessage());
+            }
+        }
+    }
+
+
+
 
     public static List<ComparedTable> selectComparedTableFromSources() throws Exception {
 
         List<SourceTable> sourceTables = SourceService.getSourceTables();
 
         List<ComparedTable> comparedTables = new ArrayList<>();
+
+
 
         try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
 
@@ -65,22 +138,28 @@ public class TempComparedTablesDAO {
             try (Statement statement = connection.createStatement();
                  ResultSet rs = statement.executeQuery(sql)
             ) {
-                int counter = 1;
+
+                int lastUsedCod = selectLastCodComparedTable();
+
                 while (rs.next()) {
+                    lastUsedCod++;
 
                     String tableName = rs.getString("TABLE_NAME");
                     boolean hasRecordCountDifference = rs.getBoolean("HAS_RECORD_COUNT_DIFFERENCE");
                     boolean hasSchemaDifference = rs.getBoolean("HAS_SCHEMA_DIFFERENCE");
 
+                    ComparedTable comparedTable = new ComparedTable(lastUsedCod,
+                            tableName, hasRecordCountDifference, hasSchemaDifference);
+
                     List<SourceTable> sourceTablesOfComparedTable = sourceTables.stream()
                             .filter(sourceTable -> sourceTable.getTableName().equals(tableName))
                             .toList();
 
-                    ComparedTable comparedTable = new ComparedTable(counter,
-                            tableName, hasRecordCountDifference, hasSchemaDifference, sourceTablesOfComparedTable);
+                    comparedTable.setSourceTables(sourceTablesOfComparedTable);
+
 
                     comparedTables.add(comparedTable);
-                    counter++;
+
                 }
             }
         }
@@ -88,6 +167,27 @@ public class TempComparedTablesDAO {
 
         return comparedTables;
     }
+
+    private static int selectLastCodComparedTable() throws Exception {
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_COMPARED_TABLES_MAX_COD);
+
+            try (Statement statement = connection.createStatement();
+                 ResultSet rs = statement.executeQuery(sql)
+            ) {
+
+                while (rs.next()) {
+                    return rs.getInt("LAST_USED_COD");
+                }
+
+            }
+
+        }
+        return 0;
+    }
+
+
 
     public static List<String> selectComparedTablesNames() throws Exception {
 
@@ -109,6 +209,63 @@ public class TempComparedTablesDAO {
         }
 
         return comparedTablesNames;
+    }
+
+    public static void computeTempComparedColumnConfigs(boolean prioritizeUserColumnSettings,
+                                                        List<ComparedTable> comparedTables) throws Exception {
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.PROCESS_TEMP_COMPARED_COLUMN_CONFIGS);
+
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+                for (ComparedTable comparedTable : comparedTables) {
+
+                    ps.setBoolean(1, prioritizeUserColumnSettings);
+                    ps.setString(2, comparedTable.getTableName());
+
+                    ps.addBatch();
+                }
+
+                ps.executeBatch();
+                connection.commit();
+
+            } catch (Exception e) {
+                connection.rollback();
+                throw e;
+            }
+
+        }
+    }
+
+    public static void updateTempComparedTableColumnValidation(List<ComparedTable> comparedTableList) throws Exception {
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.UPDATE_TEMP_COMPARED_TABLE_COLUMN_CONFIG_VALIDATION);
+
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+                for (ComparedTable comparedTable : comparedTableList) {
+
+                    String validationResult = comparedTable.getColumnSettingsValidationResult().toString();
+
+                    ps.setString(1, validationResult);
+                    ps.setInt(2, comparedTable.getCodComparedTable());
+
+                    ps.addBatch();
+                }
+
+                ps.executeBatch();
+
+            } catch (Exception e) {
+                connection.rollback();
+                throw e;
+            }
+
+            connection.commit();
+        }
     }
 
     public static void saveTempComparedTables(List<ComparedTable> comparedTables) throws Exception {
@@ -154,14 +311,16 @@ public class TempComparedTablesDAO {
                         ps.setInt(1, comparedTableColumn.getCodComparedColumn());
                         ps.setInt(2, comparedTableColumn.getCodComparedTable());
                         ps.setString(3, comparedTableColumn.getColumnName());
-                        ps.setBoolean(4, comparedTableColumn.hasSchemaDifference());
-                        ps.setBoolean(5, comparedTableColumn.existsOnAllSources());
+                        ps.setBoolean(4, comparedTableColumn.isPkAnySource());
+                        ps.setBoolean(5, comparedTableColumn.hasSchemaDifference());
+                        ps.setBoolean(6, comparedTableColumn.existsOnAllSources());
 
                         ps.addBatch();
                     }
                 }
-
+                System.out.println("iniciando execução de batch");
                 ps.executeBatch();
+                System.out.println("execução finalizada");
             }
         }
     }
@@ -188,18 +347,13 @@ public class TempComparedTablesDAO {
                     psComparedTables.setString(1, tableName);
                     psComparedTables.addBatch();
 
-                    psComparedColumns.setString(1, tableName);
                     psComparedColumns.addBatch();
 
-                    psColumnConfigs.setString(1, tableName);
                     psColumnConfigs.addBatch();
 
-                    psColumnFilters.setString(1, tableName);
                     psColumnFilters.addBatch();
 
-                    psComparedTableFilters.setString(1, tableName);
                     psComparedTableFilters.addBatch();
-
                 }
 
                 psComparedTables.executeBatch();
@@ -211,7 +365,7 @@ public class TempComparedTablesDAO {
                 connection.commit();
             } catch (Exception e) {
                 connection.rollback();
-                throw new Exception("Falha ao deletar tabelas", e);
+                throw new Exception("Falha ao deletar tabelas: " + e.getMessage());
             }
         }
     }

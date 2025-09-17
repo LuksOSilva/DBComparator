@@ -1,21 +1,16 @@
 package com.luksosilva.dbcomparator.service;
 
 
-import com.luksosilva.dbcomparator.enums.ConfigKeys;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
-import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
-import com.luksosilva.dbcomparator.model.live.source.Source;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnConfig;
 import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
-import com.luksosilva.dbcomparator.persistence.temp.TempSourcesDAO;
 import com.luksosilva.dbcomparator.util.JsonUtils;
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,26 +52,26 @@ public class ComparisonService {
 //    }
 
     //4
-    public static void processColumnSettings(ComparedTable comparedTable,
-                                             Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings,
-                                             boolean saveSettingsAsDefault) {
-
-        perComparedTableColumnSettings.forEach((comparedTableColumn, comparedTableColumnSettings) -> {
-
-            comparedTableColumn.getColumnSetting().changeIsComparableTo(comparedTableColumnSettings.isComparable());
-            comparedTableColumn.getColumnSetting().changeIsIdentifierTo(comparedTableColumnSettings.isIdentifier());
-
-        });
-        
-
-        if (saveSettingsAsDefault) {
-
-            List<ComparedTable> tablesToSave = new ArrayList<>();
-            tablesToSave.add(comparedTable);
-
-            SchemaService.saveColumnSettings(tablesToSave);
-        }
-    }
+//    public static void processColumnSettings(ComparedTable comparedTable,
+//                                             Map<ComparedTableColumn, ColumnConfig> perComparedTableColumnSettings,
+//                                             boolean saveSettingsAsDefault) {
+//
+//        perComparedTableColumnSettings.forEach((comparedTableColumn, comparedTableColumnSettings) -> {
+//
+//            comparedTableColumn.getColumnSetting().changeIsComparableTo(comparedTableColumnSettings.isComparable());
+//            comparedTableColumn.getColumnSetting().changeIsIdentifierTo(comparedTableColumnSettings.isIdentifier());
+//
+//        });
+//
+//
+//        if (saveSettingsAsDefault) {
+//
+//            List<ComparedTable> tablesToSave = new ArrayList<>();
+//            tablesToSave.add(comparedTable);
+//
+//            SchemaService.saveColumnSettings(tablesToSave);
+//        }
+//    }
 
 
     public static void saveComparison(Comparison comparison, File file) throws Exception {
@@ -125,11 +120,11 @@ public class ComparisonService {
 
     /// HELPERS
 
-    public static void setTableColumnsSettings(List<ComparedTable> comparedTableList,
-                                               List<ComparedSource> comparedSourceList,
-                                               boolean loadFromDb) {
-        SchemaService.loadColumnsSettings(comparedTableList, comparedSourceList, loadFromDb);
-    }
+//    public static void setTableColumnsSettings(List<ComparedTable> comparedTableList,
+//                                               List<ComparedSource> comparedSourceList,
+//                                               boolean loadFromDb) {
+//        SchemaService.loadColumnsSettings(comparedTableList, comparedSourceList, loadFromDb);
+//    }
 
 
     /// privates

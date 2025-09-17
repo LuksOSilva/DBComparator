@@ -1,26 +1,23 @@
 package com.luksosilva.dbcomparator.controller.comparisonScreens;
 
-import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
 import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
-import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
-import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.model.live.source.SourceTable;
 import com.luksosilva.dbcomparator.navigator.ComparisonStepsNavigator;
 import com.luksosilva.dbcomparator.service.ColumnSettingsService;
-import com.luksosilva.dbcomparator.service.ComparisonService;
+import com.luksosilva.dbcomparator.service.ComparedTableService;
+import com.luksosilva.dbcomparator.service.SourceService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
-import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
-import com.luksosilva.dbcomparator.util.FxmlUtils;
+import com.luksosilva.dbcomparator.viewmodel.live.comparison.compared.ComparedTableColumnViewModel;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -29,8 +26,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -40,83 +35,23 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 public class ColumnSettingsScreenController implements BaseController {
-
 
     private ComparisonStepsNavigator navigator;
 
     private Stage currentStage;
 
-
-//    private class ComparedTableColumnViewModel {
-//        ComparedTableColumn comparedTableColumn;
-//
-//        private final SimpleBooleanProperty identifierProperty = new SimpleBooleanProperty();
-//        private final SimpleBooleanProperty comparableProperty = new SimpleBooleanProperty();
-//
-//        private final SimpleBooleanProperty defaultIdentifierProperty = new SimpleBooleanProperty();
-//        private final SimpleBooleanProperty defaultComparableProperty = new SimpleBooleanProperty();
-//
-//        public ComparedTableColumnViewModel(ComparedTableColumn comparedTableColumn) {
-//            this.comparedTableColumn = comparedTableColumn;
-//
-//            setProperties();
-//            setDefault();
-//
-//            // Radio button-like behavior: selecting one disables the other
-//            identifierProperty.addListener((obs, oldVal, newVal) -> {
-//                if (newVal) comparableProperty.set(false);
-//            });
-//
-//            comparableProperty.addListener((obs, oldVal, newVal) -> {
-//                if (newVal) identifierProperty.set(false);
-//            });
-//        }
-//
-//        public boolean isAltered() {
-//            return (identifierProperty.get() != defaultIdentifierProperty.get())
-//                    || (comparableProperty.get() != defaultComparableProperty.get());
-//        }
-//        public boolean existsInAllSources() {
-//            return comparedTableColumn.getPerSourceTableColumn().size() == comparison.getSources().size();
-//        }
-//
-//        public ColumnSettings getViewModelColumnSetting() {
-//            return new ColumnSettings(comparableProperty.get(), identifierProperty.get());
-//        }
-//
-//        public String getPrimaryKeyCountText() {
-//            Map<String, SourceTableColumn> map = comparedTableColumn.getPerSourceTableColumn();
-//
-//            long pkCount = map.values().stream().filter(SourceTableColumn::isPk).count();
-//            int totalSources = comparison.getSources().size();
-//
-//            if (pkCount == 0) return "";
-//            if (pkCount == totalSources) return "Y";
-//
-//            return pkCount + "/" + totalSources;
-//        }
-//
-//        public void setProperties() {
-//            this.identifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
-//            this.comparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
-//        }
-//
-//        public void setDefault() {
-//            this.defaultIdentifierProperty.set(comparedTableColumn.getColumnSetting().isIdentifier());
-//            this.defaultComparableProperty.set(comparedTableColumn.getColumnSetting().isComparable());
-//        }
-//    }
-
     private final Comparison comparison = new Comparison();
-    private final ObservableList<TitledPane> allTablePanes = FXCollections.observableArrayList();
-    private FilteredList<TitledPane> filteredTablePanes;
 
-    Map<String, List<ComparedTableColumnViewModel>> perTableComparedColumnViewModel = new HashMap<>();
+    private ObservableList<TitledPane> tableTitledPanes = FXCollections.observableArrayList();
+    private FilteredList<TitledPane> filteredTableTitledPanes;
+
+    //pagination
+    private int currentPage = 0;
+    private static final int ITEMS_PER_PAGE = 20;
 
     @FXML
     public Text titleLabel;
@@ -133,9 +68,18 @@ public class ColumnSettingsScreenController implements BaseController {
     @FXML
     public CheckBox showOnlyInvalidColumnSettingsCheckBox;
     @FXML
-    public CheckBox showOnlyAlteredCheckBox;
-    @FXML
     public Accordion tablesAccordion;
+
+    @FXML
+    public ScrollPane scrollPane;
+    @FXML
+    public HBox paginationHBox;
+    @FXML
+    public Button prevBtn;
+    @FXML
+    public Label pageLabel;
+    @FXML
+    public Button nextBtn;
 
     @FXML
     public Button nextStepBtn;
@@ -143,6 +87,7 @@ public class ColumnSettingsScreenController implements BaseController {
     public Button previousStepBtn;
     @FXML
     public Text cancelBtn;
+
 
 
     @Override
@@ -153,17 +98,25 @@ public class ColumnSettingsScreenController implements BaseController {
     public void init(ConfigRegistry configRegistry, ComparisonStepsNavigator navigator) {
         this.comparison.setConfigRegistry(configRegistry);
         this.navigator = navigator;
+        this.currentStage = navigator.getStage();
 
-        setupViewModels();
+        computeComparedTables();
         constructAccordion();
         setupFilterControls();
-
     }
 
-    public boolean needToProcess() {
-        return !getTableNamesThatNeedProcessing().isEmpty();
-    }
+    private void computeComparedTables() {
+        try {
 
+            comparison.getComparedTables().addAll(ComparedTableService.getComparedTables());
+
+
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao carregar tabelas",
+                    e.getMessage());
+        }
+    }
 
 
     /// User-called Methods
@@ -171,22 +124,7 @@ public class ColumnSettingsScreenController implements BaseController {
     public void onFilterButtonClicked(MouseEvent mouseEvent) {
         toggleFilters(filterToggleButton.isSelected());
     }
-    public void onSaveSettingsForAllAlteredTablesButtonClicked(ActionEvent event) {
-        boolean confirm = DialogUtils.askConfirmation(currentStage,
-                "Salvar Alterados?",
-                "Todas as tabelas que foram alteradas serão salvas. Salvamentos prévios serão perdidos.");
-        if (!confirm) {
-            return;
-        }
 
-        boolean saveAsDefault = true;
-
-        saveSettingsForAllAlteredTables(getTableNamesThatNeedProcessing(), saveAsDefault);
-
-        if (hasAnyInvalidColumnSettings()){
-            showErrorInvalidSettings();
-        }
-    }
     public void onResetSettingsToDefaultForAllTablesButtonClicked(ActionEvent event) {
         boolean confirm = DialogUtils.askConfirmation(currentStage,
                 "Alterar todas para padrão?",
@@ -195,9 +133,9 @@ public class ColumnSettingsScreenController implements BaseController {
             return;
         }
 
-        boolean loadFromDb = true;
+        boolean useUserDefault = true;
 
-        resetSettingsForAllTables(loadFromDb);
+        resetSettingsForAllTables(useUserDefault);
     }
     public void onResetSettingsToOriginalForAllTablesButtonClicked(ActionEvent event) {
         boolean confirm = DialogUtils.askConfirmation(currentStage,
@@ -207,59 +145,54 @@ public class ColumnSettingsScreenController implements BaseController {
             return;
         }
 
-        boolean loadFromDb = false;
+        boolean useUserDefault = false;
 
-        resetSettingsForAllTables(loadFromDb);
+        resetSettingsForAllTables(useUserDefault);
     }
     public void onSaveSettingsForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
-        String tableName = (String) clickedButton.getUserData();
+        ComparedTable comparedTable = (ComparedTable) clickedButton.getUserData();
 
         boolean confirm = DialogUtils.askConfirmation(currentStage,
                 "Salvar Configurações?",
-                "As configurações da tabela " + tableName + " serão salvas. Se houver um salvamento prévio, será perdido.");
+                "As configurações da tabela " + comparedTable.getTableName() + " serão salvas. Se houver um salvamento prévio, será perdido.");
         if (!confirm) {
             return;
         }
 
-
-        boolean saveAsDefault = true;
-
-        saveSettingsForTable(tableName, saveAsDefault);
-
-        if (hasInvalidColumnSettings(tableName)){
-            showErrorInvalidSettings(tableName);
-        }
+        saveSettingsForTable(comparedTable);
     }
+
     public void onResetSettingsToDefaultForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
-        String tableName = (String) clickedButton.getUserData();
+        ComparedTable comparedTable = (ComparedTable) clickedButton.getUserData();
 
         boolean confirm = DialogUtils.askConfirmation(currentStage,
                 "Alterar para padrão?",
-                "As configurações da tabela "+ tableName +" serão alteradas para o padrão. Alterações não salvas serão perdidas.");
+                "As configurações da tabela "+ comparedTable.getTableName() +" serão alteradas para o padrão. Alterações não salvas serão perdidas.");
         if (!confirm) {
             return;
         }
 
-        boolean loadFromDb = true;
+        boolean useUserDefault = true;
 
-        resetSettingsForTable(tableName, loadFromDb);
+        resetSettingsForTable(comparedTable, useUserDefault);
     }
+
     public void onResetSettingsToOriginalForTableButtonClicked(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
-        String tableName = (String) clickedButton.getUserData();
+        ComparedTable comparedTable = (ComparedTable) clickedButton.getUserData();
 
         boolean confirm = DialogUtils.askConfirmation(currentStage,
                 "Alterar para padrão?",
-                "As configurações da tabela "+ tableName +" serão alteradas para o padrão do sistema. Alterações não salvas serão perdidas.");
+                "As configurações da tabela "+ comparedTable.getTableName() +" serão alteradas para o padrão do sistema. Alterações não salvas serão perdidas.");
         if (!confirm) {
             return;
         }
 
-        boolean loadFromDb = false;
+        boolean useUserDefault = false;
 
-        resetSettingsForTable(tableName, loadFromDb);
+        resetSettingsForTable(comparedTable, useUserDefault);
     }
 
     /// Helper Methods
@@ -310,74 +243,62 @@ public class ColumnSettingsScreenController implements BaseController {
         }
     }
 
-    private void resetSettingsForAllTables(boolean loadFromDb) {
+    private void resetSettingsForAllTables(boolean useUserDefault) {
+        try {
 
-        List<String> tableNames = allTablePanes.stream().map(Labeled::getText).toList();
+            ColumnSettingsService.processComparedTableConfigs(useUserDefault, comparison.getComparedTables());
 
-        for (String tableName : tableNames) {
-            resetSettingsForTable(tableName, loadFromDb);
+
+            for (ComparedTable comparedTable : comparison.getComparedTables()) {
+                for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
+                    comparedTableColumn.setColumnConfig(null);
+                }
+            }
+            tablesAccordion.setExpandedPane(null);
+
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao alterar configurações",
+                    e.getMessage());
         }
     }
 
-    private void saveSettingsForAllAlteredTables(List<String> tableNames, boolean saveAsDefault) {
 
-        for (String tableName : tableNames) {
+    private void resetSettingsForTable(ComparedTable comparedTable, boolean useUserDefault) {
+        try {
 
-            saveSettingsForTable(tableName, saveAsDefault);
+            ColumnSettingsService.processComparedTableConfigs(useUserDefault, List.of(comparedTable));
+
+            //clears configs so it'll be loaded again when user expands the pane.
+            for (ComparedTableColumn comparedTableColumn : comparedTable.getComparedTableColumns()) {
+                comparedTableColumn.setColumnConfig(null);
+            }
+
+            //ColumnSettingsService.loadConfigOfComparedColumns(comparedTable.getComparedTableColumns());
+            tablesAccordion.setExpandedPane(null);
+
+
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao alterar configurações",
+                    e.getMessage());
         }
     }
 
-    private void resetSettingsForTable(String tableName, boolean loadFromDb) {
-        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-        if (comparedTable == null) return;
+    private void saveSettingsForTable(ComparedTable comparedTable) {
+        try {
 
-        List<ComparedTableColumnViewModel> comparedTableColumnViewModelList =
-                perTableComparedColumnViewModel.get(tableName);
-        if (comparedTableColumnViewModelList.isEmpty()) return;
+            ColumnSettingsService.saveColumnSettingsAsDefault(comparedTable);
 
-        List<ComparedTable> comparedTableList = new ArrayList<>();
-        comparedTableList.add(comparedTable);
-        ComparisonService.setTableColumnsSettings(comparedTableList, comparison.getComparedSources(), loadFromDb);
-
-
-        comparedTableColumnViewModelList.forEach(ComparedTableColumnViewModel::setProperties);
-    }
-
-    private void saveSettingsForTable(String tableName, boolean saveAsDefault) {
-        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-        if (comparedTable == null) return;
-
-        List<ComparedTableColumnViewModel> comparedTableColumnViewModelList =
-                perTableComparedColumnViewModel.get(comparedTable.getTableName());
-        if (comparedTableColumnViewModelList.isEmpty()) return;
-
-        Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings =
-                comparedTableColumnViewModelList.stream()
-                        .collect(Collectors.toMap(
-                                vm -> vm.comparedTableColumn,
-                                ComparedTableColumnViewModel::getViewModelColumnSetting
-                        ));
-
-        //validate column setting
-        ColumnSettingsService.validateColumnSettings(comparedTable, perComparedTableColumnSettings, comparison.getComparedSources());
-        if (comparedTable.isColumnSettingsInvalid()) return;
-
-        //saves default
-        ComparisonService.processColumnSettings(comparedTable, perComparedTableColumnSettings, saveAsDefault);
-
-        //updates default values
-        comparedTableColumnViewModelList.forEach(ComparedTableColumnViewModel::setDefault);
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Erro ao salvar configurações",
+                    e.getMessage());
+        }
     }
 
     private boolean hasAnyInvalidColumnSettings() {
         return comparison.getComparedTables().stream().anyMatch(ComparedTable::isColumnSettingsInvalid);
-    }
-    private boolean hasInvalidColumnSettings(ComparedTable comparedTable) {
-        return comparedTable.isColumnSettingsInvalid();
-    }
-    private boolean hasInvalidColumnSettings(String tableName) {
-        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-        return comparedTable.isColumnSettingsInvalid();
     }
 
     private void showErrorInvalidSettings() {
@@ -389,188 +310,259 @@ public class ColumnSettingsScreenController implements BaseController {
         DialogUtils.showInvalidColumnSettingsDialog(currentStage, tablesWithInvalidSettings);
 
     }
-    private void showErrorInvalidSettings(String tableName) {
-        ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-        if (comparedTable == null) return;
-        if (!hasInvalidColumnSettings(comparedTable)) return;
+
+    private void showErrorInvalidSettings(ComparedTable comparedTable) {
+        if (comparedTable.isColumnSettingsValid()) return;
 
         List<ComparedTable> comparedTableToList = new ArrayList<>();
         comparedTableToList.add(comparedTable);
 
         DialogUtils.showInvalidColumnSettingsDialog(currentStage, comparedTableToList);
-
     }
 
-    private ComparedTable getComparedTableFromTableName(String tableName) {
-        return comparison.getComparedTables().stream()
-                .filter(ct -> ct.getTableName().equals(tableName))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private List<String> getTableNamesThatNeedProcessing() {
-
-        Set<String> tableNames = new HashSet<>();
-
-        for (String tableName : perTableComparedColumnViewModel.keySet()) {
-            ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-            if (comparedTable == null) continue;
-
-            if (comparedTable.isColumnSettingsInvalid()) {
-                tableNames.add(comparedTable.getTableName());
-            }
-        }
-
-        tableNames.addAll(perTableComparedColumnViewModel.entrySet()
-                .stream()
-                .filter(entry -> !tableNames.contains(entry.getKey())) //ignores the tables already added to the list
-                .filter(entry -> entry.getValue().stream().anyMatch(ComparedTableColumnViewModel::isAltered))
-                .map(Map.Entry::getKey)
-                .toList());
-
-        return tableNames.stream().toList();
-    }
 
 
     /// Constructor Methods
 
-    private  void setupViewModels() {
-        for (ComparedTable comparedTable : comparison.getComparedTables()) {
-            List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = comparedTable.getOrderedComparedTableColumns().stream()
-                    .map(ComparedTableColumnViewModel::new)
-                    .toList();
-
-            perTableComparedColumnViewModel.put(comparedTable.getTableName(), comparedTableColumnViewModelList);
-        }
-    }
-
     private void setupFilterControls() {
         filterTypeComboBox.setItems(FXCollections.observableArrayList("tabela", "coluna"));
         filterTypeComboBox.setValue("tabela");
+        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.equals("coluna")) {
+                setupFilterByColumnName();
+            }
+            applyFilter();
+        });
 
 
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        filterTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         showOnlyInvalidColumnSettingsCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         showOnlySchemaDiffersCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        showOnlyAlteredCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> applyFilter());
 
         applyFilter();
     }
 
-    private void applyFilter() {
+    private void setupFilterByColumnName() {
+        List<ComparedTable> tablesWithoutColumns = comparison.getComparedTables().stream()
+                .filter(table -> table.getComparedTableColumns().isEmpty()).toList();
+        if (tablesWithoutColumns.isEmpty()) return;
+
+
+        try {
+
+            ComparedTableService.getComparedColumnsOfTables(tablesWithoutColumns);
+
+        } catch (Exception e) {
+            DialogUtils.showError(currentStage,
+                    "Algo deu errado ao carregar as colunas",
+                    e.getMessage());
+        }
+    }
+
+    private List<TitledPane> getFilteredTitledPanes() {
         String filterText = searchTextField.getText().toLowerCase().trim();
         String filterType = filterTypeComboBox.getValue();
 
-        filteredTablePanes.setPredicate(pane -> {
-            String tableName = pane.getText();
-            String tableNameLowerCase = tableName.toLowerCase();
+        return tableTitledPanes.stream()
+                .filter(pane -> {
+                    String tableName = pane.getText().toLowerCase();
 
-            // Filter by text
-            if (!filterText.isEmpty()) {
-                if ("tabela".equalsIgnoreCase(filterType)) {
-                    if (!tableNameLowerCase.contains(filterText)) return false;
-                } else if ("coluna".equalsIgnoreCase(filterType)) {
-
-                    ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-
+                    ComparedTable comparedTable = comparison.getComparedTables().stream()
+                            .filter(ct -> ct.getTableName().equalsIgnoreCase(tableName))
+                            .findFirst().orElse(null);
                     if (comparedTable == null) return false;
 
-                    boolean columnMatch = comparedTable.getComparedTableColumns().stream()
+                    // Filter by text
+                    if (!filterText.isEmpty()) {
+                        if ("tabela".equalsIgnoreCase(filterType)) {
+                            if (!tableName.contains(filterText)) return false;
+
+                        } else if ("coluna".equalsIgnoreCase(filterType)) {
+
+                        boolean columnMatch = comparedTable.getComparedTableColumns().stream()
                             .anyMatch(comparedTableColumn -> comparedTableColumn.getColumnName().contains(filterText));
 
-                    if (!columnMatch) return false;
-                }
+                        if (!columnMatch) return false;
+                        }
+                    }
+
+                    if (showOnlySchemaDiffersCheckBox.isSelected()
+                        && !comparedTable.hasSchemaDifference()) return false;
+
+
+                    if (showOnlyInvalidColumnSettingsCheckBox.isSelected()
+                        && !comparedTable.isColumnSettingsInvalid()) return false;
+
+                    return true;
+                }).toList();
+    }
+
+    private void applyFilter() {
+        String filterText = searchTextField.getText().toLowerCase().trim();
+
+        List<TitledPane> filtered = getFilteredTitledPanes();
+
+        if (filtered.isEmpty()) {
+            tablesAccordion.getPanes().setAll();
+            hidePagination("Nenhuma tabela encontrada para \"" + filterText + "\".");
+            return;
+        }
+
+        // Apply pagination
+        showPagination();
+        int fromIndex = currentPage * ITEMS_PER_PAGE;
+        int toIndex;
+
+        if (fromIndex >= filtered.size()) {
+            currentPage = 0;
+            fromIndex = 0;
+            toIndex = Math.min(ITEMS_PER_PAGE, filtered.size());
+        } else {
+            toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, filtered.size());
+        }
+
+        List<TitledPane> pageItems = filtered.subList(fromIndex, toIndex);
+
+        tablesAccordion.getPanes().setAll(pageItems);
+
+        /* */
+        Accordion newAccordion = new Accordion();
+        newAccordion.getPanes().setAll(tablesAccordion.getPanes());
+        tablesAccordion = newAccordion;
+
+        VBox content = new VBox(10, tablesAccordion, paginationHBox);
+        scrollPane.setContent(content);
+        /* */
+
+        // fade-in style
+        fadeInAccordion();
+
+        int totalPages = (int) Math.ceil(filtered.size() / (double) ITEMS_PER_PAGE);
+        if (totalPages == 1) {
+            hidePagination("");
+        }
+        pageLabel.setText("Página " + (currentPage + 1) + " de " + totalPages);
+
+        prevBtn.setDisable(currentPage == 0);
+        nextBtn.setDisable(toIndex >= filtered.size());
+
+        prevBtn.setOnAction(e -> {
+            if (currentPage > 0) {
+                currentPage--;
+                applyFilter();
             }
-
-            //show only altered filter
-            if (showOnlyAlteredCheckBox.isSelected()) {
-                if (!getTableNamesThatNeedProcessing().contains(tableName)) return false;
-            }
-
-            //show only if schema differs filter
-            if (showOnlySchemaDiffersCheckBox.isSelected()) {
-                ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-                if (!comparedTable.hasSchemaDifference()) return false;
-            }
-
-            //show only invalid column settings filter
-            if (showOnlyInvalidColumnSettingsCheckBox.isSelected()) {
-                ComparedTable comparedTable = getComparedTableFromTableName(tableName);
-                if (!comparedTable.isColumnSettingsInvalid()) return false;
-            }
-
-
-            return true;
         });
 
+        nextBtn.setOnAction(e -> {
+            if (toIndex < filtered.size()) {
+                currentPage++;
+                applyFilter();
+            }
+        });
+    }
 
-        tablesAccordion.getPanes().setAll(filteredTablePanes);
-
-        fadeInAccordion();
+    private void hidePagination(String text) {
+        prevBtn.setVisible(false);
+        nextBtn.setVisible(false);
+        if (text.isBlank()) {
+            pageLabel.setVisible(false);
+            return;
+        }
+        pageLabel.setVisible(true); //could be hidden if there was 1 page
+        pageLabel.setText(text);
+    }
+    private void showPagination() {
+        prevBtn.setVisible(true);
+        nextBtn.setVisible(true);
+        pageLabel.setVisible(true);
     }
 
     private void constructAccordion() {
+        if (comparison.getComparedTables().isEmpty()) {
+            return;
+        }
 
         tablesAccordion.getPanes().clear(); // Clears Accordion
-        allTablePanes.clear();             // Clears master list
+        tableTitledPanes.clear();             // Clears master list
 
         filterToggleButton.setSelected(false); //hides filters
 
-        // Populate allTablePanes with all TitledPanes
-        allTablePanes.addAll(constructTitledPanes());
+        // Populate tableTitledPanes with all TitledPanes
+        tableTitledPanes.addAll(constructTitledPanes());
 
-        // Initialize FilteredList based on allTablePanes
-        filteredTablePanes = new FilteredList<>(allTablePanes, pane -> true);
+        // Initialize FilteredList based on tableTitledPanes
+        filteredTableTitledPanes = new FilteredList<>(tableTitledPanes, pane -> true);
 
-        // Set the Accordions panes to the filtered list.
-        tablesAccordion.getPanes().setAll(filteredTablePanes);
+        // Set the Accordion's panes to the filtered list. This is done ONCE.
+        tablesAccordion.getPanes().setAll(filteredTableTitledPanes);
     }
 
 
     private List<TitledPane> constructTitledPanes() {
         List<TitledPane> titledPaneList = new ArrayList<>();
 
-        List<String> tableNames = comparison.getComparedTables().stream()
-                .map(ComparedTable::getTableName)
-                .toList();
+        for (ComparedTable comparedTable : comparison.getComparedTables()) {
+            String tableName = comparedTable.getTableName();
 
-        for (String tableName : tableNames) {
             TitledPane tablePane = new TitledPane();
             tablePane.setText(tableName);
 
-
             tablePane.expandedProperty().addListener((obs, wasExpanded, isNowExpanded) -> {
-                if (isNowExpanded && tablePane.getUserData() == null) {
-                    constructTitledPaneContent(tablePane);
+
+                boolean columnsNeedLoading = comparedTable.getComparedTableColumns().isEmpty();
+
+                boolean configsNeedLoading = columnsNeedLoading ||
+                        comparedTable.getComparedTableColumns().stream().anyMatch(c -> c.getColumnSetting() == null);
+
+                if (isNowExpanded && (columnsNeedLoading || configsNeedLoading)) {
+                    try {
+
+                        if (columnsNeedLoading) {
+                            ComparedTableService.getComparedColumnsOfTables(List.of(comparedTable));
+                        }
+
+                        if (configsNeedLoading) {
+                            ColumnSettingsService.getConfigOfComparedColumns(comparedTable.getComparedTableColumns());
+                        }
+
+                    } catch (Exception e) {
+                        DialogUtils.showError(currentStage,
+                                "Algo deu errado ao buscar dados da tabela",
+                                e.getMessage());
+                        return;
+                    }
+
+                    constructTitledPaneContent(tablePane, comparedTable);
                 }
             });
 
             titledPaneList.add(tablePane);
         }
+
         return titledPaneList;
     }
 
-    private void constructTitledPaneContent(TitledPane titledPane) {
+    private void constructTitledPaneContent(TitledPane titledPane, ComparedTable comparedTable) {
 
-        TableView<ComparedTableColumnViewModel> tableView = constructTitledPaneContentTableView(titledPane.getText());
-        HBox buttonBox = constructTitledPaneContentButtonBox(titledPane.getText());
+        TableView<ComparedTableColumnViewModel> tableView = constructTitledPaneContentTableView(comparedTable);
+        HBox buttonBox = constructTitledPaneContentButtonBox(comparedTable);
 
-        // Combine the table and buttons in a VBox
         VBox contentContainer = new VBox(10, tableView, buttonBox);
         contentContainer.setPadding(new Insets(10));
         contentContainer.setFillWidth(true);
 
         titledPane.setContent(contentContainer);
         titledPane.setUserData(true);
-
     }
 
-    private TableView<ComparedTableColumnViewModel> constructTitledPaneContentTableView(String tableName) {
+    private TableView<ComparedTableColumnViewModel> constructTitledPaneContentTableView(ComparedTable comparedTable) {
         final double TABLE_ROW_HEIGHT = 28.0;
         final double TABLE_HEADER_HEIGHT = 30.0;
 
-        List<ComparedTableColumnViewModel> comparedTableColumnViewModelList = perTableComparedColumnViewModel.get(tableName);
+        List<ComparedTableColumnViewModel> comparedTableColumnViewModelList =
+                comparedTable.getComparedTableColumns().stream()
+                        .map(ComparedTableColumnViewModel::new)
+                        .toList();
 
         TableView<ComparedTableColumnViewModel> tableView = new TableView<>();
         tableView.setRowFactory(tv -> new TableRow<>() {
@@ -581,7 +573,7 @@ public class ColumnSettingsScreenController implements BaseController {
                 if (item == null || empty) {
                     setStyle("");
                     setTooltip(null);
-                } else if (!item.existsInAllSources()) {
+                } else if (!item.existsOnAllSources()) {
                     setStyle("-fx-background-color: #f0f0f0; -fx-opacity: 0.6;");
                     setTooltip(new Tooltip("Esta coluna não existe em todas as fontes."));
                     getTooltip().setShowDelay(Duration.millis(200));
@@ -592,7 +584,7 @@ public class ColumnSettingsScreenController implements BaseController {
             }
         });
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableView.setPlaceholder(new Label("No data for this table from attached sources."));
+        tableView.setPlaceholder(new Label("Algo deu errado! Nenhuma informação encontrada"));
 
         TableColumn<ComparedTableColumnViewModel, Number> rowIndexColumn = new TableColumn<>("#");
         rowIndexColumn.setCellValueFactory(cellData ->
@@ -600,15 +592,13 @@ public class ColumnSettingsScreenController implements BaseController {
         rowIndexColumn.setSortable(false);
 
         TableColumn<ComparedTableColumnViewModel, String> columnNameColumn = new TableColumn<>("Coluna");
-        columnNameColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().comparedTableColumn.getColumnName()));
+        columnNameColumn.setCellValueFactory(cellData -> cellData.getValue().columnNameProperty());
 
         TableColumn<ComparedTableColumnViewModel, String> pkColumn = new TableColumn<>("PK");
-        pkColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getPrimaryKeyCountText()));
+        pkColumn.setCellValueFactory(cellData -> cellData.getValue().isPkAnySourceStringProperty());
 
         TableColumn<ComparedTableColumnViewModel, Boolean> isIdentifierColumn = new TableColumn<>("Identificador");
-        isIdentifierColumn.setCellValueFactory(cellData -> cellData.getValue().identifierProperty);
+        isIdentifierColumn.setCellValueFactory(cellData -> cellData.getValue().isIdentifierProperty());
         isIdentifierColumn.setCellFactory(col -> new CheckBoxTableCell<>() {
             @Override
             public void updateItem(Boolean item, boolean empty) {
@@ -616,14 +606,14 @@ public class ColumnSettingsScreenController implements BaseController {
 
                 if (!empty) {
                     ComparedTableColumnViewModel viewModel = getTableView().getItems().get(getIndex());
-                    setDisable(!viewModel.existsInAllSources());
+                    setDisable(!viewModel.existsOnAllSources());
                 }
             }
         });
 
 
         TableColumn<ComparedTableColumnViewModel, Boolean> isComparableColumn = new TableColumn<>("Comparável");
-        isComparableColumn.setCellValueFactory(cellData -> cellData.getValue().comparableProperty);
+        isComparableColumn.setCellValueFactory(cellData -> cellData.getValue().isComparableProperty());
         isComparableColumn.setCellFactory(col -> new CheckBoxTableCell<>() {
             @Override
             public void updateItem(Boolean item, boolean empty) {
@@ -631,7 +621,7 @@ public class ColumnSettingsScreenController implements BaseController {
 
                 if (!empty) {
                     ComparedTableColumnViewModel viewModel = getTableView().getItems().get(getIndex());
-                    setDisable(!viewModel.existsInAllSources());
+                    setDisable(!viewModel.existsOnAllSources());
                 }
             }
         });
@@ -657,7 +647,7 @@ public class ColumnSettingsScreenController implements BaseController {
         return tableView;
     }
 
-    private HBox constructTitledPaneContentButtonBox(String tableName) {
+    private HBox constructTitledPaneContentButtonBox(ComparedTable comparedTable) {
         // Create the buttons
         Button resetToOriginal = new Button("Alterar para padrão do sistema");
         Button resetToDefaultBtn = new Button("Alterar para padrão");
@@ -682,9 +672,9 @@ public class ColumnSettingsScreenController implements BaseController {
         saveAsDefaultBtn.getStyleClass().add("btn-action");
 
         // Add user data
-        resetToOriginal.setUserData(tableName);
-        resetToDefaultBtn.setUserData(tableName);
-        saveAsDefaultBtn.setUserData(tableName);
+        resetToOriginal.setUserData(comparedTable);
+        resetToDefaultBtn.setUserData(comparedTable);
+        saveAsDefaultBtn.setUserData(comparedTable);
 
         return buttonBox;
     }
@@ -694,149 +684,88 @@ public class ColumnSettingsScreenController implements BaseController {
     /// Navigation Methods
 
     public void nextStep(MouseEvent mouseEvent) {
+        Scene currenteScene = currentStage.getScene();
 
-        Scene currentScene = currentStage.getScene();
-        currentScene.setUserData(ColumnSettingsScreenController.this);
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("Validando configurações, aguarde...");
+        });
 
-
-        if (!needToProcess() && nextScene != null) {
-            currentStage.setScene(nextScene);
-            return;
-        }
-
-        try {
-            FxLoadResult<Parent, LoadingScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
-
-            Parent root = screenData.node;
-            LoadingScreenController controller = screenData.controller;
-
-            controller.setTitle("Validando configurações, aguarde...");
-
-            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
-            currentStage.setScene(scene);
-            currentStage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError(currentStage,
-                    "Erro de Carregamento",
-                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
-            e.printStackTrace();
-            return;
-        }
-
-
-        Task<Parent> processColumnSettingsTask = new Task<>() {
+        Task<Void> task = new Task<>() {
             @Override
-            protected Parent call() throws Exception {
-
-
-                boolean saveAsDefault = false;
-
-                saveSettingsForAllAlteredTables(perTableComparedColumnViewModel.keySet().stream().toList(), saveAsDefault);
-
-                if (hasAnyInvalidColumnSettings()) {
-                    throw new ColumnSettingsException(
-                            comparison.getComparedTables().stream()
-                                    .filter(ComparedTable::isColumnSettingsInvalid).toList());
-                }
-
-                FxLoadResult<Parent, SetFiltersScreenController> screenData =
-                        FxmlUtils.loadScreen(FxmlFiles.SET_FILTERS_SCREEN);
-
-                Parent nextScreenRoot = screenData.node;
-                SetFiltersScreenController controller = screenData.controller;
-
-                controller.setCurrentStage(currentStage);
-                controller.setPreviousScene(currentScene);
-                controller.setComparison(comparison);
-                controller.init();
-
-                return nextScreenRoot;
+            protected Void call() throws Exception {
+                ColumnSettingsService.processColumnSettings(true, comparison.getComparedTables());
+                return null;
             }
         };
 
+        navigator.runTask(task,
+                () -> {
+                    navigator.goTo(FxmlFiles.SET_FILTERS_SCREEN, ctrl -> {
+                    ctrl.setTitle("configure os filtros para comparação");
+                    ctrl.init(comparison.getConfigRegistry(), navigator);
+                    });
+                },
+                ex -> {
+                    navigator.getStage().setScene(currenteScene);
+                    if (ex instanceof ColumnSettingsException) {
+                        showErrorInvalidSettings();
+                        return;
+                    }
+                    DialogUtils.showError(currentStage,
+                            "Ocorreu um erro inesperado ao validar as configurações:",
+                            ex.getMessage());
 
-        processColumnSettingsTask.setOnSucceeded(event -> {
-            try {
-
-
-                Parent nextScreenRoot = processColumnSettingsTask.getValue();
-
-                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
-
-                currentStage.setScene(nextScreenScene);
-
-
-            } catch (Exception e) {
-                DialogUtils.showError(currentStage,
-                        "Erro de Transição",
-                        "Não foi possível exibir a próxima tela: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-
-
-        processColumnSettingsTask.setOnFailed(event -> {
-            currentStage.setScene(currentScene);
-
-            Throwable exception = processColumnSettingsTask.getException();
-
-            if (exception instanceof ColumnSettingsException) {
-                showErrorInvalidSettings();
-                return;
-            }
-
-            DialogUtils.showError(currentStage,
-                    "Erro de Processamento",
-                    "Ocorreu um erro inesperado: " + exception.getMessage());
-            exception.printStackTrace();
-        });
-
-
-        new Thread(processColumnSettingsTask).start();
-
+                });
     }
 
+
     public void previousStep(MouseEvent mouseEvent) {
+        Scene currenteScene = currentStage.getScene();
 
-        SelectTablesScreenController selectTablesScreenController = (SelectTablesScreenController) previousScene.getUserData();
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("Processando tabelas, aguarde...");
+        });
 
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                ColumnSettingsService.processColumnSettings(false, comparison.getComparedTables());
+                return null;
+            }
+        };
 
-        currentStage.setScene(previousScene);
+        navigator.runTask(task,
+                () -> {
+                    navigator.goTo(FxmlFiles.SELECT_TABLES_SCREEN, ctrl -> {
+                    ctrl.setTitle("selecione os bancos para comparação");
+                    ctrl.init(comparison.getConfigRegistry(), navigator);
+                    });
+                },
+                ex -> {
+                    navigator.getStage().setScene(currenteScene);
+                    if (ex instanceof ColumnSettingsException) {
+                        showErrorInvalidSettings();
+                        return;
+                    }
+                    DialogUtils.showError(currentStage,
+                            "Ocorreu um erro inesperado ao validar as configurações:",
+                            ex.getMessage());
 
+                });
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
         boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
                 "Cancelar comparação",
-                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");
+                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");;
         if (!confirmCancel) {
             return;
         }
 
-        try {
-            FxLoadResult<Parent, HomeScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("cancelando comparação, aguarde...");
+        });
 
-            Parent root = screenData.node;
-            HomeScreenController controller = screenData.controller;
-
-            controller.setStage(currentStage);
-            controller.init();
-
-            Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError(currentStage,
-                    "Erro de Carregamento",
-                    "Não foi possível carregar a tela inicial: " + e.getMessage());
-            e.printStackTrace();
-        }
+        navigator.cancelComparison();
     }
-
-
 }

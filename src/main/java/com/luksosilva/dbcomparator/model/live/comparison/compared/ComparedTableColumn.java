@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
-import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnConfig;
 import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
 
 import java.util.ArrayList;
@@ -26,11 +26,12 @@ public class ComparedTableColumn {
     private int codComparedColumn;
     private int codComparedTable;
     private String columnName;
+    private boolean isPkAnySource;
     private boolean hasSchemaDifference;
     private boolean existsOnAllSources;
 
 
-    private ColumnSettings columnSettings;
+    private ColumnConfig columnConfig;
     private final List<ColumnFilter> columnFilters = new ArrayList<>();
 
     /// OLD
@@ -44,12 +45,14 @@ public class ComparedTableColumn {
     public ComparedTableColumn(int codComparedColumn,
                                int codComparedTable,
                                String columnName,
+                               boolean isPkAnySource,
                                boolean hasSchemaDifference,
                                boolean existsOnAllSources) {
 
         this.codComparedColumn = codComparedColumn;
         this.codComparedTable = codComparedTable;
         this.columnName = columnName;
+        this.isPkAnySource = isPkAnySource;
         this.hasSchemaDifference = hasSchemaDifference;
         this.existsOnAllSources = existsOnAllSources;
     }
@@ -60,6 +63,10 @@ public class ComparedTableColumn {
 
     public int getCodComparedTable() {
         return codComparedTable;
+    }
+
+    public boolean isPkAnySource() {
+        return isPkAnySource;
     }
 
     public boolean hasSchemaDifference() {
@@ -78,12 +85,12 @@ public class ComparedTableColumn {
         this.comparedTable = comparedTable;
     }
 
-    public void setColumnSettings(ColumnSettings columnSettings) {
-        this.columnSettings = columnSettings;
+    public void setColumnSettings(ColumnConfig columnConfig) {
+        this.columnConfig = columnConfig;
     }
 
-    public void setColumnSetting(ColumnSettings columnSettings) {
-        this.columnSettings = columnSettings;
+    public void setColumnConfig(ColumnConfig columnConfig) {
+        this.columnConfig = columnConfig;
     }
 
     public ComparedTable getComparedTable() {
@@ -129,8 +136,8 @@ public class ComparedTableColumn {
 
 
 
-    public ColumnSettings getColumnSetting() {
-        return columnSettings;
+    public ColumnConfig getColumnSetting() {
+        return columnConfig;
     }
 
 
@@ -139,11 +146,11 @@ public class ComparedTableColumn {
     }
 
     public boolean hasColumnSetting() {
-        return columnSettings != null;
+        return columnConfig != null;
     }
 
     public void removeColumnSetting() {
-        columnSettings = null;
+        columnConfig = null;
     }
 
     public void addColumnFilter(ColumnFilter filter) {

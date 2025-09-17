@@ -19,6 +19,9 @@ public class ComparedTableColumnViewModel {
     private final ObservableList<ColumnFilterViewModel> columnFilterViewModels = FXCollections.observableArrayList();
 
     private final StringProperty columnName = new SimpleStringProperty();
+    private final BooleanProperty isPkAnySource = new SimpleBooleanProperty();
+    private final BooleanProperty hasSchemaDifference = new SimpleBooleanProperty();
+    private final BooleanProperty existsOnAllSources = new SimpleBooleanProperty();
     private final BooleanProperty isIdentifier = new SimpleBooleanProperty();
     private final BooleanProperty isComparable = new SimpleBooleanProperty();
 
@@ -28,23 +31,95 @@ public class ComparedTableColumnViewModel {
     public ComparedTableColumnViewModel(ComparedTableColumn model) {
         this.model = model;
         this.columnName.set(model.getColumnName());
+        this.isPkAnySource.set(model.isPkAnySource());
+        this.hasSchemaDifference.set(model.hasSchemaDifference());
+        this.existsOnAllSources.set(model.existsOnAllSources());
 
-        this.isIdentifier.set(model.getColumnSetting().isIdentifier());
-        this.isComparable.set(model.getColumnSetting().isComparable());
+        if (model.getColumnSetting() != null) {
+            this.isIdentifier.set(model.getColumnSetting().isIdentifier());
+            this.isComparable.set(model.getColumnSetting().isComparable());
+
+            this.isIdentifier.addListener((obs, oldValue, newValue) -> {
+                model.getColumnSetting().setIdentifier(newValue);
+                if (newValue) {
+                    this.isComparable.set(false);
+                }
+
+            });
+            this.isComparable.addListener((obs, oldValue, newValue) -> {
+                model.getColumnSetting().setComparable(newValue);
+                if (newValue) {
+                    this.isIdentifier.set(false);
+                }
+            });
+        }
+
+
 
         this.columnFilters = FXCollections.observableList(model.getColumnFilters());
-
         for (ColumnFilter columnFilter : model.getColumnFilters()) {
             columnFilterViewModels.add(new ColumnFilterViewModel(columnFilter));
         }
     }
 
 
-    /// GETTERS AND SETTERS
+    public String getColumnName() {
+        return columnName.get();
+    }
 
     public StringProperty columnNameProperty() {
         return columnName;
     }
+
+    public boolean isPkAnySource() {
+        return isPkAnySource.get();
+    }
+
+    public BooleanProperty isPkAnySourceProperty() {
+        return isPkAnySource;
+    }
+
+    public boolean isHasSchemaDifference() {
+        return hasSchemaDifference.get();
+    }
+
+    public BooleanProperty hasSchemaDifferenceProperty() {
+        return hasSchemaDifference;
+    }
+
+    public boolean existsOnAllSources() {
+        return existsOnAllSources.get();
+    }
+
+    public BooleanProperty existsOnAllSourcesProperty() {
+        return existsOnAllSources;
+    }
+
+    public boolean isIdentifier() {
+        return isIdentifier.get();
+    }
+
+    public BooleanProperty isIdentifierProperty() {
+        return isIdentifier;
+    }
+
+    public boolean isComparable() {
+        return isComparable.get();
+    }
+
+    public BooleanProperty isComparableProperty() {
+        return isComparable;
+    }
+
+    public SimpleStringProperty isPkAnySourceStringProperty() {
+        return new SimpleStringProperty(isPkAnySource.get() ? "Y" : "");
+    }
+
+
+    /// GETTERS AND SETTERS
+
+
+
 
     public ObservableList<ColumnFilterViewModel> getColumnFilterViewModels() {
         return columnFilterViewModels;
@@ -63,16 +138,6 @@ public class ComparedTableColumnViewModel {
     }
 
 
-    public void updateViewModel() {
-        this.isIdentifier.set(model.getColumnSetting().isIdentifier());
-        this.isComparable.set(model.getColumnSetting().isComparable());
-
-        this.columnFilters = FXCollections.observableList(model.getColumnFilters());
-
-        for (ColumnFilter columnFilter : model.getColumnFilters()) {
-            columnFilterViewModels.add(new ColumnFilterViewModel(columnFilter));
-        }
-    }
 
 
 

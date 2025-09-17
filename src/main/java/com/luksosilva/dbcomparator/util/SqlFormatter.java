@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 public class SqlFormatter {
 
+
     public static String buildUpdateDBCComparisonConfig(String configKey, String configValue) {
 
         Map<SqlPlaceholders, String> placeholders = Map.of(
@@ -91,31 +92,31 @@ public class SqlFormatter {
     }
 
 
-    public static String buildReplaceColumnSettings(String tableName, String columnName, boolean isComparable, boolean isIdentifier) {
+//    public static String buildReplaceColumnSettings(String tableName, String columnName, boolean isComparable, boolean isIdentifier) {
+//
+//        //converts boolean to string
+//        String strIsComparable = isComparable ? "Y" : "N";
+//        String strIsIdentifier = isIdentifier ? "Y" : "N";
+//
+//        Map<SqlPlaceholders, String> placeholders = Map.of(
+//                SqlPlaceholders.TABLE_NAME, tableName,
+//                SqlPlaceholders.COLUMN_NAME, columnName,
+//                SqlPlaceholders.IS_COMPARABLE, strIsComparable,
+//                SqlPlaceholders.IS_IDENTIFIER, strIsIdentifier
+//        );
+//
+//        return buildSQL(SqlFiles.REPLACE_COLUMN_DEFAULTS, placeholders);
+//
+//    }
 
-        //converts boolean to string
-        String strIsComparable = isComparable ? "Y" : "N";
-        String strIsIdentifier = isIdentifier ? "Y" : "N";
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.TABLE_NAME, tableName,
-                SqlPlaceholders.COLUMN_NAME, columnName,
-                SqlPlaceholders.IS_COMPARABLE, strIsComparable,
-                SqlPlaceholders.IS_IDENTIFIER, strIsIdentifier
-        );
-
-        return buildSQL(SqlFiles.REPLACE_COLUMN_DEFAULTS, placeholders);
-
-    }
-
-    public static String buildSelectMapColumnSettings(String listTableNames) {
-
-        Map<SqlPlaceholders, String> placeholders = Map.of(
-                SqlPlaceholders.LIST_TABLE_NAMES, listTableNames
-        );
-
-        return buildSQL(SqlFiles.SELECT_COLUMN_DEFAULTS, placeholders);
-    }
+//    public static String buildSelectMapColumnSettings(String listTableNames) {
+//
+//        Map<SqlPlaceholders, String> placeholders = Map.of(
+//                SqlPlaceholders.LIST_TABLE_NAMES, listTableNames
+//        );
+//
+//        return buildSQL(SqlFiles.SELECT_COLUMN_DEFAULTS, placeholders);
+//    }
 
     public static String buildPragmaTableInfo(String sourceId, String tableName) {
 

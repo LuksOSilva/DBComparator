@@ -38,8 +38,8 @@ public class SelectDifferencesBuilder {
         String groupByClause = buildGroupByClause(identifierColumnNames);
 
         String havingClause = buildHavingClause(sourceIds,
-                comparedTable.getComparableComparedTableColumns().isEmpty() ?
-                        comparedTable.getIdentifierComparedTableColumns() : comparedTable.getComparableComparedTableColumns());
+                comparedTable.getComparableColumns().isEmpty() ?
+                        comparedTable.getIdentifierColumns() : comparedTable.getComparableColumns());
 
         return SqlFormatter.buildSelectDifferences(withClause, selectClause, groupByClause, havingClause);
     }

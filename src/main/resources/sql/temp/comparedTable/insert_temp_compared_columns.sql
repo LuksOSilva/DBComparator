@@ -4,8 +4,9 @@ INSERT INTO
     COD_COMPARED_COLUMN,
     COD_COMPARED_TABLE,
     COLUMN_NAME,
+    IS_PK_ANY_SOURCE,
     HAS_SCHEMA_DIFFERENCE,
     EXISTS_ON_ALL_SOURCES
     )
     VALUES
-    (?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?)

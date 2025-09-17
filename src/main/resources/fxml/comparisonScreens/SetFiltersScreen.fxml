@@ -23,7 +23,7 @@
       <HBox alignment="CENTER" layoutX="1.0" layoutY="14.0" prefHeight="40.0" prefWidth="691.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
          <children>
             <Region HBox.hgrow="ALWAYS" />
-            <Text styleClass="title-text" text="configure os filtros para comparação">
+            <Text fx:id="titleLabel" styleClass="title-text" text="configure os filtros para comparação">
                <font>
                   <Font size="30.0" />
                </font>

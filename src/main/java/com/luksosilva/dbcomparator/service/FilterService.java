@@ -58,9 +58,7 @@ public class FilterService {
             }
         }
 
-
     }
-
 
 
     public static void applyFilters(List<Filter> filters) {

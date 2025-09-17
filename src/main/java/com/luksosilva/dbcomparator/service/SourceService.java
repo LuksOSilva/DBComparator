@@ -42,6 +42,16 @@ public class SourceService {
         }
     }
 
+    public static List<Source> getSources() throws Exception {
+        try {
+
+            return TempSourcesDAO.selectSources();
+
+        } catch (Exception e) {
+            throw new Exception("Não foi possível carregar as fontes: " + e.getMessage());
+        }
+    }
+
     public static void getColumnsOfTables(List<SourceTable> sourceTableList) throws Exception {
         try {
 

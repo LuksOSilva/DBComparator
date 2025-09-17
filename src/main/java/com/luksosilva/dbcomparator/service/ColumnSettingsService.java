@@ -1,139 +1,178 @@
 package com.luksosilva.dbcomparator.service;
 
 import com.luksosilva.dbcomparator.enums.ColumnSettingsValidationResultType;
-import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedSource;
+import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTableColumn;
-import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnSettings;
-import com.luksosilva.dbcomparator.model.live.source.SourceTableColumn;
+import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnConfig;
+import com.luksosilva.dbcomparator.model.live.source.Source;
+import com.luksosilva.dbcomparator.persistence.ColumnSettingsDAO;
+import com.luksosilva.dbcomparator.persistence.ColumnSettingsValidator;
+import com.luksosilva.dbcomparator.persistence.temp.TempColumnSettingsDAO;
+import com.luksosilva.dbcomparator.persistence.temp.TempComparedTablesDAO;
 
 import java.util.*;
 
 public class ColumnSettingsService {
 
-    public static void validateColumnSettings(ComparedTable comparedTable,
-                                              Map<ComparedTableColumn, ColumnSettings> perComparedTableColumnSettings,
-                                              List<ComparedSource> comparedSourceList) {
+    public static void processColumnSettings(boolean validate, List<ComparedTable> comparedTableList) throws Exception {
+        //saves only tables where user loaded the configs (others will have no changes)
+        List<ComparedTable> touchedTables = comparedTableList.stream()
+                .filter(comparedTable -> !comparedTable.getComparableColumns().isEmpty())
+                .filter(comparedTable -> comparedTable.getComparedTableColumns().stream()
+                    .noneMatch(comparedTableColumn -> comparedTableColumn.getColumnSetting() == null))
+                .toList();
 
-        //checks if table was validated before.
-        if (comparedTable.isColumnSettingsValid()) {
+        if (!touchedTables.isEmpty()) {
+            // Always save (so edits are not lost, even if invalid)
+            saveTempColumnSettings(touchedTables);
 
-            for (Map.Entry<ComparedTableColumn, ColumnSettings> entry : perComparedTableColumnSettings.entrySet()) {
-                ComparedTableColumn comparedTableColumn = entry.getKey();
-                ColumnSettings newcomparedTableColumnSettings = entry.getValue();
-                ColumnSettings currentColumnSettings = comparedTableColumn.getColumnSetting();
+            // Reset validation for tables user touched
+            touchedTables.forEach(ComparedTable::clearColumnSettingValidation);
+            saveColumnSettingValidationResult(touchedTables);
+        }
 
-                //checks if anything changed when compared to the last validation.
-                if (!currentColumnSettings.equals(newcomparedTableColumnSettings)){
-                    comparedTable.clearColumnSettingValidation();
-                    break;
-                }
+        if (validate) {
+            validateColumnSettings(comparedTableList);
+
+            List<ComparedTable> invalidComparedTables = comparedTableList.stream()
+                    .filter(ComparedTable::isColumnSettingsInvalid)
+                    .toList();
+
+            if (!invalidComparedTables.isEmpty()){
+                throw new ColumnSettingsException(invalidComparedTables);
             }
-            //no changes since last validation.
-            if (comparedTable.isColumnSettingsValid()) {
-                return;
+        }
+    }
+
+    public static void processComparedTableConfigs(boolean prioritizeUserColumnSettings,
+                                                   List<ComparedTable> comparedTables) throws Exception {
+        try {
+
+            TempComparedTablesDAO.computeTempComparedColumnConfigs(prioritizeUserColumnSettings, comparedTables);
+
+        } catch (Exception e) {
+            throw new Exception("Não foi possível processar as configurações: " + e);
+
+        }
+    }
+
+    public static void saveColumnSettingValidationResult(List<ComparedTable> comparedTableList) throws Exception {
+        try {
+
+            TempComparedTablesDAO.updateTempComparedTableColumnValidation(comparedTableList);
+
+        } catch (Exception e) {
+            throw new Exception("Não foi possível processar as configurações: " + e);
+
+        }
+    }
+
+    public static void getConfigOfComparedColumns(List<ComparedTableColumn> comparedTableColumnList) throws Exception {
+        try {
+
+            List<ColumnConfig> columnConfigList = loadConfigOfComparedColumns(comparedTableColumnList);
+
+            for (ComparedTableColumn column : comparedTableColumnList) {
+                ColumnConfig configOfColumn = columnConfigList.stream()
+                        .filter(columnConfig -> columnConfig.getCodComparedColumn() == column.getCodComparedColumn())
+                        .findFirst()
+                        .orElse(new ColumnConfig(false, false));
+
+                column.setColumnConfig(configOfColumn);
             }
+
+        } catch (Exception e) {
+            throw new Exception("Não foi possível carregar as tabelas comparadas: " + e.getMessage());
+
         }
-
-
-
-        boolean hasIdentifier = perComparedTableColumnSettings.values().stream()
-                .anyMatch(ColumnSettings::isIdentifier);
-
-        if (!hasIdentifier) {
-            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
-            return;
-        }
-
-
-        List<String> invalidInSources = SchemaService.validateIdentifiers(comparedTable,
-                perComparedTableColumnSettings, comparedSourceList);
-
-        if (!invalidInSources.isEmpty()) {
-            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
-            return;
-        }
-
-
-        comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.VALID);
     }
 
-    public static ColumnSettings getColumnSettings
-            (ComparedTable comparedTable,
-             ComparedTableColumn comparedTableColumn,
-             List<ComparedSource> comparedSourceList,
-             Optional<Map<ComparedTable, Map<ComparedTableColumn, ColumnSettings>>> optionalPerComparedTableColumnSetting) {
+    public static List<ColumnConfig> loadConfigOfComparedColumns(List<ComparedTableColumn> comparedTableColumnList) throws Exception {
+        return TempColumnSettingsDAO.selectConfigOfColumns(comparedTableColumnList);
+    }
 
+    public static void saveColumnSettingsAsDefault(ComparedTable comparedTable) throws Exception {
+        try {
 
+            ColumnSettingsDAO.saveTableColumnsSettings(comparedTable);
 
-        boolean existsInAllSources = getExistsInAllSources(comparedTableColumn, comparedSourceList);
-        //1. If column doesn't exist in all sources, it is neither identifier nor comparable.
-        if (!existsInAllSources) {
-            return new ColumnSettings(false, false);
+        } catch (Exception e) {
+            throw new Exception("Não foi possível salvar as configurações como padrão: " + e.getMessage());
+
+        }
+    }
+
+    public static void saveTempColumnSettings(List<ComparedTable> comparedTableList) throws Exception {
+        try {
+
+            TempColumnSettingsDAO.saveTableColumnsSettings(comparedTableList);
+
+        } catch (Exception e) {
+            throw new Exception("Não foi possível salvar as configurações como padrão: " + e.getMessage());
+
+        }
+    }
+
+    public static void validateColumnSettings(List<ComparedTable> comparedTableList) throws Exception {
+        for (ComparedTable comparedTable : comparedTableList) {
+            if (comparedTable.isColumnSettingsValid()) continue;
+
+            //for memory saving + only saving what needs later on
+            ComparedTable tempComparedTable = new ComparedTable(comparedTable);
+
+            if (tempComparedTable.getComparedTableColumns().isEmpty()) {
+                ComparedTableService.getComparedColumnsOfTables(List.of(tempComparedTable));
+            }
+
+            if (tempComparedTable.getComparedTableColumns().stream().anyMatch(column -> column.getColumnSetting() == null)) {
+                ColumnSettingsService.getConfigOfComparedColumns(tempComparedTable.getComparedTableColumns());
+            }
+
+            boolean hasIdentifier = tempComparedTable.getComparedTableColumns().stream()
+                    .anyMatch(column -> column.getColumnSetting().isIdentifier());
+            if (!hasIdentifier) {
+                comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.NO_IDENTIFIER);
+                continue;
+            }
+
+            boolean areIdentifiersValid = validateIdentifiers(tempComparedTable);
+            if (!areIdentifiersValid) {
+                comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.AMBIGUOUS_IDENTIFIER);
+                continue;
+            }
+
+            comparedTable.setColumnSettingsValidationResult(ColumnSettingsValidationResultType.VALID);
         }
 
-        boolean tableHasPrimaryKey = comparedTable.getPerSourceTable().values().stream()
-                .flatMap(sourceTable -> sourceTable.getSourceTableColumns().stream())
-                .anyMatch(SourceTableColumn::isPk);
+        saveColumnSettingValidationResult(comparedTableList);
 
-        boolean isPkInAnySource = getIsPkInAnySource(comparedTableColumn);
-        boolean isPkInAllSources = getIsPkInAllSources(comparedTableColumn);
-
-
-
-        return optionalPerComparedTableColumnSetting
-                .map(map -> map.getOrDefault(comparedTable, Map.of()).get(comparedTableColumn))
-                .orElseGet(() -> getDefaultColumnSettings(
-                        tableHasPrimaryKey, isPkInAnySource, isPkInAllSources
-                ));
     }
 
+    public static boolean validateIdentifiers(ComparedTable comparedTable) throws Exception {
 
-    //
+        List<Source> sources = SourceService.getSources();
 
-    private static ColumnSettings getDefaultColumnSettings(boolean tableHasPrimaryKey, boolean isPkInAnySource, boolean isPkInAllSources) {
-        boolean isIdentifier;
-        boolean isComparable;
+        for (Source source : sources) {
 
-        //2. If table doesn't have any PK in any sources, all columns are identifiers.
-        if (!tableHasPrimaryKey) {
-            isIdentifier = true;
-            isComparable = false;
-        }
-        //3. If column is PK in at least 1 source and not in the others, it is an identifier.
-        else if (isPkInAnySource && !isPkInAllSources) {
-            isIdentifier = true;
-            isComparable = false;
-        }
-        //4. If column exists in all sources and table has primary keys, identifier if its PK else comparable.
-        else {
-            isIdentifier = isPkInAnySource;
-            isComparable = !isPkInAnySource;
+            boolean isValid = ColumnSettingsValidator.selectValidateColumnSettings(source, comparedTable);
+
+            if (!isValid) return false;
         }
 
-
-        return new ColumnSettings(isComparable, isIdentifier);
+        return true;
     }
 
+    public static void clearTempTables() throws Exception {
+        try {
 
+            TempColumnSettingsDAO.clearTables();
 
-    private static boolean getExistsInAllSources(ComparedTableColumn comparedTableColumn, List<ComparedSource> comparedSourceList) {
-        return comparedTableColumn.getPerSourceTableColumn().size() == comparedSourceList.size();
+        } catch (Exception e) {
+            throw new Exception("Não foi possível limpar as tabelas temporárias: " + e);
+        }
     }
 
-    private static boolean getIsPkInAnySource(ComparedTableColumn comparedTableColumn) {
-        List<SourceTableColumn> sourceTableColumnList =
-                comparedTableColumn.getPerSourceTableColumn().values().stream().toList();
-
-        return sourceTableColumnList.stream().anyMatch(SourceTableColumn::isPk);
-    }
-
-    private static boolean getIsPkInAllSources(ComparedTableColumn comparedTableColumn) {
-        List<SourceTableColumn> sourceTableColumnList =
-                comparedTableColumn.getPerSourceTableColumn().values().stream().toList();
-
-        return sourceTableColumnList.stream().allMatch(SourceTableColumn::isPk);
-    }
 
 
 }

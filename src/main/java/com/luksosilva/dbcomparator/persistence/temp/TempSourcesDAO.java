@@ -18,6 +18,31 @@ import java.util.Map;
 
 public class TempSourcesDAO {
 
+    public static List<Source> selectSources() throws Exception {
+
+        List<Source> sources = new ArrayList<>();
+
+        try (Connection connection = SQLiteUtils.getDataSource().getConnection()) {
+
+            String sql = SQLiteUtils.loadSQL(SqlFiles.SELECT_TEMP_SOURCES);
+
+            try (Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(sql)
+            ) {
+                while (rs.next()) {
+
+                    String sourceId = rs.getString("SOURCE_ID");
+                    int sequence = rs.getInt("SEQUENCE");
+                    File file = new File(rs.getString("SOURCE_PATH"));
+
+                    sources.add(new Source(sourceId, sequence, file));
+                }
+            }
+        }
+
+        return sources;
+    }
+
     public static List<SourceTableColumn> selectSourceColumns() throws Exception {
 
         List<SourceTableColumn> sourceTableColumns = new ArrayList<>();

@@ -4,6 +4,8 @@ import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.controller.comparisonScreens.BaseController;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
 import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
+import com.luksosilva.dbcomparator.persistence.temp.TempColumnSettingsDAO;
+import com.luksosilva.dbcomparator.service.ColumnSettingsService;
 import com.luksosilva.dbcomparator.service.ComparedTableService;
 import com.luksosilva.dbcomparator.service.SourceService;
 import com.luksosilva.dbcomparator.service.TableComparisonResultService;
@@ -20,7 +22,7 @@ import java.util.function.Consumer;
 
 public class ComparisonStepsNavigator {
 
-    private Stage stage;
+    private  Stage stage;
 
     public ComparisonStepsNavigator(Stage stage) {
         this.stage = stage;
@@ -47,7 +49,16 @@ public class ComparisonStepsNavigator {
 
     public void runTask(Task<?> task, Runnable onSuccess) {
         task.setOnSucceeded(e -> onSuccess.run());
-        task.setOnFailed(e -> DialogUtils.showError(stage, "Erro", task.getException().getMessage()));
+        task.setOnFailed(e -> DialogUtils.showError(stage, "Erro", "ocorreu um erro inesperado :("));
+        new Thread(task).start();
+    }
+
+    public void runTask(Task<?> task, Runnable onSuccess, Consumer<Throwable> onFail) {
+        task.setOnSucceeded(e -> onSuccess.run());
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            onFail.accept(ex);
+        });
         new Thread(task).start();
     }
 
@@ -58,6 +69,7 @@ public class ComparisonStepsNavigator {
             protected Void call() throws Exception {
                 SourceService.clearTempTables();
                 ComparedTableService.clearTempTables();
+                ColumnSettingsService.clearTempTables();
                 TableComparisonResultService.clearTempTables();
                 return null;
             }

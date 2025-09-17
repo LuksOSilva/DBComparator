@@ -51,7 +51,7 @@ public class SelectTablesScreenController implements BaseController {
 
     //pagination
     private int currentPage = 0;
-    private static final int ITEMS_PER_PAGE = 30;
+    private static final int ITEMS_PER_PAGE = 20;
 
     private List<Stage> compareSchemaOpenedStages = new ArrayList<>();
 
@@ -151,9 +151,6 @@ public class SelectTablesScreenController implements BaseController {
 //
 //        compareSchemaOpenedStages.add(schemaComparisonStage);
     }
-
-
-
 
 
     private void constructAccordion() {
@@ -581,7 +578,7 @@ public class SelectTablesScreenController implements BaseController {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                ComparedTableService.processTables(getSelectedComparedTables());
+                ComparedTableService.processTables(comparison.getConfigRegistry(), getSelectedComparedTables());
                 return null;
             }
         };
@@ -602,7 +599,6 @@ public class SelectTablesScreenController implements BaseController {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                ComparedTableService.processTables(getSelectedComparedTables());
                 return null;
             }
         };

@@ -1,7 +1,9 @@
 select
-    distinct "{{source_id}}" as source_id
+    1
 from
-    "{{source_id}}"."{{table_name}}"
-group by {{identifier_columns}}
-having count(*) >1
+    "%s"."%s"
+group by
+    %s
+having
+    count(1) >1
 LIMIT 1;

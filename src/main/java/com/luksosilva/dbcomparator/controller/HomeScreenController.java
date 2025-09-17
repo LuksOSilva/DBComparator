@@ -9,11 +9,11 @@ import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.persistence.SavedComparison;
 import com.luksosilva.dbcomparator.navigator.ComparisonStepsNavigator;
 import com.luksosilva.dbcomparator.persistence.ComparisonDAO;
+import com.luksosilva.dbcomparator.persistence.temp.TempColumnSettingsDAO;
 import com.luksosilva.dbcomparator.persistence.temp.TempComparedTablesDAO;
 import com.luksosilva.dbcomparator.persistence.temp.TempSourcesDAO;
 import com.luksosilva.dbcomparator.persistence.temp.TempTableComparisonResultDAO;
-import com.luksosilva.dbcomparator.service.ComparisonService;
-import com.luksosilva.dbcomparator.service.ConfigurationService;
+import com.luksosilva.dbcomparator.service.*;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
 import com.luksosilva.dbcomparator.util.FxmlUtils;
@@ -334,9 +334,10 @@ public class HomeScreenController implements BaseController {
 
     private void startNewComparison() {
         try { /// TODO: pode causar problemas em casos de 2 instancias abertas. Avaliar o que fazer.
-            TempSourcesDAO.clearTables();
-            TempComparedTablesDAO.clearTables();
-            TempTableComparisonResultDAO.clearTables();
+            SourceService.clearTempTables();
+            ComparedTableService.clearTempTables();
+            ColumnSettingsService.clearTempTables();
+            TableComparisonResultService.clearTempTables();
         } catch (Exception e) {
             DialogUtils.showError(currentStage,
                     "Erro ao limpar tabelas temporárias.",

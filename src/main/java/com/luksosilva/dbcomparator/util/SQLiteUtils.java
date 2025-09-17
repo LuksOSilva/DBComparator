@@ -16,6 +16,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SQLiteUtils {
@@ -29,7 +31,6 @@ public class SQLiteUtils {
             }
         }
     }
-
 
     public static DataSource getDataSource() {
         Path userDb = Paths.get(System.getenv("APPDATA"), "DBComparator/database", "DBCdatabase.db");
@@ -86,16 +87,29 @@ public class SQLiteUtils {
         }
     }
 
-    public static void attachSource(Connection conn, Source source) {
-        try {
 
-            String query =
-                    "ATTACH DATABASE '" + source.getFile().getCanonicalPath() +"' AS " + source.getId();
-            runSql(conn, query);
+    public static void attachSource(Connection conn, Source source) throws Exception {
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+
+        String query =
+                "ATTACH DATABASE '" + source.getFile().getCanonicalPath() +"' AS " + source.getId();
+        runSql(conn, query);
+
+    }
+    public static void detachSource(Connection conn, Source source) throws Exception {
+
+
+        String query =
+                "DETACH DATABASE " + source.getId();
+        runSql(conn, query);
+
+    }
+
+    public static <T> String getSqlList(List<T> list, Function<T, String> mapper) {
+        return list.stream()
+                .map(mapper)
+                .map(s -> "\"" + s + "\"")
+                .collect(Collectors.joining(", "));
     }
 
 }

@@ -1,21 +1,27 @@
 package com.luksosilva.dbcomparator.model.live.comparison.customization;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class ColumnConfig {
 
-public class ColumnSettings {
-
-    private static final Logger log = LoggerFactory.getLogger(ColumnSettings.class);
+    private int codComparedColumn;
     private boolean isComparable;
     private boolean isIdentifier;
 
 
-    public ColumnSettings() {}
+    public ColumnConfig() {}
 
-    public ColumnSettings(boolean isComparable, boolean isIdentifier) {
+    public ColumnConfig(boolean isComparable, boolean isIdentifier) {
         this.isComparable = isComparable;
         this.isIdentifier = isIdentifier;
+    }
+    public ColumnConfig(int codComparedColumn, boolean isIdentifier, boolean isComparable) {
+        this.codComparedColumn = codComparedColumn;
+        this.isIdentifier = isIdentifier;
+        this.isComparable = isComparable;
+    }
+
+    public int getCodComparedColumn() {
+        return codComparedColumn;
     }
 
     public boolean isComparable() {
@@ -47,7 +53,7 @@ public class ColumnSettings {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ColumnSettings that = (ColumnSettings) o;
+        ColumnConfig that = (ColumnConfig) o;
 
         return isComparable == that.isComparable && isIdentifier == that.isIdentifier;
     }

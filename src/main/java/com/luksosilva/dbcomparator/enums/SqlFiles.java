@@ -31,11 +31,15 @@ public enum SqlFiles {
     DELETE_TEMP_SOURCES("temp/source","delete_temp_sources"),
     DELETE_TEMP_SOURCE_TABLES("temp/source","delete_temp_source_tables"),
     DELETE_TEMP_SOURCE_TABLE_COLUMNS("temp/source","delete_temp_source_table_columns"),
+    SELECT_TEMP_SOURCES("temp/source", "select_temp_sources"),
     SELECT_TEMP_SOURCE_TABLES("temp/source", "select_temp_source_tables"),
     SELECT_TEMP_SOURCES_FILES("temp/source", "select_temp_sources_files"),
     SELECT_TEMP_SOURCE_COLUMNS("temp/source", "select_temp_source_columns"),
 
     CLEAR_TEMP_COMPARED_TABLES("temp/comparedTable", "clear"),
+    SELECT_TEMP_COMPARED_TABLES("temp/comparedTable", "select_temp_compared_tables"),
+    SELECT_TEMP_COMPARED_TABLE_COLUMNS("temp/comparedTable", "select_temp_compared_table_columns"),
+    SELECT_TEMP_COMPARED_TABLES_MAX_COD("temp/comparedTable", "select_temp_compared_tables_max_cod"),
     INSERT_TEMP_COMPARED_TABLES("temp/comparedTable","insert_temp_compared_tables"),
     INSERT_TEMP_COMPARED_COLUMNS("temp/comparedTable","insert_temp_compared_columns"),
     DELETE_TEMP_COMPARED_TABLES("temp/comparedTable", "delete_temp_compared_tables"),
@@ -45,7 +49,13 @@ public enum SqlFiles {
     DELETE_TEMP_COMPARED_TABLE_FILTERS("temp/comparedTable", "delete_temp_compared_table_filters"),
     SELECT_TEMP_COMPARED_TABLES_NAMES("temp/comparedTable", "select_temp_compared_tables_names"),
     SELECT_TEMP_COMPARED_TABLES_FROM_SOURCES("temp/comparedTable", "select_temp_compared_tables_from_sources"),
-    SELECT_TEMP_COMPARED_COLUMNS_FROM_SOURCES("temp/comparedTable", "select_temp_compared_columns_from_sources"),
+    PROCESS_TEMP_COMPARED_COLUMNS("temp/comparedTable", "process_temp_compared_columns"),
+    PROCESS_TEMP_COMPARED_COLUMN_CONFIGS("temp/comparedTable","process_temp_compared_column_configs"),
+    UPDATE_TEMP_COMPARED_TABLE_COLUMN_CONFIG_VALIDATION("temp/comparedTable", "update_temp_compared_table_column_config_validation"),
+
+    CLEAR_TEMP_COMPARED_COLUMN_CONFIGS("temp/columnSettings", "clear"),
+    REPLACE_TEMP_COMPARED_COLUMN_CONFIGS("temp/columnSettings","replace_temp_compared_column_configs"),
+    SELECT_TEMP_COMPARED_COLUMN_CONFIGS("temp/columnSettings", "select_temp_compared_column_configs"),
 
 
     CLEAR_TEMP_TABLE_COMPARISON_RESULT("temp/tableComparisonResult", "clear");

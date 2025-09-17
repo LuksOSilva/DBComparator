@@ -3,12 +3,16 @@ package com.luksosilva.dbcomparator.controller.comparisonScreens;
 import com.luksosilva.dbcomparator.controller.HomeScreenController;
 import com.luksosilva.dbcomparator.enums.FilterValidationResultType;
 import com.luksosilva.dbcomparator.enums.FxmlFiles;
+import com.luksosilva.dbcomparator.exception.ColumnSettingsException;
 import com.luksosilva.dbcomparator.exception.FilterException;
+import com.luksosilva.dbcomparator.model.live.comparison.config.ConfigRegistry;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.ColumnFilter;
 import com.luksosilva.dbcomparator.model.live.comparison.compared.ComparedTable;
 import com.luksosilva.dbcomparator.model.live.comparison.Comparison;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.Filter;
 import com.luksosilva.dbcomparator.model.live.comparison.customization.TableFilter;
+import com.luksosilva.dbcomparator.navigator.ComparisonStepsNavigator;
+import com.luksosilva.dbcomparator.service.ColumnSettingsService;
 import com.luksosilva.dbcomparator.service.FilterService;
 import com.luksosilva.dbcomparator.util.DialogUtils;
 import com.luksosilva.dbcomparator.util.wrapper.FxLoadResult;
@@ -45,18 +49,20 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.util.*;
 
-public class SetFiltersScreenController {
+public class SetFiltersScreenController implements BaseController {
 
+    private ComparisonStepsNavigator navigator;
 
-
-    private Scene previousScene;
     private Stage currentStage;
-    private Scene nextScene;
-    public void setPreviousScene(Scene previousScene) { this.previousScene = previousScene; }
-    public void setCurrentStage(Stage currentStage) { this.currentStage = currentStage; }
-    public void setNextScene(Scene nextScene) { this.nextScene = nextScene; }
+
+    private final Comparison comparison = new Comparison();
+    private final ObservableList<TitledPane> allFiltersPanes = FXCollections.observableArrayList();
+    private FilteredList<TitledPane> filteredFilterPanes = new FilteredList<>(allFiltersPanes, s -> true);
+
 
     /// FXML Objects
+    @FXML
+    public Text titleLabel;
     @FXML
     public ScrollPane scrollPane;
     @FXML
@@ -83,30 +89,21 @@ public class SetFiltersScreenController {
     public Text cancelBtn;
 
 
-    private Comparison comparison;
-    private final ObservableList<TitledPane> allFiltersPanes = FXCollections.observableArrayList();
-    private FilteredList<TitledPane> filteredFilterPanes = new FilteredList<>(allFiltersPanes, s -> true);
-
-    private final List<ComparedTableViewModel> comparedTableViewModels = new ArrayList<>();
-
-
-    public void setComparison(Comparison comparison) {
-        this.comparison = comparison;
+    @Override
+    public void setTitle(String title) {
+        titleLabel.setText(title);
     }
 
+    @Override
+    public void init(ConfigRegistry configRegistry, ComparisonStepsNavigator navigator) {
+        this.comparison.setConfigRegistry(configRegistry);
+        this.navigator = navigator;
+        this.currentStage = navigator.getStage();
 
-
-    public void init() {
-        setupViewModels();
-        setupFilterControls();
-        constructAccordion();
+//        constructAccordion();
+//        setupFilterControls();
     }
 
-    public boolean needToProcess() {
-        return comparison.getComparedTables().stream()
-                .anyMatch(comparedTable -> comparedTable.hasFilter()
-                        && comparedTable.getFilterValidationResult().getType().equals(FilterValidationResultType.NOT_VALIDATED));
-    }
 
     /// USER-CALLED METHODS
 
@@ -219,14 +216,6 @@ public class SetFiltersScreenController {
     }
 
 
-
-    private  void setupViewModels() {
-        for (ComparedTable comparedTable : comparison.getComparedTables()) {
-
-            comparedTableViewModels.add(new ComparedTableViewModel(comparedTable));
-
-        }
-    }
 
     private void setupFilterControls() {
         filterTypeComboBox.setItems(FXCollections.observableArrayList("tabela", "coluna"));
@@ -565,25 +554,25 @@ public class SetFiltersScreenController {
 
     private ObservableList<FilterViewModel> getFilterItemsForTable(ComparedTable comparedTable) {
         ObservableList<FilterViewModel> items = FXCollections.observableArrayList();
-
-        ComparedTableViewModel comparedTableViewModel = comparedTableViewModels.stream()
-                .filter(vm -> vm.getModel().equals(comparedTable))
-                .findFirst()
-                .orElse(null);
-        if (comparedTableViewModel == null) return items; //returns empty
-
-        comparedTableViewModel.updateViewModel();
-
-        if (comparedTable.hasTableFilter()) {
-
-            items.add(comparedTableViewModel.getTableFilterViewModel());
-
-        } else {
-            comparedTableViewModel.getComparedTableColumnViewModels().stream()
-                    .flatMap(colVM -> colVM.getColumnFilterViewModels().stream())
-                    .forEach(items::add);
-        }
-
+//
+//        ComparedTableViewModel comparedTableViewModel = comparedTableViewModels.stream()
+//                .filter(vm -> vm.getModel().equals(comparedTable))
+//                .findFirst()
+//                .orElse(null);
+//        if (comparedTableViewModel == null) return items; //returns empty
+//
+//        comparedTableViewModel.updateViewModel();
+//
+//        if (comparedTable.hasTableFilter()) {
+//
+//            items.add(comparedTableViewModel.getTableFilterViewModel());
+//
+//        } else {
+//            comparedTableViewModel.getComparedTableColumnViewModels().stream()
+//                    .flatMap(colVM -> colVM.getColumnFilterViewModels().stream())
+//                    .forEach(items::add);
+//        }
+//
         return items;
     }
 
@@ -630,152 +619,160 @@ public class SetFiltersScreenController {
     /// NAVIGATION METHODS
 
     public void nextStep(MouseEvent mouseEvent) {
-
-        Scene currentScene = currentStage.getScene();
-        currentScene.setUserData(SetFiltersScreenController.this);
-
-
-        if (!needToProcess() && nextScene != null) {
-            currentStage.setScene(nextScene);
-            return;
-        }
-
-        try {
-            FxLoadResult<Parent, LoadingScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
-
-            Parent root = screenData.node;
-            LoadingScreenController controller = screenData.controller;
-
-            controller.setTitle("Validando filtros, aguarde...");
-
-            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
-            currentStage.setScene(scene);
-            currentStage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError(currentStage,
-                    "Erro de Carregamento",
-                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
-            e.printStackTrace();
-            return;
-        }
-
-
-        Task<Parent> processFiltersTask = new Task<>() {
-            @Override
-            protected Parent call() throws Exception {
-
-
-                FilterService.validateFilters(comparison.getComparedTables().stream()
-                        .filter(comparedTable -> !comparedTable.getFilterValidationResult().isValid())
-                        .toList(), comparison.getComparedSources());
-
-                if (hasAnyInvalidFilter()) {
-                    throw new FilterException(
-                            comparison.getComparedTables().stream()
-                                    .filter(comparedTable -> comparedTable.getFilterValidationResult().isInvalid())
-                                    .toList());
-                }
-
-                //ComparisonService.compare(comparison);
-
-                FxLoadResult<Parent, ComparisonResultScreenController> screenData =
-                        FxmlUtils.loadScreen(FxmlFiles.COMPARISON_RESULT_SCREEN);
-
-                Parent nextScreenRoot = screenData.node;
-                ComparisonResultScreenController controller = screenData.controller;
-
-                controller.setCurrentStage(currentStage);
-                controller.setComparison(comparison);
-                controller.init();
-
-                return nextScreenRoot;
-            }
-        };
-
-
-        processFiltersTask.setOnSucceeded(event -> {
-            try {
-
-                Parent nextScreenRoot = processFiltersTask.getValue();
-
-                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
-
-                currentStage.setScene(nextScreenScene);
-
-
-            } catch (Exception e) {
-                DialogUtils.showError(currentStage,
-                        "Erro de Transição",
-                        "Não foi possível exibir a próxima tela: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-
-
-        processFiltersTask.setOnFailed(event -> {
-            currentStage.setScene(currentScene);
-
-            Throwable exception = processFiltersTask.getException();
-
-            if (exception instanceof FilterException) {
-                showErrorInvalidFilter();
-                return;
-            }
-
-            DialogUtils.showError(currentStage,
-                    "Erro de Processamento",
-                    "Ocorreu um erro inesperado: " + exception.getMessage());
-            exception.printStackTrace();
-        });
-
-
-        new Thread(processFiltersTask).start();
-
+//
+//        Scene currentScene = currentStage.getScene();
+//        currentScene.setUserData(SetFiltersScreenController.this);
+//
+//
+//        if (!needToProcess() && nextScene != null) {
+//            currentStage.setScene(nextScene);
+//            return;
+//        }
+//
+//        try {
+//            FxLoadResult<Parent, LoadingScreenController> screenData =
+//                    FxmlUtils.loadScreen(FxmlFiles.LOADING_SCREEN);
+//
+//            Parent root = screenData.node;
+//            LoadingScreenController controller = screenData.controller;
+//
+//            controller.setTitle("Validando filtros, aguarde...");
+//
+//            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
+//            currentStage.setScene(scene);
+//            currentStage.show();
+//
+//        } catch (IOException e) {
+//            DialogUtils.showError(currentStage,
+//                    "Erro de Carregamento",
+//                    "Não foi possível carregar a tela de carregamento: " + e.getMessage());
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//
+//        Task<Parent> processFiltersTask = new Task<>() {
+//            @Override
+//            protected Parent call() throws Exception {
+//
+//
+//                FilterService.validateFilters(comparison.getComparedTables().stream()
+//                        .filter(comparedTable -> !comparedTable.getFilterValidationResult().isValid())
+//                        .toList(), comparison.getComparedSources());
+//
+//                if (hasAnyInvalidFilter()) {
+//                    throw new FilterException(
+//                            comparison.getComparedTables().stream()
+//                                    .filter(comparedTable -> comparedTable.getFilterValidationResult().isInvalid())
+//                                    .toList());
+//                }
+//
+//                //ComparisonService.compare(comparison);
+//
+//                FxLoadResult<Parent, ComparisonResultScreenController> screenData =
+//                        FxmlUtils.loadScreen(FxmlFiles.COMPARISON_RESULT_SCREEN);
+//
+//                Parent nextScreenRoot = screenData.node;
+//                ComparisonResultScreenController controller = screenData.controller;
+//
+//                controller.setCurrentStage(currentStage);
+//                controller.setComparison(comparison);
+//                controller.init();
+//
+//                return nextScreenRoot;
+//            }
+//        };
+//
+//
+//        processFiltersTask.setOnSucceeded(event -> {
+//            try {
+//
+//                Parent nextScreenRoot = processFiltersTask.getValue();
+//
+//                Scene nextScreenScene = new Scene(nextScreenRoot, currentScene.getWidth(), currentScene.getHeight());
+//
+//                currentStage.setScene(nextScreenScene);
+//
+//
+//            } catch (Exception e) {
+//                DialogUtils.showError(currentStage,
+//                        "Erro de Transição",
+//                        "Não foi possível exibir a próxima tela: " + e.getMessage());
+//                e.printStackTrace();
+//            }
+//        });
+//
+//
+//        processFiltersTask.setOnFailed(event -> {
+//            currentStage.setScene(currentScene);
+//
+//            Throwable exception = processFiltersTask.getException();
+//
+//            if (exception instanceof FilterException) {
+//                showErrorInvalidFilter();
+//                return;
+//            }
+//
+//            DialogUtils.showError(currentStage,
+//                    "Erro de Processamento",
+//                    "Ocorreu um erro inesperado: " + exception.getMessage());
+//            exception.printStackTrace();
+//        });
+//
+//
+//        new Thread(processFiltersTask).start();
+//
 
     }
 
 
 
     public void previousStep(MouseEvent mouseEvent) {
+        Scene currenteScene = currentStage.getScene();
 
-        ColumnSettingsScreenController columnSettingsScreenController = (ColumnSettingsScreenController) previousScene.getUserData();
-        columnSettingsScreenController.setNextScene(currentStage.getScene());
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("Processando tabelas, aguarde...");
+        });
 
-        currentStage.setScene(previousScene);
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                return null;
+            }
+        };
 
+        navigator.runTask(task,
+                () -> {
+                    navigator.goTo(FxmlFiles.COLUMN_SETTINGS_SCREEN, ctrl -> {
+                        ctrl.setTitle("selecione os bancos para comparação");
+                        ctrl.init(comparison.getConfigRegistry(), navigator);
+                    });
+                },
+                ex -> {
+                    navigator.getStage().setScene(currenteScene);
+                    if (ex instanceof FilterException) {
+                        return;
+                    }
+                    DialogUtils.showError(currentStage,
+                            "Ocorreu um erro inesperado ao validar as configurações:",
+                            ex.getMessage());
+
+                });
     }
 
     public void cancelComparison(MouseEvent mouseEvent) {
         boolean confirmCancel = DialogUtils.askConfirmation(currentStage,
                 "Cancelar comparação",
-                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");
+                "Deseja realmente cancelar essa comparação? Nenhuma informação será salva");;
         if (!confirmCancel) {
             return;
         }
 
-        try {
-            FxLoadResult<Parent, HomeScreenController> screenData =
-                    FxmlUtils.loadScreen(FxmlFiles.HOME_SCREEN);
+        navigator.goTo(FxmlFiles.LOADING_SCREEN, ctrl -> {
+            ctrl.setTitle("cancelando comparação, aguarde...");
+        });
 
-            Parent root = screenData.node;
-            HomeScreenController controller = screenData.controller;
-
-            controller.setStage(currentStage);
-            controller.init();
-
-            Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, currentStage.getScene().getWidth(), currentStage.getScene().getHeight());
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            DialogUtils.showError(currentStage,
-                    "Erro de Carregamento",
-                    "Não foi possível carregar a tela inicial: " + e.getMessage());
-            e.printStackTrace();
-        }
+        navigator.cancelComparison();
     }
 
 
